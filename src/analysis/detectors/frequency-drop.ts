@@ -1,4 +1,4 @@
-import { intervalStats, splitByWindow } from '../statistics.js';
+import { splitByWindow } from '../statistics.js';
 import type { Detector, Finding } from '../types.js';
 
 const HOUR_MS = 60 * 60 * 1000;
@@ -14,16 +14,12 @@ function spanHours(timestamps: number[]): number {
 
 export const detectFrequencyDrop: Detector = ({
   workflow,
+  runsOnAClock,
   executions,
   now,
   options,
 }): Finding[] => {
-  if (!workflow.active) {
-    return [];
-  }
-
-  const cadence = intervalStats(executions);
-  if (cadence === null || !cadence.regular) {
+  if (!workflow.active || !runsOnAClock) {
     return [];
   }
 
