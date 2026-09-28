@@ -3,6 +3,12 @@
   "version": "0.1.0",
   "description": "Detects n8n workflow failures that report success",
   "type": "module",
+  "bin": {
+    "greenlight": "dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
   "engines": {
     "node": ">=22.12"
   },
