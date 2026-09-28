@@ -1,0 +1,22 @@
+export interface Workflow {
+  id: string;
+  name: string;
+  active: boolean;
+}
+
+export type ExecutionStatus =
+  | 'success'
+  | 'error'
+  | 'running'
+  | 'waiting'
+  | 'canceled'
+  | 'crashed'
+  | 'new';
+
+export interface Execution {
+  id: string;
+  workflowId: string;
+  status: ExecutionStatus;
+  startedAt: string;
+  stoppedAt: string | null;
+}
