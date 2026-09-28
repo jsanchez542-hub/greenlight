@@ -47,7 +47,7 @@ export const detectFrequencyDrop: Detector = ({
       workflowName: workflow.name,
       detector: 'frequency-drop',
       severity: 'warning',
-      summary: `Ran ${recent.length} times in the last ${options.recentWindowHours}h where roughly ${expected} were expected. A schedule was probably edited.`,
+      summary: `Ran ${recent.length} ${recent.length === 1 ? 'time' : 'times'} in the last ${options.recentWindowHours}h where roughly ${expected} were expected. A schedule was probably edited.`,
       evidence: {
         recentRuns: recent.length,
         expectedRuns: expected,
