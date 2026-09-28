@@ -3,7 +3,8 @@ import type { Execution } from '../../src/n8n/types.js';
 import {
   durationStats,
   durationsMs,
-  medianIntervalMs,
+  intervalStats,
+  lastStartedAt,
   percentile,
   splitByWindow,
 } from '../../src/analysis/statistics.js';
@@ -58,19 +59,62 @@ describe('durationStats', () => {
   });
 });
 
-describe('medianIntervalMs', () => {
-  it('needs two executions to infer a cadence', () => {
-    expect(medianIntervalMs([execution('2026-01-01T00:00:00.000Z', 100)])).toBeNull();
+describe('intervalStats', () => {
+  it('needs three executions before claiming a cadence exists', () => {
+    expect(
+      intervalStats([
+        execution('2026-01-01T00:00:00.000Z', 100),
+        execution('2026-01-01T00:05:00.000Z', 100),
+      ]),
+    ).toBeNull();
   });
 
   it('measures the typical gap regardless of input order', () => {
-    const interval = medianIntervalMs([
+    const stats = intervalStats([
       execution('2026-01-01T00:10:00.000Z', 100),
       execution('2026-01-01T00:00:00.000Z', 100),
       execution('2026-01-01T00:05:00.000Z', 100),
     ]);
 
-    expect(interval).toBe(5 * 60 * 1000);
+    expect(stats?.medianMs).toBe(5 * 60 * 1000);
+  });
+
+  it('marks an evenly spaced schedule as regular', () => {
+    const stats = intervalStats([
+      execution('2026-01-01T00:00:00.000Z', 100),
+      execution('2026-01-01T00:05:00.000Z', 100),
+      execution('2026-01-01T00:10:00.000Z', 100),
+      execution('2026-01-01T00:15:00.000Z', 100),
+    ]);
+
+    expect(stats?.regular).toBe(true);
+  });
+
+  it('marks sporadic webhook traffic as irregular', () => {
+    const stats = intervalStats([
+      execution('2026-01-01T00:00:00.000Z', 100),
+      execution('2026-01-01T00:01:00.000Z', 100),
+      execution('2026-01-01T00:02:00.000Z', 100),
+      execution('2026-01-03T00:00:00.000Z', 100),
+    ]);
+
+    expect(stats?.regular).toBe(false);
+  });
+});
+
+describe('lastStartedAt', () => {
+  it('returns the newest start even when the input is unordered', () => {
+    const latest = lastStartedAt([
+      execution('2026-01-01T00:00:00.000Z', 100),
+      execution('2026-01-03T00:00:00.000Z', 100),
+      execution('2026-01-02T00:00:00.000Z', 100),
+    ]);
+
+    expect(latest?.toISOString()).toBe('2026-01-03T00:00:00.000Z');
+  });
+
+  it('returns null when there is nothing to measure', () => {
+    expect(lastStartedAt([])).toBeNull();
   });
 });
 

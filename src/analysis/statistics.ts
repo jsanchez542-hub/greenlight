@@ -41,13 +41,21 @@ export function durationStats(executions: Execution[]): DurationStats | null {
   };
 }
 
-export function medianIntervalMs(executions: Execution[]): number | null {
+export interface IntervalStats {
+  medianMs: number;
+  p95Ms: number;
+  regular: boolean;
+}
+
+const REGULARITY_LIMIT = 3;
+
+export function intervalStats(executions: Execution[]): IntervalStats | null {
   const starts = executions
     .map((execution) => Date.parse(execution.startedAt))
     .filter((value) => Number.isFinite(value))
     .sort((a, b) => a - b);
 
-  if (starts.length < 2) {
+  if (starts.length < 3) {
     return null;
   }
 
@@ -56,7 +64,26 @@ export function medianIntervalMs(executions: Execution[]): number | null {
     gaps.push((starts[index] as number) - (starts[index - 1] as number));
   }
   gaps.sort((a, b) => a - b);
-  return percentile(gaps, 0.5);
+
+  const medianMs = percentile(gaps, 0.5);
+  const p95Ms = percentile(gaps, 0.95);
+
+  return {
+    medianMs,
+    p95Ms,
+    regular: medianMs > 0 && p95Ms <= medianMs * REGULARITY_LIMIT,
+  };
+}
+
+export function lastStartedAt(executions: Execution[]): Date | null {
+  let latest = Number.NEGATIVE_INFINITY;
+  for (const execution of executions) {
+    const startedAt = Date.parse(execution.startedAt);
+    if (Number.isFinite(startedAt) && startedAt > latest) {
+      latest = startedAt;
+    }
+  }
+  return latest === Number.NEGATIVE_INFINITY ? null : new Date(latest);
 }
 
 export function splitByWindow(
