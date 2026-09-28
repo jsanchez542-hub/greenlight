@@ -1,3 +1,5 @@
+import type { Execution, ExecutionDetail, Workflow } from '../n8n/types.js';
+
 export type DetectorName =
   | 'duration-drift'
   | 'silent-error'
@@ -32,3 +34,13 @@ export const defaultAnalysisOptions: AnalysisOptions = {
   silenceFactor: 4,
   frequencyDropRatio: 0.5,
 };
+
+export interface DetectorInput {
+  workflow: Workflow;
+  executions: Execution[];
+  executionDetails: ExecutionDetail[];
+  now: Date;
+  options: AnalysisOptions;
+}
+
+export type Detector = (input: DetectorInput) => Finding[];
