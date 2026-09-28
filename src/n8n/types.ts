@@ -20,3 +20,17 @@ export interface Execution {
   startedAt: string;
   stoppedAt: string | null;
 }
+
+export interface NodeRun {
+  data?: {
+    main?: Array<Array<{ json?: Record<string, unknown> }> | null>;
+  };
+}
+
+export interface ExecutionDetail extends Execution {
+  data?: {
+    resultData?: {
+      runData?: Record<string, NodeRun[]>;
+    };
+  };
+}

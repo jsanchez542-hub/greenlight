@@ -1,4 +1,4 @@
-import type { Execution, Workflow } from './types.js';
+import type { Execution, ExecutionDetail, Workflow } from './types.js';
 
 const PAGE_SIZE = 250;
 
@@ -49,6 +49,12 @@ export class N8nClient {
       query['workflowId'] = options.workflowId;
     }
     return this.collect<Execution>('/api/v1/executions', query, options.limit);
+  }
+
+  getExecution(id: string): Promise<ExecutionDetail> {
+    return this.request<ExecutionDetail>(`/api/v1/executions/${encodeURIComponent(id)}`, {
+      includeData: 'true',
+    });
   }
 
   private async collect<T>(
