@@ -44,10 +44,7 @@ export function durationStats(executions: Execution[]): DurationStats | null {
 export interface IntervalStats {
   medianMs: number;
   p95Ms: number;
-  regular: boolean;
 }
-
-const REGULARITY_LIMIT = 3;
 
 export function intervalStats(executions: Execution[]): IntervalStats | null {
   const starts = executions
@@ -65,13 +62,9 @@ export function intervalStats(executions: Execution[]): IntervalStats | null {
   }
   gaps.sort((a, b) => a - b);
 
-  const medianMs = percentile(gaps, 0.5);
-  const p95Ms = percentile(gaps, 0.95);
-
   return {
-    medianMs,
-    p95Ms,
-    regular: medianMs > 0 && p95Ms <= medianMs * REGULARITY_LIMIT,
+    medianMs: percentile(gaps, 0.5),
+    p95Ms: percentile(gaps, 0.95),
   };
 }
 

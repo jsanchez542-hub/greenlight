@@ -4,6 +4,16 @@ export interface Workflow {
   active: boolean;
 }
 
+export interface WorkflowNode {
+  name: string;
+  type: string;
+  parameters?: Record<string, unknown>;
+}
+
+export interface WorkflowDetail extends Workflow {
+  nodes: WorkflowNode[];
+}
+
 export type ExecutionStatus =
   | 'success'
   | 'error'

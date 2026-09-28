@@ -33,6 +33,7 @@ function series(options: {
 function input(overrides: Partial<DetectorInput> = {}): DetectorInput {
   return {
     workflow,
+    runsOnAClock: true,
     executions: [],
     executionDetails: [],
     now: NOW,
@@ -139,12 +140,14 @@ describe('detectSilence', () => {
   });
 
   it('leaves webhook workflows alone, since idle time is normal for them', () => {
-    const sporadic: Execution[] = [
-      ...series({ count: 3, everyMs: 60 * 1000, durationMs: 800, endingAt: new Date(NOW.getTime() - 200 * HOUR) }),
-      ...series({ count: 1, everyMs: 60 * 1000, durationMs: 800, endingAt: new Date(NOW.getTime() - 100 * HOUR) }),
-    ];
+    const executions = series({
+      count: 20,
+      everyMs: 5 * 60 * 1000,
+      durationMs: 800,
+      endingAt: new Date(NOW.getTime() - 6 * HOUR),
+    });
 
-    expect(detectSilence(input({ executions: sporadic }))).toEqual([]);
+    expect(detectSilence(input({ runsOnAClock: false, executions }))).toEqual([]);
   });
 
   it('says nothing about a workflow that is switched off on purpose', () => {

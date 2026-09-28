@@ -10,15 +10,21 @@ function humanise(milliseconds: number): string {
   return hours < 48 ? `${hours.toFixed(1)} h` : `${(hours / 24).toFixed(1)} days`;
 }
 
-export const detectSilence: Detector = ({ workflow, executions, now, options }): Finding[] => {
-  if (!workflow.active) {
+export const detectSilence: Detector = ({
+  workflow,
+  runsOnAClock,
+  executions,
+  now,
+  options,
+}): Finding[] => {
+  if (!workflow.active || !runsOnAClock) {
     return [];
   }
 
   const cadence = intervalStats(executions);
   const latest = lastStartedAt(executions);
 
-  if (cadence === null || latest === null || !cadence.regular) {
+  if (cadence === null || latest === null) {
     return [];
   }
 

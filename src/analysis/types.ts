@@ -37,6 +37,7 @@ export const defaultAnalysisOptions: AnalysisOptions = {
 
 export interface DetectorInput {
   workflow: Workflow;
+  runsOnAClock: boolean;
   executions: Execution[];
   executionDetails: ExecutionDetail[];
   now: Date;

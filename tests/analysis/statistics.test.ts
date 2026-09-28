@@ -79,27 +79,6 @@ describe('intervalStats', () => {
     expect(stats?.medianMs).toBe(5 * 60 * 1000);
   });
 
-  it('marks an evenly spaced schedule as regular', () => {
-    const stats = intervalStats([
-      execution('2026-01-01T00:00:00.000Z', 100),
-      execution('2026-01-01T00:05:00.000Z', 100),
-      execution('2026-01-01T00:10:00.000Z', 100),
-      execution('2026-01-01T00:15:00.000Z', 100),
-    ]);
-
-    expect(stats?.regular).toBe(true);
-  });
-
-  it('marks sporadic webhook traffic as irregular', () => {
-    const stats = intervalStats([
-      execution('2026-01-01T00:00:00.000Z', 100),
-      execution('2026-01-01T00:01:00.000Z', 100),
-      execution('2026-01-01T00:02:00.000Z', 100),
-      execution('2026-01-03T00:00:00.000Z', 100),
-    ]);
-
-    expect(stats?.regular).toBe(false);
-  });
 });
 
 describe('lastStartedAt', () => {
