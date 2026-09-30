@@ -1,0 +1,40 @@
+import { diagnose as runDiagnosis, type Diagnosis, type DiagnoseInput } from 'greenlight';
+import type { SetupStatus } from '../setup-status';
+import { currentEnvironment, type Environment } from './environment';
+
+const REUSE_WINDOW_MS = 2_000;
+
+interface SetupCheckerOptions {
+  diagnose?: (input: DiagnoseInput) => Promise<Diagnosis>;
+  now?: () => number;
+}
+
+interface Recent {
+  settings: string;
+  at: number;
+  status: Promise<SetupStatus>;
+}
+
+export function createSetupChecker({ diagnose = runDiagnosis, now = Date.now }: SetupCheckerOptions = {}) {
+  let recent: Recent | null = null;
+
+  return function check(env: Environment = currentEnvironment()): Promise<SetupStatus> {
+    const baseUrl = env['N8N_BASE_URL']?.trim();
+    const apiKey = env['N8N_API_KEY']?.trim();
+    const settings = `${baseUrl ?? ''}\n${apiKey ?? ''}`;
+
+    if (recent !== null && recent.settings === settings && now() - recent.at < REUSE_WINDOW_MS) {
+      return recent.status;
+    }
+
+    const status = diagnose({ baseUrl, apiKey }).then((diagnosis) => ({
+      hasAddress: Boolean(baseUrl),
+      hasKey: Boolean(apiKey),
+      diagnosis,
+    }));
+    recent = { settings, at: now(), status };
+    return status;
+  };
+}
+
+export const checkSetup = createSetupChecker();
