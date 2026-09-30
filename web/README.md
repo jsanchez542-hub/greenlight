@@ -100,6 +100,12 @@ scan time, not to the moment you open the page, with the exact UTC time on hover
 State is always carried by a label and a distinct icon shape as well as colour. The lime of
 the logo marks selection and brand only; it never means a state.
 
+Connecting is always one tap away. The sidebar has a **Connect** entry, a fifth tab on a narrow
+screen, that says "not connected" until an instance is set up and then shows "Connected" with
+its host. While the data is the sample, the top bar and the notice under it carry a **Connect
+your n8n** button. Whoever skips the welcome dialog sees one short, dismissible hint next to that
+entry, once.
+
 After you connect, Overview shows one dismissible card about alerts: `npm run watch` tells you
 when something new appears. The Watching section of the root `README.md` explains where the
 alerts can go.
@@ -108,7 +114,8 @@ alerts can go.
 
 The welcome dialog appears the first time the dashboard is opened in a browser. It offers the
 tour and, when no instance is connected, the connection page. The tour has six short steps that
-point at the real interface. It can be skipped at any point, `Esc` closes it, focus stays inside
+point at the real interface. It can be skipped until its last step, which offers **Connect my n8n**
+when no instance is connected and only **Done** otherwise. `Esc` closes it, focus stays inside
 it and returns where it was, and it reopens from the foot of the sidebar or with `?`. The
 "seen" flag is stored in the browser under a versioned key; if the browser blocks storage the
 dialog simply shows again.
