@@ -2,6 +2,24 @@
   "name": "greenlight",
   "version": "0.1.0",
   "description": "Detects n8n workflow failures that report success",
+  "license": "MIT",
+  "author": "Miguel Sanchez Torres",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jsanchez542-hub/greenlight.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jsanchez542-hub/greenlight/issues"
+  },
+  "homepage": "https://github.com/jsanchez542-hub/greenlight#readme",
+  "keywords": [
+    "n8n",
+    "observability",
+    "monitoring",
+    "workflow",
+    "automation",
+    "silent-failures"
+  ],
   "type": "module",
   "exports": {
     ".": {
@@ -28,7 +46,8 @@
     "doctor": "node dist/cli.js doctor",
     "scan": "node dist/cli.js",
     "watch": "node dist/cli.js watch",
-    "panel": "npm install --prefix web && npm run dev --prefix web"
+    "panel": "npm install --prefix web && npm run dev --prefix web",
+    "prepare": "npm run build"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
