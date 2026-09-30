@@ -64,6 +64,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         onNext={onboarding.next}
         onBack={onboarding.back}
         onClose={onboarding.close}
+        onSkipWelcome={onboarding.skipWelcome}
       />
     </div>
   );

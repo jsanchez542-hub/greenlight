@@ -3,6 +3,7 @@ import {
   nextFocusIndex,
   onboardingReducer,
   placeCard,
+  tourActions,
   tourSteps,
   visibleState,
   welcomeChoices,
@@ -168,5 +169,31 @@ describe('stored flags', () => {
     expect(() => writeFlag(blocked, WELCOME_FLAG)).not.toThrow();
     expect(readFlag(undefined, WELCOME_FLAG)).toBe(false);
     expect(() => writeFlag(undefined, WELCOME_FLAG)).not.toThrow();
+  });
+});
+
+describe('tourActions', () => {
+  const last = tourSteps.length - 1;
+
+  it('offers no back on the first step and skips on every step but the last', () => {
+    expect(tourActions(0, false)).toEqual({ skip: true, back: false, primary: 'next', secondaryDone: false });
+    expect(tourActions(2, true)).toEqual({ skip: true, back: true, primary: 'next', secondaryDone: false });
+  });
+
+  it('drops skip on the last step, which has nothing left to skip', () => {
+    expect(tourActions(last, false).skip).toBe(false);
+    expect(tourActions(last, true).skip).toBe(false);
+  });
+
+  it('keeps back on the last step', () => {
+    expect(tourActions(last, true).back).toBe(true);
+  });
+
+  it('ends with connect and done when no instance is connected', () => {
+    expect(tourActions(last, false)).toMatchObject({ primary: 'connect', secondaryDone: true });
+  });
+
+  it('ends with only done once an instance is connected', () => {
+    expect(tourActions(last, true)).toMatchObject({ primary: 'done', secondaryDone: false });
   });
 });

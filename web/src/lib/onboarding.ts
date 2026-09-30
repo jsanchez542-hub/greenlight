@@ -74,6 +74,23 @@ export function onboardingReducer(state: OnboardingState, action: OnboardingActi
   }
 }
 
+export type PrimaryAction = 'next' | 'done' | 'connect';
+
+export interface TourActions {
+  skip: boolean;
+  back: boolean;
+  primary: PrimaryAction;
+  secondaryDone: boolean;
+}
+
+export function tourActions(step: number, liveAvailable: boolean, total: number = tourSteps.length): TourActions {
+  const back = step > 0;
+  if (step < total - 1) {
+    return { skip: true, back, primary: 'next', secondaryDone: false };
+  }
+  return { skip: false, back, primary: liveAvailable ? 'done' : 'connect', secondaryDone: !liveAvailable };
+}
+
 export function visibleState(state: OnboardingState, welcomeSeen: boolean): OnboardingState {
   return state.phase === 'closed' && !welcomeSeen ? { phase: 'welcome' } : state;
 }
