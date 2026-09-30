@@ -1,6 +1,8 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
+import { SETUP_HREF } from '@/lib/navigation';
 import { useScanControls } from '@/lib/scan-context';
 import { useShortcuts } from '@/lib/use-shortcuts';
 import { useSidebar } from '@/lib/use-sidebar';
@@ -13,6 +15,11 @@ import { TopBar } from './TopBar';
 
 function Content({ children }: { children: ReactNode }) {
   const { phase, problem, liveAvailable, selectSample, scanNow } = useScanControls();
+  const pathname = usePathname();
+
+  if (pathname === SETUP_HREF) {
+    return children;
+  }
 
   switch (phase) {
     case 'connecting':

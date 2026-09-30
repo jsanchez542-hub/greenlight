@@ -14,6 +14,15 @@ export const sections: readonly Section[] = [
   { id: 'checks', href: '/checks', label: 'Checks', shortcut: 'c' },
 ];
 
+export const SETUP_HREF = '/setup';
+
+export function pageLabel(pathname: string): string {
+  if (pathname === SETUP_HREF) {
+    return 'setup';
+  }
+  return activeSection(pathname)?.label.toLowerCase() ?? 'not found';
+}
+
 export function activeSection(pathname: string): Section | undefined {
   if (pathname === '/') {
     return sections[0];

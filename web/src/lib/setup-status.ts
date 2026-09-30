@@ -1,4 +1,4 @@
-import type { CheckStep, Diagnosis, StepId, StepStatus } from 'greenlight';
+import type { CheckStep, Diagnosis, StepId, StepStatus, WorkflowHealth } from 'greenlight';
 import { asBoolean, asCount, asRecord, asString } from './scan-result';
 
 export interface SetupStatus {
@@ -48,6 +48,19 @@ export function parseSetupStatus(value: unknown): SetupStatus {
     },
   };
 }
+
+export function stepIconState(status: StepStatus): WorkflowHealth {
+  if (status === 'ok') {
+    return 'healthy';
+  }
+  return status === 'failed' ? 'critical' : 'no-runs';
+}
+
+export const stepStatusLabel: Record<StepStatus, string> = {
+  ok: 'Passed',
+  failed: 'Failed',
+  skipped: 'Skipped',
+};
 
 export type SetupPhase = 'waiting' | 'failing' | 'connected';
 

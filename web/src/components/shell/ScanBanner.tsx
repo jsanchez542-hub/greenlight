@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import { SETUP_HREF } from '@/lib/navigation';
 import { useScanControls } from '@/lib/scan-context';
 import { StatusIcon } from '../ui/StatusIcon';
 import { useDataAge } from './Freshness';
@@ -13,9 +15,14 @@ export function ScanBanner() {
     return (
       <p className={styles.banner} role="note">
         <strong>Sample data, not a live instance.</strong>
-        {liveAvailable
-          ? ' Choose Live instance to see your own workflows.'
-          : ' Set N8N_BASE_URL and N8N_API_KEY in web/.env.local to scan your own n8n.'}
+        {liveAvailable ? (
+          ' Choose Live instance to see your own workflows.'
+        ) : (
+          <>
+            {' '}
+            <Link href={SETUP_HREF}>Connect your n8n</Link> to see your own workflows.
+          </>
+        )}
       </p>
     );
   }
@@ -28,7 +35,8 @@ export function ScanBanner() {
           <strong>
             Showing the last successful scan{age === null ? '' : `, ${age.label}`}.
           </strong>{' '}
-          The latest attempt failed: {problem}
+          The latest attempt failed: {problem}{' '}
+          <Link href={SETUP_HREF}>Run the connection check</Link>
         </p>
       </div>
     );

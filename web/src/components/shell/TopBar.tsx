@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { activeSection } from '@/lib/navigation';
+import { pageLabel } from '@/lib/navigation';
 import { decodeSegment } from '@/lib/routes';
 import { useScanControls } from '@/lib/scan-context';
 import { Freshness } from './Freshness';
@@ -10,9 +10,8 @@ import { SourceControl } from './SourceControl';
 import styles from './TopBar.module.css';
 
 function locationOf(pathname: string, source: string): string[] {
-  const section = activeSection(pathname);
   const detail = pathname.split('/').filter(Boolean).slice(1).map(decodeSegment);
-  return ['greenlight', source, section?.label.toLowerCase() ?? 'not found', ...detail];
+  return ['greenlight', source, pageLabel(pathname), ...detail];
 }
 
 export function TopBar() {
