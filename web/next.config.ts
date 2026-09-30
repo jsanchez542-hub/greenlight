@@ -8,6 +8,7 @@ const config: NextConfig = {
   outputFileTracingRoot: repositoryRoot,
   turbopack: { root: repositoryRoot },
   poweredByHeader: false,
+  devIndicators: false,
   async headers() {
     return [
       {
