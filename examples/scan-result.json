@@ -1,0 +1,210 @@
+{
+  "version": 1,
+  "scannedAt": "2026-03-02T09:00:00.000Z",
+  "workflowsScanned": 18,
+  "workflows": [
+    {
+      "id": "orders",
+      "name": "Order confirmations",
+      "active": true,
+      "trigger": "event",
+      "executionsRead": 60,
+      "lastStartedAt": "2026-03-02T09:00:00.000Z",
+      "health": "critical"
+    },
+    {
+      "id": "inventory",
+      "name": "Inventory sync",
+      "active": true,
+      "trigger": "schedule",
+      "executionsRead": 166,
+      "lastStartedAt": "2026-03-02T09:00:00.000Z",
+      "health": "warning"
+    },
+    {
+      "id": "prices",
+      "name": "Price monitor",
+      "active": true,
+      "trigger": "schedule",
+      "executionsRead": 169,
+      "lastStartedAt": "2026-03-02T07:00:00.000Z",
+      "health": "warning"
+    },
+    {
+      "id": "bookings",
+      "name": "Booking confirmations",
+      "active": true,
+      "trigger": "event",
+      "executionsRead": 35,
+      "lastStartedAt": "2026-03-02T09:00:00.000Z",
+      "health": "healthy"
+    },
+    {
+      "id": "crm",
+      "name": "CRM contact sync",
+      "active": true,
+      "trigger": "schedule",
+      "executionsRead": 150,
+      "lastStartedAt": "2026-03-02T09:00:00.000Z",
+      "health": "healthy"
+    },
+    {
+      "id": "backup",
+      "name": "Database backup",
+      "active": true,
+      "trigger": "schedule",
+      "executionsRead": 100,
+      "lastStartedAt": "2026-03-02T09:00:00.000Z",
+      "health": "healthy"
+    },
+    {
+      "id": "invoices",
+      "name": "Invoice export",
+      "active": true,
+      "trigger": "schedule",
+      "executionsRead": 120,
+      "lastStartedAt": "2026-03-02T09:00:00.000Z",
+      "health": "healthy"
+    },
+    {
+      "id": "leads",
+      "name": "Lead enrichment",
+      "active": true,
+      "trigger": "event",
+      "executionsRead": 40,
+      "lastStartedAt": "2026-03-02T09:00:00.000Z",
+      "health": "healthy"
+    },
+    {
+      "id": "signup",
+      "name": "Newsletter signup",
+      "active": true,
+      "trigger": "event",
+      "executionsRead": 25,
+      "lastStartedAt": "2026-03-02T09:00:00.000Z",
+      "health": "healthy"
+    },
+    {
+      "id": "payments",
+      "name": "Payment events",
+      "active": true,
+      "trigger": "event",
+      "executionsRead": 110,
+      "lastStartedAt": "2026-03-02T09:00:00.000Z",
+      "health": "healthy"
+    },
+    {
+      "id": "standup",
+      "name": "Standup reminder",
+      "active": true,
+      "trigger": "schedule",
+      "executionsRead": 90,
+      "lastStartedAt": "2026-03-02T09:00:00.000Z",
+      "health": "healthy"
+    },
+    {
+      "id": "tickets",
+      "name": "Support ticket triage",
+      "active": true,
+      "trigger": "event",
+      "executionsRead": 80,
+      "lastStartedAt": "2026-03-02T09:00:00.000Z",
+      "health": "healthy"
+    },
+    {
+      "id": "warehouse",
+      "name": "Warehouse load",
+      "active": true,
+      "trigger": "schedule",
+      "executionsRead": 140,
+      "lastStartedAt": "2026-03-02T09:00:00.000Z",
+      "health": "healthy"
+    },
+    {
+      "id": "audit",
+      "name": "Access audit",
+      "active": false,
+      "trigger": "schedule",
+      "executionsRead": 0,
+      "lastStartedAt": null,
+      "health": "no-runs"
+    },
+    {
+      "id": "legacy",
+      "name": "Legacy import",
+      "active": false,
+      "trigger": "event",
+      "executionsRead": 0,
+      "lastStartedAt": null,
+      "health": "no-runs"
+    },
+    {
+      "id": "onboarding",
+      "name": "Onboarding sequence",
+      "active": true,
+      "trigger": "event",
+      "executionsRead": 0,
+      "lastStartedAt": null,
+      "health": "no-runs"
+    },
+    {
+      "id": "social",
+      "name": "Social post scheduler",
+      "active": false,
+      "trigger": "schedule",
+      "executionsRead": 0,
+      "lastStartedAt": null,
+      "health": "no-runs"
+    },
+    {
+      "id": "survey",
+      "name": "Survey responses",
+      "active": true,
+      "trigger": "event",
+      "executionsRead": 0,
+      "lastStartedAt": null,
+      "health": "no-runs"
+    }
+  ],
+  "findings": [
+    {
+      "workflowId": "orders",
+      "workflowName": "Order confirmations",
+      "detector": "silent-error",
+      "severity": "critical",
+      "summary": "\"Send receipt\" emitted an error in 5 of the last 5 successful executions. The workflow reports success while this step fails.",
+      "evidence": {
+        "node": "Send receipt",
+        "executionsWithError": 5,
+        "executionsInspected": 5
+      }
+    },
+    {
+      "workflowId": "inventory",
+      "workflowName": "Inventory sync",
+      "detector": "duration-drift",
+      "severity": "warning",
+      "summary": "Typical run time rose from 1.2s to 10.5s, 8.6 times slower than before, which usually means a downstream service is retrying before it gives up.",
+      "evidence": {
+        "baselineMedian": "1.2s",
+        "baselineP95": "1.5s",
+        "recentMedian": "10.5s",
+        "baselineSamples": 142,
+        "recentSamples": 24
+      }
+    },
+    {
+      "workflowId": "prices",
+      "workflowName": "Price monitor",
+      "detector": "frequency-drop",
+      "severity": "warning",
+      "summary": "Ran 1 time in the last 24h where roughly 24 were expected. A schedule was probably edited.",
+      "evidence": {
+        "recentRuns": 1,
+        "expectedRuns": 24,
+        "windowHours": 24,
+        "baselineRuns": 168
+      }
+    }
+  ]
+}
