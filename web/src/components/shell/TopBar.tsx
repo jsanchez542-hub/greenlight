@@ -21,7 +21,7 @@ export function TopBar() {
 
   return (
     <header className={styles.top}>
-      <div className={styles.brand}>
+      <div className={styles.brand} data-tour="brand">
         <Logo size={28} />
         <span>GreenLight</span>
       </div>
