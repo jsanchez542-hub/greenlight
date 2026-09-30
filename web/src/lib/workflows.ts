@@ -3,15 +3,6 @@ import { healthStates, severities } from './status';
 
 export type HealthFilter = WorkflowHealth | 'all';
 
-export interface WorkflowFindings {
-  count: number;
-  firstIndex: number;
-}
-
-export function findingAnchor(index: number): string {
-  return `finding-${index}`;
-}
-
 export function countByHealth(workflows: readonly WorkflowSummary[]): Record<WorkflowHealth, number> {
   const counts = Object.fromEntries(healthStates.map((state) => [state, 0])) as Record<
     WorkflowHealth,
@@ -41,15 +32,10 @@ export function filterByHealth(
   return filter === 'all' ? [...workflows] : workflows.filter((workflow) => workflow.health === filter);
 }
 
-export function findingsByWorkflow(findings: readonly Finding[]): Map<string, WorkflowFindings> {
-  const grouped = new Map<string, WorkflowFindings>();
-  findings.forEach((finding, index) => {
-    const entry = grouped.get(finding.workflowId);
-    if (entry === undefined) {
-      grouped.set(finding.workflowId, { count: 1, firstIndex: index });
-    } else {
-      entry.count += 1;
-    }
-  });
-  return grouped;
+export function countFindingsByWorkflow(findings: readonly Finding[]): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const finding of findings) {
+    counts.set(finding.workflowId, (counts.get(finding.workflowId) ?? 0) + 1);
+  }
+  return counts;
 }
