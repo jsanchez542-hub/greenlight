@@ -57,29 +57,41 @@ same meaning as in the command line tool.
 | `npm run typecheck` | TypeScript without emitting |
 | `npm test` | unit tests |
 
-## What it shows
+## Routes
 
-1. **Summary.** Scan date, number of workflows, findings by severity, and how the workflows
-   split across the four states. A scan with no findings says "Nothing to report".
-2. **Findings.** One card per finding with the backend's own summary text, the evidence as
-   key and value, and a section describing what the check does and what to review. The
-   wording comes from the "How it decides" section of the main README.
-3. **Workflows.** Every workflow that was checked, filterable by state. Last run is given
-   relative to the scan time, not to the moment you open the page, with the exact UTC time
-   on hover.
-4. **Loading and failure** for the live mode.
+| Route | What it shows |
+| --- | --- |
+| `/` | Overview: findings by severity, the four workflow states, a map with one node per workflow, and the findings that need attention. A scan with none says "Nothing to report". |
+| `/findings` | Every finding, filtered by severity and by check. The filters live in the address, for example `?severity=critical&check=silence`. |
+| `/findings/[key]` | One finding: the backend's summary text, the evidence as key and value, and what the check does, its defaults and what to review. |
+| `/workflows` | A dense table of every workflow. Sort by any column, filter by state, search by name. The state is kept in the address: `?state=warning&q=sync&sort=runs&dir=desc`. |
+| `/workflows/[id]` | One workflow: state, trigger, last run and its findings. |
+| `/checks` | The four checks, what each applies to and the defaults it uses. |
+
+The data source and the scan result belong to the layout, so they survive moving between
+routes. Last run is given relative to the scan time, not to the moment you open the page,
+with the exact UTC time on hover.
 
 `no-runs` is neutral grey because it is not a verdict: the instance held no history to judge.
 `healthy` means history was read and no check found anything, not that nothing is wrong.
-State is always carried by a label and a distinct icon shape as well as colour.
+State is always carried by a label and a distinct icon shape as well as colour. The lime of
+the logo marks selection and brand only; it never means a state.
+
+## Keyboard
+
+`g` then `o`, `f`, `w` or `c` moves to overview, findings, workflows or checks. `/` focuses
+the workflow search. The sidebar collapses to icons and remembers that choice in the browser.
+On a narrow screen the sidebar becomes a bar along the bottom.
 
 ## Layout
 
 ```
-src/app/            page, layout and the /api/scan route
-src/components/     presentation, one component per file with its stylesheet
-src/lib/            parsing, formatting, grouping and the live scan
+src/app/(app)/      the routes, inside one layout that holds the shell and the scan
+src/app/api/scan/   the live scan route
+src/components/     shell, ui and one folder per route, each component with its stylesheet
+src/lib/            parsing, formatting, sorting, filtering and navigation
 src/lib/server/     code that only runs on the server
+public/logo/        the project logo for light and dark backgrounds
 tests/              unit tests for everything in src/lib
 ```
 

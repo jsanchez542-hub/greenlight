@@ -1,0 +1,50 @@
+.list {
+  display: grid;
+  gap: 16px;
+}
+
+.check {
+  display: grid;
+  gap: 16px;
+  padding: 20px 22px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--state);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 16px;
+}
+
+.head h2 {
+  font-family: var(--font-mono);
+  font-size: 1.125rem;
+  letter-spacing: -0.01em;
+}
+
+.head > span {
+  font-size: 0.8125rem;
+}
+
+.count {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+}
+
+.applies {
+  color: var(--ink);
+}
+
+.applies span {
+  margin-right: 8px;
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
