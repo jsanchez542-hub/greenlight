@@ -16,6 +16,7 @@ interface ScanControls {
   refreshing: boolean;
   intervalMinutes: number | null;
   selectLive: () => void;
+  connectLive: () => void;
   selectSample: () => void;
   scanNow: () => void;
 }
@@ -32,7 +33,9 @@ interface ScanProviderProps {
 
 export function ScanProvider({ sample, liveAvailable, initialSnapshot, children }: ScanProviderProps) {
   const [source, setSource] = useState<Source>(liveAvailable ? 'live' : 'sample');
-  const { feed, scanNow } = useLiveFeed(liveAvailable && source === 'live', initialSnapshot);
+  const [connected, setConnected] = useState(false);
+  const available = liveAvailable || connected;
+  const { feed, scanNow } = useLiveFeed(available && source === 'live', initialSnapshot);
 
   const live = source === 'live';
   const result = live ? (feed.snapshot?.result ?? null) : sample;
@@ -46,16 +49,20 @@ export function ScanProvider({ sample, liveAvailable, initialSnapshot, children 
   const controls = useMemo<ScanControls>(
     () => ({
       source,
-      liveAvailable,
+      liveAvailable: available,
       phase,
       problem,
       refreshing: live && (feed.snapshot?.refreshing ?? false),
       intervalMinutes: live ? (feed.snapshot?.intervalMinutes ?? null) : null,
       selectLive: () => setSource('live'),
+      connectLive: () => {
+        setConnected(true);
+        setSource('live');
+      },
       selectSample: () => setSource('sample'),
       scanNow: () => void scanNow(),
     }),
-    [source, liveAvailable, phase, problem, live, feed.snapshot, scanNow],
+    [source, available, phase, problem, live, feed.snapshot, scanNow],
   );
 
   return (

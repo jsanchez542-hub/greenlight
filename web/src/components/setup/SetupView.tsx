@@ -46,13 +46,12 @@ function Guide() {
 
 export function SetupView() {
   const router = useRouter();
-  const { selectLive } = useScanControls();
+  const { connectLive } = useScanControls();
   const { status, error, checking, checkAgain } = useSetupStatus();
   const phase = status === null ? null : setupPhase(status);
 
   function openLiveView() {
-    router.refresh();
-    selectLive();
+    connectLive();
     router.push('/');
   }
 
