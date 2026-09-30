@@ -28,7 +28,7 @@ export const detectorInfo: Record<DetectorName, DetectorInfo> = {
     label: 'Silence',
     question: 'Has a scheduled workflow stopped running without being switched off?',
     method:
-      'Applies to active workflows started by a clock. It compares the time since the last run with the usual interval between runs and reports a gap far longer than usual. Workflows started by webhooks or polling triggers are not judged, because a quiet period can be normal for them.',
+      'Applies to active workflows started by a clock. It reports the workflow when it has been quiet for more than four times its usual interval between runs, which it learns from at least three runs. Workflows started by webhooks or polling triggers are not judged, because a quiet period can be normal for them.',
     review:
       'Check that the workflow is still active and that its schedule trigger is still registered. Then look at the instance logs around the time of the last run.',
   },
@@ -36,7 +36,7 @@ export const detectorInfo: Record<DetectorName, DetectorInfo> = {
     label: 'Frequency drop',
     question: 'Is it still running, but far less often than before?',
     method:
-      'Applies to active workflows started by a clock. It counts the runs in the recent window and compares them with the count the workflow’s own history predicts. A workflow with no runs at all in the window is left to the silence check.',
+      'Applies to active workflows started by a clock. It reports the workflow when the last 24 hours hold fewer than half the runs its own history predicts. A workflow that did not run at all in the window is judged by the silence check instead, which compares the gap against the workflow’s usual interval.',
     review:
       'Compare the schedule trigger as it is configured today with the cadence the history shows. An edited interval is the usual cause.',
   },
