@@ -49,3 +49,21 @@
   color: var(--ink-muted);
   font-variant-numeric: tabular-nums;
 }
+
+@media (max-width: 599px) {
+  .group {
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+  }
+
+  .label,
+  .option {
+    flex: none;
+  }
+
+  .option {
+    scroll-snap-align: start;
+  }
+}

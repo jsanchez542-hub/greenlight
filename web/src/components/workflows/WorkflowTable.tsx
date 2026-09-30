@@ -107,7 +107,11 @@ export function WorkflowTable({
                 {workflow.executionsRead}
               </td>
               <td data-label="Active">{workflow.active ? 'yes' : 'no'}</td>
-              <td data-label="Findings" className={styles.numeric}>
+              <td
+                data-label="Findings"
+                data-empty={(findingCounts.get(workflow.id) ?? 0) === 0}
+                className={styles.numeric}
+              >
                 {findingCounts.get(workflow.id) ?? 0}
               </td>
             </tr>

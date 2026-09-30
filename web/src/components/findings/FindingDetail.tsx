@@ -28,7 +28,6 @@ export function FindingDetail({ findingKey }: { findingKey: string }) {
     <>
       <PageHeader
         title={finding.workflowName}
-        meta={`${info.label} · ${severityLabel[finding.severity].toLowerCase()}`}
         actions={
           <Link href="/findings" className={styles.back}>
             All findings
