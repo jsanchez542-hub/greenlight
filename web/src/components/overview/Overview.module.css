@@ -93,10 +93,31 @@
   font-size: 0.8125rem;
 }
 
+.tile {
+  position: relative;
+}
+
+.tile:has(.tileLink):hover {
+  background: var(--panel-raised);
+}
+
 .tileLink {
-  width: fit-content;
-  font-family: var(--font-mono);
-  font-size: 0.8125rem;
+  text-decoration: none;
+}
+
+.tileLink::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.tileLink:focus-visible {
+  outline: none;
+}
+
+.tile:has(.tileLink:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }
 
 .attention {

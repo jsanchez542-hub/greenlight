@@ -93,18 +93,19 @@ export function Overview() {
           {healthStates.map((state) => (
             <li key={state} className={styles.tile} data-state={state}>
               <div className={styles.tileHead}>
-                <StatusLabel state={state} label={healthLabel[state]} />
+                {counts[state] > 0 ? (
+                  <Link href={`/workflows?state=${state}`} className={styles.tileLink}>
+                    <StatusLabel state={state} label={healthLabel[state]} />
+                    <span className="visually-hidden">
+                      , {pluralise(counts[state], 'workflow')}. View workflows
+                    </span>
+                  </Link>
+                ) : (
+                  <StatusLabel state={state} label={healthLabel[state]} />
+                )}
                 <span className={styles.tileCount}>{counts[state]}</span>
               </div>
               <p className={styles.tileMeaning}>{healthMeaning[state]}</p>
-              {counts[state] > 0 && (
-                <Link href={`/workflows?state=${state}`} className={styles.tileLink}>
-                  <span className="visually-hidden">
-                    {pluralise(counts[state], 'workflow')} in state {healthLabel[state]}:{' '}
-                  </span>
-                  View workflows
-                </Link>
-              )}
             </li>
           ))}
         </ul>
