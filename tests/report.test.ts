@@ -4,8 +4,10 @@ import { renderReport } from '../src/report.js';
 import type { ScanResult } from '../src/scan.js';
 
 const clean: ScanResult = {
+  version: 1,
   scannedAt: '2026-01-10T12:00:00.000Z',
   workflowsScanned: 23,
+  workflows: [],
   findings: [],
 };
 
