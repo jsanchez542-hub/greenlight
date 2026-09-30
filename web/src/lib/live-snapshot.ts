@@ -6,6 +6,7 @@ export interface LiveSnapshot {
   error: string | null;
   refreshing: boolean;
   intervalMinutes: number;
+  host: string | null;
 }
 
 export function parseLiveSnapshot(value: unknown): LiveSnapshot {
@@ -15,5 +16,6 @@ export function parseLiveSnapshot(value: unknown): LiveSnapshot {
     error: fields['error'] === null ? null : asString(fields['error'], 'error'),
     refreshing: asBoolean(fields['refreshing'], 'refreshing'),
     intervalMinutes: asCount(fields['intervalMinutes'], 'intervalMinutes'),
+    host: fields['host'] === null ? null : asString(fields['host'], 'host'),
   };
 }

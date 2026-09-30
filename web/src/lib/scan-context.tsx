@@ -15,6 +15,7 @@ interface ScanControls {
   problem: string | null;
   refreshing: boolean;
   intervalMinutes: number | null;
+  host: string | null;
   selectLive: () => void;
   connectLive: () => void;
   selectSample: () => void;
@@ -54,6 +55,7 @@ export function ScanProvider({ sample, liveAvailable, initialSnapshot, children 
       problem,
       refreshing: live && (feed.snapshot?.refreshing ?? false),
       intervalMinutes: live ? (feed.snapshot?.intervalMinutes ?? null) : null,
+      host: feed.snapshot?.host ?? null,
       selectLive: () => setSource('live'),
       connectLive: () => {
         setConnected(true);

@@ -28,6 +28,14 @@ export function scanIntervalMinutes(env: Environment = currentEnvironment()): nu
   return Number.isInteger(value) && value > 0 ? value : DEFAULT_INTERVAL_MINUTES;
 }
 
+export function hostOf(env: Environment): string | null {
+  try {
+    return new URL(env['N8N_BASE_URL']?.trim() ?? '').host || null;
+  } catch {
+    return null;
+  }
+}
+
 async function executeScan(env: Environment): Promise<ScanResult> {
   const config = loadConfig(env);
   const client = new N8nClient({ baseUrl: config.baseUrl, apiKey: config.apiKey });
@@ -46,6 +54,7 @@ export function liveCache(env: Environment = currentEnvironment()): ScanCache {
         scan: () => executeScan(env),
         describeFailure: (error) => describeScanFailure(error, env),
         intervalMinutes: scanIntervalMinutes(env),
+        host: hostOf(env),
       }),
     };
   }

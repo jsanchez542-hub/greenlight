@@ -2,12 +2,18 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { activeSection, sections } from '@/lib/navigation';
+import { connectEntry } from '@/lib/connect-entry';
+import { SETUP_HREF, activeSection, sections } from '@/lib/navigation';
+import { useScanControls } from '@/lib/scan-context';
 import { Icon } from '../ui/Icon';
+import { ConnectHint } from './ConnectHint';
 import styles from './BottomNav.module.css';
 
 export function BottomNav() {
-  const current = activeSection(usePathname());
+  const pathname = usePathname();
+  const current = activeSection(pathname);
+  const { liveAvailable, host } = useScanControls();
+  const connect = connectEntry(liveAvailable, host);
 
   return (
     <nav className={styles.bar} aria-label="Sections">
@@ -25,7 +31,19 @@ export function BottomNav() {
             </Link>
           </li>
         ))}
+        <li>
+          <Link
+            href={SETUP_HREF}
+            className={styles.link}
+            data-emphasis={connect.emphasized}
+            aria-current={pathname === SETUP_HREF ? 'page' : undefined}
+          >
+            <Icon name="connect" />
+            {connect.label}
+          </Link>
+        </li>
       </ul>
+      <ConnectHint placement="tabs" />
     </nav>
   );
 }

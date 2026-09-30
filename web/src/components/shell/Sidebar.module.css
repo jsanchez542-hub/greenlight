@@ -86,10 +86,53 @@
   font-variant-numeric: tabular-nums;
 }
 
+.connectZone {
+  margin-top: auto;
+}
+
+.connect {
+  min-height: 48px;
+}
+
+.connect[data-emphasis='true'] {
+  border: 1px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.connect[data-emphasis='true']::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-strong);
+}
+
+.connect[data-emphasis='true'] svg {
+  color: var(--accent-strong);
+}
+
+.connectText {
+  display: grid;
+  flex: 1;
+  line-height: 1.25;
+}
+
+.detail {
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
 .footer {
   display: grid;
   gap: 14px;
-  margin-top: auto;
 }
 
 .source {
@@ -154,7 +197,7 @@
   padding: 0;
 }
 
-:global([data-sidebar='collapsed']) :is(.brandName, .label, .count, .source, .hint) {
+:global([data-sidebar='collapsed']) :is(.brandName, .label, .count, .source, .hint, .connectText) {
   position: absolute;
   width: 1px;
   height: 1px;

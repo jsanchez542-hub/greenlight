@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { sampleResult } from '@/lib/sample';
 import { fetchSnapshot, requestScan } from '@/lib/snapshot-client';
 
-const snapshot = { result: sampleResult, error: null, refreshing: false, intervalMinutes: 5 };
+const snapshot = { result: sampleResult, error: null, refreshing: false, intervalMinutes: 5, host: 'n8n.test' };
 
 function respondWith(body: unknown, status = 200): typeof fetch {
   return async () => new Response(JSON.stringify(body), { status });

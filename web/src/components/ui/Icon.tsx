@@ -10,7 +10,8 @@ export type IconName =
   | 'scan'
   | 'search'
   | 'chevron'
-  | 'help';
+  | 'help'
+  | 'connect';
 
 const paths: Record<IconName, ReactNode> = {
   overview: (
@@ -55,6 +56,13 @@ const paths: Record<IconName, ReactNode> = {
     </>
   ),
   chevron: <path d="m7 14.5 5-5 5 5" />,
+  connect: (
+    <>
+      <path d="M9 3v5M15 3v5" />
+      <path d="M6.5 8h11v3.5a5.5 5.5 0 0 1-11 0V8Z" />
+      <path d="M12 17v4" />
+    </>
+  ),
   help: (
     <>
       <circle cx="12" cy="12" r="9" />
