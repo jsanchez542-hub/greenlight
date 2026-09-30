@@ -1,4 +1,5 @@
 import { headers } from 'next/headers';
+import { currentEnvironment } from '@/lib/server/environment';
 import { isAllowedHost } from '@/lib/server/host';
 import { isLiveScanConfigured, liveCache } from '@/lib/server/live-scan';
 
@@ -11,10 +12,11 @@ function failure(message: string, status: number): Response {
 }
 
 async function refusal(request: Request, checkSite: boolean): Promise<Response | null> {
-  if (!isLiveScanConfigured()) {
+  const env = currentEnvironment();
+  if (!isLiveScanConfigured(env)) {
     return failure('Live scanning is not configured on this server.', 404);
   }
-  if (!isAllowedHost((await headers()).get('host'))) {
+  if (!isAllowedHost((await headers()).get('host'), env)) {
     return failure('This host is not allowed. Open the dashboard through localhost.', 403);
   }
   const fetchSite = request.headers.get('sec-fetch-site');

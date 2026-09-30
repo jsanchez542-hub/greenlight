@@ -1,18 +1,29 @@
 import { N8nClient, loadConfig, scan, type ScanResult } from 'greenlight';
+import { currentEnvironment, type Environment } from './environment';
 import { ScanCache } from './scan-cache';
-
-type Environment = Record<string, string | undefined>;
 
 const REDACTED = '[redacted]';
 export const DEFAULT_INTERVAL_MINUTES = 5;
 
-const holder = globalThis as typeof globalThis & { greenlightScanCache?: ScanCache };
+const SETTING_NAMES = [
+  'N8N_BASE_URL',
+  'N8N_API_KEY',
+  'GREENLIGHT_EXECUTION_LIMIT',
+  'GREENLIGHT_DETAIL_SAMPLE',
+  'GREENLIGHT_SCAN_INTERVAL_MINUTES',
+] as const;
 
-export function isLiveScanConfigured(env: Environment = process.env): boolean {
+interface CacheHolder {
+  greenlightScanCache?: { settings: string; cache: ScanCache };
+}
+
+const holder = globalThis as typeof globalThis & CacheHolder;
+
+export function isLiveScanConfigured(env: Environment = currentEnvironment()): boolean {
   return Boolean(env['N8N_BASE_URL']?.trim() && env['N8N_API_KEY']?.trim());
 }
 
-export function scanIntervalMinutes(env: Environment = process.env): number {
+export function scanIntervalMinutes(env: Environment = currentEnvironment()): number {
   const value = Number(env['GREENLIGHT_SCAN_INTERVAL_MINUTES']);
   return Number.isInteger(value) && value > 0 ? value : DEFAULT_INTERVAL_MINUTES;
 }
@@ -26,13 +37,19 @@ async function executeScan(env: Environment): Promise<ScanResult> {
   });
 }
 
-export function liveCache(env: Environment = process.env): ScanCache {
-  holder.greenlightScanCache ??= new ScanCache({
-    scan: () => executeScan(env),
-    describeFailure: (error) => describeScanFailure(error, env),
-    intervalMinutes: scanIntervalMinutes(env),
-  });
-  return holder.greenlightScanCache;
+export function liveCache(env: Environment = currentEnvironment()): ScanCache {
+  const settings = SETTING_NAMES.map((name) => env[name] ?? '').join('\n');
+  if (holder.greenlightScanCache?.settings !== settings) {
+    holder.greenlightScanCache = {
+      settings,
+      cache: new ScanCache({
+        scan: () => executeScan(env),
+        describeFailure: (error) => describeScanFailure(error, env),
+        intervalMinutes: scanIntervalMinutes(env),
+      }),
+    };
+  }
+  return holder.greenlightScanCache.cache;
 }
 
 function urlCredentials(baseUrl: string | undefined): string[] {
@@ -67,7 +84,7 @@ function messageOf(error: unknown): string {
   return cause === undefined ? error.message : `${error.message} (${cause})`;
 }
 
-export function describeScanFailure(error: unknown, env: Environment = process.env): string {
+export function describeScanFailure(error: unknown, env: Environment = currentEnvironment()): string {
   const message = `The scan could not finish: ${messageOf(error)}`;
   return secretsIn(env).reduce((text, secret) => text.split(secret).join(REDACTED), message);
 }

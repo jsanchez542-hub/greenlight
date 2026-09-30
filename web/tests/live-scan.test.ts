@@ -1,6 +1,6 @@
 import { N8nApiError } from 'greenlight';
 import { describe, expect, it } from 'vitest';
-import { describeScanFailure, isLiveScanConfigured } from '@/lib/server/live-scan';
+import { describeScanFailure, isLiveScanConfigured, liveCache } from '@/lib/server/live-scan';
 
 const env = {
   N8N_BASE_URL: 'https://reader:hunter2@n8n.internal.test',
@@ -51,5 +51,23 @@ describe('describeScanFailure', () => {
 
   it('describes a thrown value that is not an error', () => {
     expect(describeScanFailure('boom', env)).toBe('The scan could not finish: unknown error');
+  });
+});
+
+describe('liveCache', () => {
+  const settings = { N8N_BASE_URL: 'https://cache.test', N8N_API_KEY: 'first-key' };
+
+  it('keeps one cache while the settings stay the same', () => {
+    expect(liveCache(settings)).toBe(liveCache({ ...settings }));
+  });
+
+  it('starts a new cache when the key or the address changes', () => {
+    const before = liveCache(settings);
+    expect(liveCache({ ...settings, N8N_API_KEY: 'second-key' })).not.toBe(before);
+  });
+
+  it('starts a new cache when the interval changes', () => {
+    const before = liveCache(settings);
+    expect(liveCache({ ...settings, GREENLIGHT_SCAN_INTERVAL_MINUTES: '9' })).not.toBe(before);
   });
 });
