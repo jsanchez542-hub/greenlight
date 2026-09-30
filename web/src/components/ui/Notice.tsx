@@ -57,6 +57,9 @@ export function ScanFailure({ message, onRetry, onShowSample }: ScanFailureProps
         <button type="button" className={styles.primary} onClick={onRetry}>
           Run the scan again
         </button>
+        <Link href="/setup" className={styles.linkButton}>
+          Run the connection check
+        </Link>
         <button type="button" onClick={onShowSample}>
           Show sample data
         </button>
