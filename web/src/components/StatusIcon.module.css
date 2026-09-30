@@ -1,0 +1,15 @@
+.icon {
+  flex: none;
+  width: 1em;
+  height: 1em;
+  color: var(--state);
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  color: var(--state);
+  font-weight: 600;
+  white-space: nowrap;
+}

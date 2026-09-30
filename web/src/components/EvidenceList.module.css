@@ -1,0 +1,32 @@
+.evidence {
+  display: grid;
+  max-width: 34rem;
+  padding: 4px 14px;
+  border-radius: var(--radius);
+  background: var(--surface-sunk);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 0;
+}
+
+.row + .row {
+  border-top: 1px solid var(--line);
+}
+
+.row dt {
+  color: var(--ink-muted);
+}
+
+.row dd {
+  margin-left: auto;
+  font-weight: 700;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
