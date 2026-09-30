@@ -45,22 +45,13 @@
     background: var(--accent);
   }
 
-  .link[data-emphasis='true'] {
-    color: var(--ink);
-    font-weight: 700;
-  }
-
-  .link[data-emphasis='true'] svg {
-    color: var(--accent-strong);
-  }
-
   .link[data-emphasis='true']::after {
     content: '';
     position: absolute;
-    top: 8px;
-    left: calc(50% + 8px);
-    width: 8px;
-    height: 8px;
+    top: 9px;
+    left: calc(50% + 9px);
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     background: var(--accent-strong);
   }
