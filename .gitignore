@@ -2,3 +2,6 @@ node_modules/
 dist/
 .env
 *.log
+
+.greenlight-state.json
+.greenlight-state.json.tmp
