@@ -1,0 +1,23 @@
+.logo {
+  display: inline-flex;
+  flex: none;
+}
+
+.logo img {
+  width: 100%;
+  height: auto;
+}
+
+.onDark {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .onLight {
+    display: none;
+  }
+
+  .onDark {
+    display: block;
+  }
+}
