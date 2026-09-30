@@ -6,7 +6,7 @@ import { SEARCH_INPUT_ID, isTypingTarget, nextShortcutStep } from './shortcuts';
 
 const SEQUENCE_TIMEOUT_MS = 1500;
 
-export function useShortcuts(): void {
+export function useShortcuts(onHelp: () => void): void {
   const router = useRouter();
 
   useEffect(() => {
@@ -14,7 +14,13 @@ export function useShortcuts(): void {
     let timer: ReturnType<typeof setTimeout> | undefined;
 
     function onKeyDown(event: KeyboardEvent) {
-      if (event.ctrlKey || event.metaKey || event.altKey || isTypingTarget(event.target)) {
+      const dialogOpen = document.querySelector('[aria-modal="true"]') !== null;
+      if (event.ctrlKey || event.metaKey || event.altKey || dialogOpen || isTypingTarget(event.target)) {
+        return;
+      }
+      if (event.key === '?') {
+        event.preventDefault();
+        onHelp();
         return;
       }
       if (event.key === '/') {
@@ -44,5 +50,5 @@ export function useShortcuts(): void {
       window.removeEventListener('keydown', onKeyDown);
       clearTimeout(timer);
     };
-  }, [router]);
+  }, [router, onHelp]);
 }

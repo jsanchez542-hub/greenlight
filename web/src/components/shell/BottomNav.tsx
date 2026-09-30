@@ -17,6 +17,7 @@ export function BottomNav() {
             <Link
               href={section.href}
               className={styles.link}
+              data-tour={`nav-${section.id}`}
               aria-current={current?.id === section.id ? 'page' : undefined}
             >
               <Icon name={section.id} />

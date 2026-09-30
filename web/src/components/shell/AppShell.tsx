@@ -4,8 +4,10 @@ import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { SETUP_HREF } from '@/lib/navigation';
 import { useScanControls } from '@/lib/scan-context';
+import { useOnboarding } from '@/lib/use-onboarding';
 import { useShortcuts } from '@/lib/use-shortcuts';
 import { useSidebar } from '@/lib/use-sidebar';
+import { Onboarding } from '../onboarding/Onboarding';
 import { ScanFailure, ScanProgress } from '../ui/Notice';
 import styles from './AppShell.module.css';
 import { BottomNav } from './BottomNav';
@@ -38,14 +40,16 @@ function Content({ children }: { children: ReactNode }) {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const sidebar = useSidebar();
-  useShortcuts();
+  const { liveAvailable } = useScanControls();
+  const onboarding = useOnboarding();
+  useShortcuts(onboarding.startTour);
 
   return (
     <div className={styles.shell} data-sidebar={sidebar.state}>
       <a href="#content" className={styles.skip}>
         Skip to content
       </a>
-      <Sidebar state={sidebar.state} onToggle={sidebar.toggle} />
+      <Sidebar state={sidebar.state} onToggle={sidebar.toggle} onTour={onboarding.startTour} />
       <div className={styles.column}>
         <TopBar />
         <main id="content" className={styles.main} tabIndex={-1}>
@@ -53,6 +57,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         </main>
       </div>
       <BottomNav />
+      <Onboarding
+        state={onboarding.state}
+        liveAvailable={liveAvailable}
+        onStartTour={onboarding.startTour}
+        onNext={onboarding.next}
+        onBack={onboarding.back}
+        onClose={onboarding.close}
+      />
     </div>
   );
 }

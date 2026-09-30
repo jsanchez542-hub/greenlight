@@ -14,6 +14,7 @@ import styles from './Sidebar.module.css';
 interface SidebarProps {
   state: SidebarState;
   onToggle: () => void;
+  onTour: () => void;
 }
 
 function useSectionCounts(): Partial<Record<SectionId, number>> {
@@ -24,7 +25,7 @@ function useSectionCounts(): Partial<Record<SectionId, number>> {
   return { findings: result.findings.length, workflows: result.workflows.length };
 }
 
-export function Sidebar({ state, onToggle }: SidebarProps) {
+export function Sidebar({ state, onToggle, onTour }: SidebarProps) {
   const pathname = usePathname();
   const { source } = useScanControls();
   const age = useDataAge();
@@ -35,7 +36,7 @@ export function Sidebar({ state, onToggle }: SidebarProps) {
 
   return (
     <aside className={styles.sidebar} aria-label="Primary">
-      <div className={styles.brand}>
+      <div className={styles.brand} data-tour="brand">
         <Logo size={32} />
         <span className={styles.brandName}>GreenLight</span>
       </div>
@@ -52,6 +53,7 @@ export function Sidebar({ state, onToggle }: SidebarProps) {
                   className={styles.link}
                   aria-current={active ? 'page' : undefined}
                   title={`${section.label} (g ${section.shortcut})`}
+                  data-tour={`nav-${section.id}`}
                 >
                   <Icon name={section.id} />
                   <span className={styles.label}>{section.label}</span>
@@ -79,7 +81,7 @@ export function Sidebar({ state, onToggle }: SidebarProps) {
             </div>
           )}
         </dl>
-        <p className={styles.hint}>
+        <p className={styles.hint} data-tour="shortcuts">
           <span>
             <kbd>g</kbd> then <kbd>o</kbd> <kbd>f</kbd> <kbd>w</kbd> <kbd>c</kbd>
           </span>
@@ -87,6 +89,10 @@ export function Sidebar({ state, onToggle }: SidebarProps) {
             <kbd>/</kbd> search workflows
           </span>
         </p>
+        <button type="button" className={styles.toggle} onClick={onTour} title="Take the tour (?)">
+          <Icon name="help" />
+          <span className={styles.label}>Take the tour</span>
+        </button>
         <button
           type="button"
           className={styles.toggle}

@@ -1,0 +1,106 @@
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+}
+
+.dim {
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 0.6);
+}
+
+.ring {
+  position: absolute;
+  border: 2px solid var(--accent-strong);
+  border-radius: var(--radius);
+  box-shadow: 0 0 0 100vmax rgb(0 0 0 / 0.6);
+  pointer-events: none;
+  transition:
+    top 0.2s,
+    left 0.2s,
+    width 0.2s,
+    height 0.2s;
+}
+
+.card {
+  position: absolute;
+  display: grid;
+  gap: 8px;
+  max-height: calc(100dvh - 32px);
+  padding: 18px 20px;
+  overflow-y: auto;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--panel);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.35);
+}
+
+.card:focus {
+  outline: none;
+}
+
+.count {
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.title {
+  font-family: var(--font-mono);
+  font-size: 1.125rem;
+  letter-spacing: -0.01em;
+}
+
+.body {
+  color: var(--ink);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.primary,
+.secondary,
+.skip {
+  min-height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: transparent;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.secondary:hover,
+.skip:hover {
+  background: var(--panel-raised);
+}
+
+.skip {
+  border-color: transparent;
+  padding: 0 4px;
+  color: var(--ink-muted);
+  font-weight: 400;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.primary:hover {
+  background: var(--accent-strong);
+}
