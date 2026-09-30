@@ -23,7 +23,12 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "example": "npm run build && node examples/synthetic-instance.mjs"
+    "example": "npm run build && node examples/synthetic-instance.mjs",
+    "setup": "node dist/cli.js init",
+    "doctor": "node dist/cli.js doctor",
+    "scan": "node dist/cli.js",
+    "watch": "node dist/cli.js watch",
+    "panel": "npm install --prefix web && npm run dev --prefix web"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
