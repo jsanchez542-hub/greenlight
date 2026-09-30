@@ -45,7 +45,7 @@ WARNING  Inventory sync
              baselineSamples  142
              recentSamples    24
 
-WARNING  Nightly digest
+WARNING  Price monitor
          Ran 1 time in the last 24h where roughly 24 were expected. A schedule
          was probably edited.
              recentRuns    1
@@ -55,7 +55,8 @@ WARNING  Nightly digest
 ```
 
 That report is the real output of the program, run against a synthetic instance so the
-example can show every check at once.
+example can show every check at once. `npm run example` reproduces it from
+[`examples/synthetic-instance.mjs`](examples/synthetic-instance.mjs).
 
 ## Usage
 
@@ -68,8 +69,8 @@ export N8N_API_KEY=your-key
 node dist/cli.js
 ```
 
-`--json` prints the same result as structured data. The process exits with 1 when
-something is found, so it can gate a deployment pipeline.
+`--json` prints the same result as structured data (see [Output](#output)). The process
+exits with 1 when something is found, so it can gate a deployment pipeline.
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
@@ -79,6 +80,56 @@ something is found, so it can gate a deployment pipeline.
 | `GREENLIGHT_DETAIL_SAMPLE` | 5 | executions inspected node by node |
 
 Only read endpoints are used. GreenLight never writes to the instance.
+
+## Output
+
+`--json` returns one object. `findings` holds what the checks raised, critical first.
+`workflows` holds one entry per workflow, including the healthy ones, so a consumer can
+show what was checked and not only what failed.
+
+```json
+{
+  "version": 1,
+  "scannedAt": "2026-03-02T09:00:00.000Z",
+  "workflowsScanned": 18,
+  "workflows": [
+    {
+      "id": "inventory",
+      "name": "Inventory sync",
+      "active": true,
+      "trigger": "schedule",
+      "executionsRead": 166,
+      "lastStartedAt": "2026-03-02T09:00:00.000Z",
+      "health": "warning"
+    }
+  ],
+  "findings": [
+    {
+      "workflowId": "inventory",
+      "workflowName": "Inventory sync",
+      "detector": "duration-drift",
+      "severity": "warning",
+      "summary": "Typical run time rose from 1.2s to 10.5s, ...",
+      "evidence": { "baselineMedian": "1.2s", "recentMedian": "10.5s" }
+    }
+  ]
+}
+```
+
+`health` is `critical`, `warning`, `healthy` or `no-runs`. `no-runs` means the instance
+keeps no history for that workflow, so nothing could be judged; it is not a verdict.
+`trigger` is `schedule` for workflows started by a clock and `event` for everything else.
+`version` changes only when a field is removed or changes meaning. The complete output for
+the example above is in [`examples/scan-result.json`](examples/scan-result.json).
+
+The same result is available from code:
+
+```ts
+import { N8nClient, scan } from 'greenlight';
+
+const client = new N8nClient({ baseUrl, apiKey });
+const result = await scan(client, { executionLimit: 200, detailSampleSize: 5 });
+```
 
 ## How it decides
 
@@ -113,7 +164,8 @@ expensive.
 ## Development
 
 ```bash
-npm test        # 40 tests
+npm test        # 43 tests
+npm run example # the report above, from a synthetic instance
 npm run typecheck
 npm run build
 ```
