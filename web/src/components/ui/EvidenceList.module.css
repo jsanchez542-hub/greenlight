@@ -1,22 +1,22 @@
 .evidence {
   display: grid;
-  max-width: 34rem;
-  padding: 4px 14px;
+  padding: 2px 14px;
+  border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: var(--surface-sunk);
+  background: var(--bg);
   font-family: var(--font-mono);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 
 .row {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  padding: 6px 0;
+  gap: 16px;
+  padding: 7px 0;
 }
 
 .row + .row {
-  border-top: 1px solid var(--line);
+  border-top: 1px dashed var(--line);
 }
 
 .row dt {

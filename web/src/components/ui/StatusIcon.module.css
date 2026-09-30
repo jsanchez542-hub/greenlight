@@ -8,7 +8,7 @@
 .label {
   display: inline-flex;
   align-items: center;
-  gap: 0.4em;
+  gap: 0.45em;
   color: var(--state);
   font-weight: 600;
   white-space: nowrap;
