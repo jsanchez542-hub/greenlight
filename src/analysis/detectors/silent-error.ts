@@ -22,6 +22,10 @@ function failingNodes(execution: ExecutionDetail): string[] {
 }
 
 export const detectSilentErrors: Detector = ({ workflow, executionDetails }): Finding[] => {
+  if (!workflow.active) {
+    return [];
+  }
+
   const occurrences = new Map<string, number>();
   let inspected = 0;
 

@@ -77,6 +77,17 @@ describe('detectSilentErrors', () => {
     expect(detectSilentErrors(input({ executionDetails: [failed] }))).toEqual([]);
   });
 
+  it('leaves a workflow alone once it has been switched off on purpose', () => {
+    const findings = detectSilentErrors(
+      input({
+        workflow: { ...workflow, active: false },
+        executionDetails: [detailWithNodeError('Get Unread Replies', 'Account Restricted')],
+      }),
+    );
+
+    expect(findings).toEqual([]);
+  });
+
   it('stays quiet when every node returns clean output', () => {
     const clean: ExecutionDetail = {
       id: 'ok',
