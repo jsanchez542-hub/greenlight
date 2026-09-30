@@ -27,7 +27,7 @@ export function TopBar() {
       </div>
       <nav className={styles.path} aria-label="Location">
         <span className={styles.prompt} aria-hidden="true">
-          $
+          &gt;
         </span>
         <ol>
           {segments.map((segment, index) => (
