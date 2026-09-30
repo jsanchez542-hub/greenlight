@@ -1,16 +1,23 @@
 import { N8nClient, loadConfig, scan, type ScanResult } from 'greenlight';
+import { ScanCache } from './scan-cache';
 
 type Environment = Record<string, string | undefined>;
 
 const REDACTED = '[redacted]';
+export const DEFAULT_INTERVAL_MINUTES = 5;
 
-let inFlight: Promise<ScanResult> | null = null;
+const holder = globalThis as typeof globalThis & { greenlightScanCache?: ScanCache };
 
 export function isLiveScanConfigured(env: Environment = process.env): boolean {
   return Boolean(env['N8N_BASE_URL']?.trim() && env['N8N_API_KEY']?.trim());
 }
 
-async function execute(env: Environment): Promise<ScanResult> {
+export function scanIntervalMinutes(env: Environment = process.env): number {
+  const value = Number(env['GREENLIGHT_SCAN_INTERVAL_MINUTES']);
+  return Number.isInteger(value) && value > 0 ? value : DEFAULT_INTERVAL_MINUTES;
+}
+
+async function executeScan(env: Environment): Promise<ScanResult> {
   const config = loadConfig(env);
   const client = new N8nClient({ baseUrl: config.baseUrl, apiKey: config.apiKey });
   return scan(client, {
@@ -19,11 +26,13 @@ async function execute(env: Environment): Promise<ScanResult> {
   });
 }
 
-export function runLiveScan(env: Environment = process.env): Promise<ScanResult> {
-  inFlight ??= execute(env).finally(() => {
-    inFlight = null;
+export function liveCache(env: Environment = process.env): ScanCache {
+  holder.greenlightScanCache ??= new ScanCache({
+    scan: () => executeScan(env),
+    describeFailure: (error) => describeScanFailure(error, env),
+    intervalMinutes: scanIntervalMinutes(env),
   });
-  return inFlight;
+  return holder.greenlightScanCache;
 }
 
 function urlCredentials(baseUrl: string | undefined): string[] {
@@ -41,11 +50,20 @@ function secretsIn(env: Environment): string[] {
   );
 }
 
+function causeOf(error: Error): string | undefined {
+  const { cause } = error;
+  if (!(cause instanceof Error)) {
+    return undefined;
+  }
+  const code = 'code' in cause && typeof cause.code === 'string' ? cause.code : undefined;
+  return cause.message === '' ? code : cause.message;
+}
+
 function messageOf(error: unknown): string {
   if (!(error instanceof Error)) {
     return 'unknown error';
   }
-  const cause = error.cause instanceof Error ? error.cause.message : undefined;
+  const cause = causeOf(error);
   return cause === undefined ? error.message : `${error.message} (${cause})`;
 }
 

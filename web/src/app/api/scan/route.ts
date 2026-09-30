@@ -1,26 +1,39 @@
-import { describeScanFailure, isLiveScanConfigured, runLiveScan } from '@/lib/server/live-scan';
+import { headers } from 'next/headers';
+import { isAllowedHost } from '@/lib/server/host';
+import { isLiveScanConfigured, liveCache } from '@/lib/server/live-scan';
 
 export const dynamic = 'force-dynamic';
 
-const headers = { 'Cache-Control': 'no-store' };
+const noStore = { 'Cache-Control': 'no-store' };
 
 function failure(message: string, status: number): Response {
-  return Response.json({ error: message }, { status, headers });
+  return Response.json({ error: message }, { status, headers: noStore });
 }
 
-export async function POST(request: Request): Promise<Response> {
+async function refusal(request: Request, checkSite: boolean): Promise<Response | null> {
   if (!isLiveScanConfigured()) {
     return failure('Live scanning is not configured on this server.', 404);
   }
-
+  if (!isAllowedHost((await headers()).get('host'))) {
+    return failure('This host is not allowed. Open the dashboard through localhost.', 403);
+  }
   const fetchSite = request.headers.get('sec-fetch-site');
-  if (fetchSite !== null && fetchSite !== 'same-origin') {
+  if (checkSite && fetchSite !== null && fetchSite !== 'same-origin') {
     return failure('Live scans can only be started from this dashboard.', 403);
   }
+  return null;
+}
 
-  try {
-    return Response.json(await runLiveScan(), { headers });
-  } catch (error) {
-    return failure(describeScanFailure(error), 502);
+export async function GET(request: Request): Promise<Response> {
+  return (await refusal(request, false)) ?? Response.json(liveCache().snapshot(), { headers: noStore });
+}
+
+export async function POST(request: Request): Promise<Response> {
+  const refused = await refusal(request, true);
+  if (refused !== null) {
+    return refused;
   }
+  const cache = liveCache();
+  void cache.refresh();
+  return Response.json(cache.snapshot(), { status: 202, headers: noStore });
 }
