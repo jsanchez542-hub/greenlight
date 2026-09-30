@@ -29,6 +29,9 @@
 }
 
 p.banner {
-  display: block;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
   color: var(--ink-muted);
 }

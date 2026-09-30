@@ -1,6 +1,7 @@
 'use client';
 
 import { useScanControls } from '@/lib/scan-context';
+import { ConnectLink } from '../ui/ConnectLink';
 import { Icon } from '../ui/Icon';
 import styles from './SourceControl.module.css';
 
@@ -11,10 +12,12 @@ export function SourceControl() {
 
   if (!liveAvailable) {
     return (
-      <p className={styles.note}>
-        <span className={styles.pill}>Sample data</span>
-        <span className={styles.description}>not a live instance</span>
-      </p>
+      <div className={styles.note}>
+        <p className={styles.sampleLabel}>
+          <strong>Sample data</strong> <span>not a live instance</span>
+        </p>
+        <ConnectLink />
+      </div>
     );
   }
 

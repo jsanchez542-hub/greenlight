@@ -54,24 +54,24 @@
 .note {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 14px;
+}
+
+.sampleLabel {
+  display: flex;
+  gap: 8px;
+  margin: 0;
   color: var(--ink-muted);
   font-family: var(--font-mono);
   font-size: 0.75rem;
 }
 
-.pill {
-  padding: 2px 8px;
-  border: 1px solid var(--accent);
-  border-radius: var(--radius);
-  background: var(--accent-soft);
+.sampleLabel strong {
   color: var(--ink);
-  font-weight: 700;
-  white-space: nowrap;
 }
 
 @media (max-width: 899px) {
-  .description {
+  .sampleLabel {
     display: none;
   }
 

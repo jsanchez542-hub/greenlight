@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { SETUP_HREF } from '@/lib/navigation';
 import { useScanControls } from '@/lib/scan-context';
+import { ConnectLink } from '../ui/ConnectLink';
 import { StatusIcon } from '../ui/StatusIcon';
 import { useDataAge } from './Freshness';
 import styles from './ScanBanner.module.css';
@@ -15,14 +16,10 @@ export function ScanBanner() {
     return (
       <p className={styles.banner} role="note">
         <strong>Sample data, not a live instance.</strong>
-        {liveAvailable ? (
-          ' Choose Live instance to see your own workflows.'
-        ) : (
-          <>
-            {' '}
-            <Link href={SETUP_HREF}>Connect your n8n</Link> to see your own workflows.
-          </>
-        )}
+        {liveAvailable
+          ? ' Choose Live instance to see your own workflows.'
+          : ' Connect your n8n to see your own workflows.'}
+        {!liveAvailable && <ConnectLink />}
       </p>
     );
   }
