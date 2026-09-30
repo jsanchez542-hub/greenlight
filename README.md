@@ -1,5 +1,11 @@
 # GreenLight
 
+[![CI](https://github.com/jsanchez542-hub/greenlight/actions/workflows/ci.yml/badge.svg)](https://github.com/jsanchez542-hub/greenlight/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Node 22+](https://img.shields.io/badge/node-22%2B-339933)
+
+**Finds the n8n workflows that fail while reporting success.**
+
 A production workflow reported success for three weeks while it sent nothing at all.
 
 The step that failed had "continue on fail" enabled, so its error travelled downstream
@@ -11,6 +17,38 @@ No dashboard shows that. Every run was a success, and the counter said so.
 
 GreenLight reads an n8n instance through its API and looks for the failures that do not
 announce themselves.
+
+![The overview of a scan: findings by severity and a map of every workflow](docs/images/overview.png)
+
+## Quick start
+
+You need Node.js 22.12 or newer, and an n8n instance where you can create an API key.
+
+```bash
+git clone https://github.com/jsanchez542-hub/greenlight.git
+cd greenlight
+npm install
+npm run setup
+```
+
+`npm run setup` walks you through it. It tells you where to create the key (in n8n, Settings,
+then n8n API; read access is enough), asks for the address of your instance and the key, checks
+the connection step by step and saves the result to a `.env` file that git ignores. If something
+is wrong it says what, and what to do about it.
+
+Then pick how you want to look:
+
+```bash
+npm run scan     # a report in the terminal
+npm run panel    # the dashboard, at http://127.0.0.1:3000
+npm run watch    # keep watching and get alerted when something new appears
+```
+
+If anything does not work, `npm run doctor` repeats the connection check and points at the step
+that fails.
+
+No instance at hand? `npm run example` prints a report for an invented one, and the dashboard
+shows the same sample data, clearly labelled, until you connect your own.
 
 ## What it looks for
 
@@ -65,34 +103,35 @@ That report is the real output of the program, run against a synthetic instance 
 example can show every check at once. `npm run example` reproduces it from
 [`examples/synthetic-instance.mjs`](examples/synthetic-instance.mjs).
 
-## Usage
+## The dashboard
+
+`npm run panel` starts a local dashboard that scans your instance and keeps the result fresh.
+
+| | |
+| --- | --- |
+| ![A finding with the numbers it rests on](docs/images/finding.png) | ![Every workflow, sortable and filterable](docs/images/workflows.png) |
+| Each finding shows the evidence it rests on and what to review. | Every workflow that was checked, with its state, trigger and last run. |
+| ![The first-run tour pointing at the four states](docs/images/tour.png) | ![The page that connects your n8n, with its three steps](docs/images/setup.png) |
+| A short tour the first time you open it. | **Connect your n8n**: three steps and a live connection check. |
+
+<img src="docs/images/mobile.png" alt="The overview on a phone-sized screen" width="280">
+
+- **Overview, Findings, Workflows and Checks.** The last page explains what each check looks for
+  and the exact defaults it uses.
+- **Live or sample.** With a configured instance it scans on its own and shows how old the data is.
+  Without one it shows sample data, labelled as such.
+- **A first-run guide.** The first time you open it there is a short tour, and a **Connect your
+  n8n** page that runs the same step-by-step check as `npm run doctor`.
+- **It works on a phone-sized screen** and follows your light or dark setting.
+- **Keyboard first.** `g` then `o`, `f`, `w` or `c` moves between pages, and `/` searches workflows.
+
+The dashboard has no login of its own. It listens on `127.0.0.1` and refuses other host names, so
+it is meant for your own machine. See [SECURITY.md](SECURITY.md) before putting it anywhere else.
+
+## Watching and alerts
 
 ```bash
-npm install
-npm run build
-
-export N8N_BASE_URL=https://n8n.example.com
-export N8N_API_KEY=your-key
-node dist/cli.js
-```
-
-`--json` prints the same result as structured data (see [Output](#output)). The process
-exits with 1 when something is found, so it can gate a deployment pipeline.
-
-| Variable | Default | Purpose |
-| --- | --- | --- |
-| `N8N_BASE_URL` | required | URL of the instance |
-| `N8N_API_KEY` | required | API key with read access |
-| `GREENLIGHT_EXECUTION_LIMIT` | 200 | executions read per workflow |
-| `GREENLIGHT_DETAIL_SAMPLE` | 5 | executions inspected node by node |
-
-Only read endpoints are used. GreenLight never writes to the instance; the only thing it sends
-anywhere is the alert that `watch` posts to the webhook you configure.
-
-## Watching
-
-```bash
-node dist/cli.js watch
+npm run watch
 ```
 
 Scans on a schedule and reports only what changed. A finding is announced once when it
@@ -111,8 +150,7 @@ Without a webhook, changes are only printed. With one, each change is posted as 
   "source": "greenlight",
   "type": "findings",
   "subject": "GreenLight: 1 new critical finding on n8n.example.com",
-  "text": "CRITICAL Order confirmations (silent-error)
-\"Send receipt\" emitted an error in 5 of the last 5 successful executions. ...",
+  "text": "CRITICAL Order confirmations (silent-error)\n\"Send receipt\" emitted an error in 5 of the last 5 successful executions. ...",
   "instance": "n8n.example.com",
   "scannedAt": "2026-03-02T09:00:00.000Z",
   "newFindings": [
@@ -140,16 +178,42 @@ addresses, and create a Header Auth credential whose name is `Authorization` and
 webhook and `GREENLIGHT_WEBHOOK_TOKEN` to the same token. The webhook URL is treated as a secret
 and never appears in error messages.
 
-`watch --once` runs a single scan and exits, with the same exit codes as a normal scan, so it can
-run from cron or a scheduler instead of staying alive.
+`npm run watch -- --once` runs a single scan and exits, with the same exit codes as a normal
+scan, so it can run from cron or a scheduler instead of staying alive.
+
+## Configuration
+
+`npm run setup` writes these to `.env`. A value set in the environment wins over the file.
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `GREENLIGHT_WEBHOOK_URL` | none | where alerts are posted |
+| `N8N_BASE_URL` | required | address of the instance, without `/api/v1` |
+| `N8N_API_KEY` | required | API key with read access |
+| `GREENLIGHT_EXECUTION_LIMIT` | 200 | executions read per workflow |
+| `GREENLIGHT_DETAIL_SAMPLE` | 5 | executions inspected node by node |
+| `GREENLIGHT_WEBHOOK_URL` | none | where `watch` posts alerts |
 | `GREENLIGHT_WEBHOOK_TOKEN` | none | sent as `Authorization: Bearer <token>` |
-| `GREENLIGHT_INTERVAL_MINUTES` | 5 | time between scans |
+| `GREENLIGHT_INTERVAL_MINUTES` | 5 | time between scans in `watch` |
 | `GREENLIGHT_NOTIFY_MIN` | `warning` | `critical` to alert only on critical findings |
-| `GREENLIGHT_STATE_FILE` | `.greenlight-state.json` | what has already been reported |
+| `GREENLIGHT_STATE_FILE` | `.greenlight-state.json` | what `watch` has already reported |
+
+Only read endpoints are used. GreenLight never writes to the instance; the only thing it sends
+anywhere is the alert that `watch` posts to the webhook you configure.
+
+## Commands
+
+| Command | What it does |
+| --- | --- |
+| `npm run setup` | guided first-time setup, saves `.env` |
+| `npm run doctor` | checks the connection step by step |
+| `npm run scan` | scans once and prints the report; add `-- --json` for structured output |
+| `npm run watch` | scans on a schedule and alerts on changes |
+| `npm run panel` | installs and starts the dashboard |
+| `npm run example` | prints the report for a synthetic instance |
+
+`scan` and `watch --once` exit with 0 when nothing is found, 1 when something is, and 2 when the
+scan could not run, so they can gate a deployment pipeline. Outside a clone of this repository the
+same commands are `greenlight init`, `greenlight doctor`, `greenlight`, `greenlight watch`.
 
 ## Output
 
@@ -228,24 +292,37 @@ trigger. Polling triggers are excluded for a different reason, one that only sho
 production data. They record a run only when they find something, so an idle Gmail
 trigger and a broken one look identical from the outside.
 
+**It leaves alone what was switched off.** Another lesson from a real instance: a workflow
+paused on purpose kept its old failed runs in history and was reported as critical
+indefinitely. Silent errors are only judged for active workflows.
+
 **Detection is deterministic.** Every finding is a comparison between numbers, which is
 why each one can be covered by a test and reproduced from the evidence printed beside it.
 
 ## Limits
 
-It reads whatever execution history the instance still holds, so a short retention
-window limits what can be compared. A workflow that is switched off is not checked for silent
-errors: its history may hold old failures that nobody needs to act on. Workflows that have never run are skipped rather
-than guessed at. Detail inspection is sampled, not exhaustive, because that endpoint is
-expensive.
+It reads whatever execution history the instance still holds, so a short retention window
+limits what can be compared. Workflows that have never run are skipped rather than guessed at.
+Detail inspection is sampled, not exhaustive, because that endpoint is expensive. The scan reads
+workflows one after another, so on a large instance it takes as long as the API takes to answer.
 
-## Development
+## Project layout
 
-```bash
-npm test        # 79 tests
-npm run example # the report above, from a synthetic instance
-npm run typecheck
-npm run build
-```
+| Folder | What is in it |
+| --- | --- |
+| `src/` | the scanner: n8n client, the four checks, `watch`, and the setup assistant |
+| `tests/` | its tests |
+| `web/` | the dashboard, a separate Next.js project |
+| `examples/` | the synthetic instance, its output, and the n8n workflow for email alerts |
+| `assets/logo/` | the logo in the sizes a page needs |
 
-No production dependencies. Node 22 or newer.
+The scanner has no production dependencies and runs on Node alone.
+
+## Contributing
+
+Issues and pull requests are welcome; [CONTRIBUTING.md](CONTRIBUTING.md) says what makes a good
+change and how to add a check. Report security problems as described in [SECURITY.md](SECURITY.md).
+
+## License
+
+[MIT](LICENSE) © Miguel Sanchez Torres
