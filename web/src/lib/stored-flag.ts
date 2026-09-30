@@ -1,5 +1,7 @@
 export const WELCOME_FLAG = 'greenlight.welcome.v1';
 export const WATCH_TIP_FLAG = 'greenlight.watch-tip.v1';
+export const WELCOME_SKIPPED_FLAG = 'greenlight.welcome-skipped.v1';
+export const CONNECT_HINT_FLAG = 'greenlight.connect-hint.v1';
 
 type ReadableStorage = Pick<Storage, 'getItem'>;
 type WritableStorage = Pick<Storage, 'setItem'>;

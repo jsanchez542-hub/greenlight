@@ -13,9 +13,10 @@ interface OnboardingProps {
   onNext: () => void;
   onBack: () => void;
   onClose: () => void;
+  onSkipWelcome: () => void;
 }
 
-export function Onboarding({ state, liveAvailable, onStartTour, onNext, onBack, onClose }: OnboardingProps) {
+export function Onboarding({ state, liveAvailable, onStartTour, onNext, onBack, onClose, onSkipWelcome }: OnboardingProps) {
   const router = useRouter();
 
   if (state.phase === 'welcome') {
@@ -27,12 +28,24 @@ export function Onboarding({ state, liveAvailable, onStartTour, onNext, onBack, 
           onClose();
           router.push(SETUP_HREF);
         }}
-        onClose={onClose}
+        onClose={onSkipWelcome}
       />
     );
   }
   if (state.phase === 'tour') {
-    return <Tour step={state.step} onNext={onNext} onBack={onBack} onClose={onClose} />;
+    return (
+      <Tour
+        step={state.step}
+        liveAvailable={liveAvailable}
+        onNext={onNext}
+        onBack={onBack}
+        onClose={onClose}
+        onConnect={() => {
+          onClose();
+          router.push(SETUP_HREF);
+        }}
+      />
+    );
   }
   return null;
 }

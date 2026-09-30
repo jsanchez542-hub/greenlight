@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
-import { placeCard, tourSteps } from '@/lib/onboarding';
+import { placeCard, tourActions, tourSteps } from '@/lib/onboarding';
 import { useAnchorRect } from '@/lib/use-anchor-rect';
 import { useDialogFocus } from '@/lib/use-dialog-focus';
 import styles from './Tour.module.css';
@@ -13,9 +13,11 @@ interface TourProps {
   onNext: () => void;
   onBack: () => void;
   onClose: () => void;
+  onConnect: () => void;
+  liveAvailable: boolean;
 }
 
-export function Tour({ step, onNext, onBack, onClose }: TourProps) {
+export function Tour({ step, onNext, onBack, onClose, onConnect, liveAvailable }: TourProps) {
   const current = tourSteps[step];
   const card = useRef<HTMLDivElement>(null);
   const rect = useAnchorRect(current?.anchor ?? '');
@@ -28,7 +30,7 @@ export function Tour({ step, onNext, onBack, onClose }: TourProps) {
   const viewport = typeof window === 'undefined' ? { width: 1280, height: 800 } : { width: window.innerWidth, height: window.innerHeight };
   const width = Math.min(CARD_WIDTH, viewport.width - 32);
   const placement = placeCard(rect, viewport, width);
-  const last = step === tourSteps.length - 1;
+  const actions = tourActions(step, liveAvailable);
 
   return (
     <div className={styles.layer}>
@@ -66,18 +68,37 @@ export function Tour({ step, onNext, onBack, onClose }: TourProps) {
           {current.body}
         </p>
         <div className={styles.actions}>
-          <button type="button" className={styles.skip} onClick={onClose}>
-            Skip tour
-          </button>
+          {actions.skip && (
+            <button type="button" className={styles.skip} onClick={onClose}>
+              Skip tour
+            </button>
+          )}
           <span className={styles.spacer} />
-          {step > 0 && (
+          {actions.back && (
             <button type="button" className={styles.secondary} onClick={onBack}>
               Back
             </button>
           )}
-          <button type="button" className={styles.primary} onClick={last ? onClose : onNext}>
-            {last ? 'Done' : 'Next'}
-          </button>
+          {actions.secondaryDone && (
+            <button type="button" className={styles.secondary} onClick={onClose}>
+              Done
+            </button>
+          )}
+          {actions.primary === 'next' && (
+            <button type="button" className={styles.primary} onClick={onNext}>
+              Next
+            </button>
+          )}
+          {actions.primary === 'done' && (
+            <button type="button" className={styles.primary} onClick={onClose}>
+              Done
+            </button>
+          )}
+          {actions.primary === 'connect' && (
+            <button type="button" className={styles.primary} onClick={onConnect}>
+              Connect my n8n
+            </button>
+          )}
         </div>
       </div>
     </div>
