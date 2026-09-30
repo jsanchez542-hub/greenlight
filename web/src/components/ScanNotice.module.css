@@ -1,0 +1,90 @@
+.notice {
+  display: grid;
+  gap: 12px;
+  max-width: 44rem;
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.notice[data-state='critical'] {
+  border-left: 4px solid var(--state-fill);
+}
+
+.title {
+  font-size: 1.5rem;
+  letter-spacing: -0.01em;
+}
+
+.body {
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.message {
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--surface-sunk);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+
+.track {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--surface-sunk);
+}
+
+.runner {
+  display: block;
+  width: 30%;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--accent);
+  animation: sweep 1.4s ease-in-out infinite;
+}
+
+@keyframes sweep {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(340%);
+  }
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.actions button {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.actions button:hover {
+  background: var(--surface-sunk);
+}
+
+.actions .primary {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--surface);
+}
+
+.actions .primary:hover {
+  background: var(--ink);
+  opacity: 0.88;
+}
