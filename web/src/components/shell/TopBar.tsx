@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { activeSection } from '@/lib/navigation';
 import { decodeSegment } from '@/lib/routes';
 import { useScanControls } from '@/lib/scan-context';
+import { Freshness } from './Freshness';
 import { Logo } from './Logo';
 import { SourceControl } from './SourceControl';
 import styles from './TopBar.module.css';
@@ -16,8 +17,8 @@ function locationOf(pathname: string, source: string): string[] {
 
 export function TopBar() {
   const pathname = usePathname();
-  const { view } = useScanControls();
-  const segments = locationOf(pathname, view.kind === 'demo' ? 'demo' : 'live');
+  const { source } = useScanControls();
+  const segments = locationOf(pathname, source);
 
   return (
     <header className={styles.top}>
@@ -37,7 +38,10 @@ export function TopBar() {
           ))}
         </ol>
       </nav>
-      <SourceControl />
+      <div className={styles.right}>
+        <Freshness />
+        <SourceControl />
+      </div>
     </header>
   );
 }

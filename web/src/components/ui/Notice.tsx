@@ -5,24 +5,19 @@ import { useEffect, useState } from 'react';
 import { formatElapsed } from '@/lib/format';
 import styles from './Notice.module.css';
 
-function useElapsed(startedAt: number): number {
+function useElapsed(): number {
   const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
-    const timer = setInterval(() => setElapsed(Date.now() - startedAt), 1000);
+    const timer = setInterval(() => setElapsed((previous) => previous + 1000), 1000);
     return () => clearInterval(timer);
-  }, [startedAt]);
+  }, []);
 
   return elapsed;
 }
 
-interface ScanProgressProps {
-  startedAt: number;
-  onCancel: () => void;
-}
-
-export function ScanProgress({ startedAt, onCancel }: ScanProgressProps) {
-  const elapsed = useElapsed(startedAt);
+export function ScanProgress({ onCancel }: { onCancel?: (() => void) | undefined }) {
+  const elapsed = useElapsed();
 
   return (
     <section className={styles.notice} aria-labelledby="progress-heading" aria-busy="true">
@@ -36,11 +31,13 @@ export function ScanProgress({ startedAt, onCancel }: ScanProgressProps) {
         Reading the execution history of each workflow, one at a time. On a mid-sized instance this
         takes tens of seconds. Elapsed: {formatElapsed(elapsed)}.
       </p>
-      <div className={styles.actions}>
-        <button type="button" onClick={onCancel}>
-          Cancel and show demo data
-        </button>
-      </div>
+      {onCancel !== undefined && (
+        <div className={styles.actions}>
+          <button type="button" onClick={onCancel}>
+            Show sample data meanwhile
+          </button>
+        </div>
+      )}
     </section>
   );
 }
@@ -48,10 +45,10 @@ export function ScanProgress({ startedAt, onCancel }: ScanProgressProps) {
 interface ScanFailureProps {
   message: string;
   onRetry: () => void;
-  onShowDemo: () => void;
+  onShowSample: () => void;
 }
 
-export function ScanFailure({ message, onRetry, onShowDemo }: ScanFailureProps) {
+export function ScanFailure({ message, onRetry, onShowSample }: ScanFailureProps) {
   return (
     <section className={styles.notice} data-state="critical" role="alert">
       <h1 className={styles.title}>The scan did not finish</h1>
@@ -60,8 +57,8 @@ export function ScanFailure({ message, onRetry, onShowDemo }: ScanFailureProps) 
         <button type="button" className={styles.primary} onClick={onRetry}>
           Run the scan again
         </button>
-        <button type="button" onClick={onShowDemo}>
-          Show demo data
+        <button type="button" onClick={onShowSample}>
+          Show sample data
         </button>
       </div>
     </section>

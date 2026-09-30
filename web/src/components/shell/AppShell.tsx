@@ -7,19 +7,25 @@ import { useSidebar } from '@/lib/use-sidebar';
 import { ScanFailure, ScanProgress } from '../ui/Notice';
 import styles from './AppShell.module.css';
 import { BottomNav } from './BottomNav';
+import { ScanBanner } from './ScanBanner';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 
 function Content({ children }: { children: ReactNode }) {
-  const { view, showDemo, startScan } = useScanControls();
+  const { phase, problem, liveAvailable, selectSample, scanNow } = useScanControls();
 
-  switch (view.kind) {
-    case 'scanning':
-      return <ScanProgress startedAt={view.startedAt} onCancel={showDemo} />;
+  switch (phase) {
+    case 'connecting':
+      return <ScanProgress onCancel={liveAvailable ? selectSample : undefined} />;
     case 'failed':
-      return <ScanFailure message={view.message} onRetry={startScan} onShowDemo={showDemo} />;
+      return <ScanFailure message={problem ?? ''} onRetry={scanNow} onShowSample={selectSample} />;
     default:
-      return children;
+      return (
+        <>
+          <ScanBanner />
+          {children}
+        </>
+      );
   }
 }
 

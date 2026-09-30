@@ -1,42 +1,66 @@
 'use client';
 
 import type { ScanResult } from 'greenlight';
-import { createContext, useContext, useMemo, type ReactNode } from 'react';
-import { useScanView, type ScanView } from './use-scan-view';
+import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+import type { LiveSnapshot } from './live-snapshot';
+import { useLiveFeed } from './use-live-feed';
+
+export type Source = 'live' | 'sample';
+export type Phase = 'ready' | 'connecting' | 'failed';
 
 interface ScanControls {
-  view: ScanView;
+  source: Source;
   liveAvailable: boolean;
-  showDemo: () => void;
-  startScan: () => void;
+  phase: Phase;
+  problem: string | null;
+  refreshing: boolean;
+  intervalMinutes: number | null;
+  selectLive: () => void;
+  selectSample: () => void;
+  scanNow: () => void;
 }
 
 const ControlsContext = createContext<ScanControls | null>(null);
 const ResultContext = createContext<ScanResult | null>(null);
 
-function resultOf(view: ScanView, demo: ScanResult): ScanResult | null {
-  if (view.kind === 'demo') {
-    return demo;
-  }
-  return view.kind === 'live' ? view.result : null;
-}
-
 interface ScanProviderProps {
-  demo: ScanResult;
+  sample: ScanResult;
   liveAvailable: boolean;
+  initialSnapshot: LiveSnapshot | null;
   children: ReactNode;
 }
 
-export function ScanProvider({ demo, liveAvailable, children }: ScanProviderProps) {
-  const { view, showDemo, startScan } = useScanView();
-  const controls = useMemo(
-    () => ({ view, liveAvailable, showDemo, startScan }),
-    [view, liveAvailable, showDemo, startScan],
+export function ScanProvider({ sample, liveAvailable, initialSnapshot, children }: ScanProviderProps) {
+  const [source, setSource] = useState<Source>(liveAvailable ? 'live' : 'sample');
+  const { feed, scanNow } = useLiveFeed(liveAvailable && source === 'live', initialSnapshot);
+
+  const live = source === 'live';
+  const result = live ? (feed.snapshot?.result ?? null) : sample;
+  const problem = live ? (feed.transportError ?? feed.snapshot?.error ?? null) : null;
+
+  let phase: Phase = 'ready';
+  if (result === null) {
+    phase = problem === null ? 'connecting' : 'failed';
+  }
+
+  const controls = useMemo<ScanControls>(
+    () => ({
+      source,
+      liveAvailable,
+      phase,
+      problem,
+      refreshing: live && (feed.snapshot?.refreshing ?? false),
+      intervalMinutes: live ? (feed.snapshot?.intervalMinutes ?? null) : null,
+      selectLive: () => setSource('live'),
+      selectSample: () => setSource('sample'),
+      scanNow: () => void scanNow(),
+    }),
+    [source, liveAvailable, phase, problem, live, feed.snapshot, scanNow],
   );
 
   return (
     <ControlsContext value={controls}>
-      <ResultContext value={resultOf(view, demo)}>{children}</ResultContext>
+      <ResultContext value={result}>{children}</ResultContext>
     </ControlsContext>
   );
 }

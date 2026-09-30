@@ -1,26 +1,26 @@
 import { describe, expect, it } from 'vitest';
-import { demoResult } from '@/lib/demo';
+import { sampleResult } from '@/lib/sample';
 import { InvalidScanResultError, parseScanResult } from '@/lib/scan-result';
 
 function valid(): Record<string, unknown> {
-  return structuredClone(demoResult) as unknown as Record<string, unknown>;
+  return structuredClone(sampleResult) as unknown as Record<string, unknown>;
 }
 
-describe('the demo data', () => {
+describe('the sample data', () => {
   it('parses and keeps the counts the contract promises', () => {
-    expect(demoResult.workflowsScanned).toBe(demoResult.workflows.length);
-    expect(demoResult.findings.length).toBeGreaterThan(0);
+    expect(sampleResult.workflowsScanned).toBe(sampleResult.workflows.length);
+    expect(sampleResult.findings.length).toBeGreaterThan(0);
   });
 
   it('links every finding to a workflow in the list', () => {
-    const ids = new Set(demoResult.workflows.map((workflow) => workflow.id));
-    expect(demoResult.findings.every((finding) => ids.has(finding.workflowId))).toBe(true);
+    const ids = new Set(sampleResult.workflows.map((workflow) => workflow.id));
+    expect(sampleResult.findings.every((finding) => ids.has(finding.workflowId))).toBe(true);
   });
 });
 
 describe('parseScanResult', () => {
   it('accepts a well formed result unchanged', () => {
-    expect(parseScanResult(valid())).toEqual(demoResult);
+    expect(parseScanResult(valid())).toEqual(sampleResult);
   });
 
   it('rejects a version it does not know', () => {

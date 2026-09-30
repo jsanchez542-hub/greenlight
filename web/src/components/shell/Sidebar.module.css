@@ -114,6 +114,12 @@
   font-size: 0.8125rem;
 }
 
+.age {
+  display: block;
+  color: var(--ink-muted);
+  font-size: 0.75rem;
+}
+
 .hint {
   display: grid;
   gap: 4px;
