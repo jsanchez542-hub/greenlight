@@ -22,6 +22,12 @@
   letter-spacing: -0.02em;
 }
 
+.right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .path {
   display: flex;
   align-items: center;

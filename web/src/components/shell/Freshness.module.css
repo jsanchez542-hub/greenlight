@@ -1,0 +1,20 @@
+.freshness {
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.freshness strong {
+  color: var(--ink);
+}
+
+.freshness[data-stale='true'] strong {
+  color: var(--warning);
+}
+
+@media (max-width: 899px) {
+  .freshness {
+    display: none;
+  }
+}

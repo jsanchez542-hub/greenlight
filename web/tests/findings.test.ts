@@ -1,6 +1,6 @@
 import type { DetectorName, Finding, Severity } from 'greenlight';
 import { describe, expect, it } from 'vitest';
-import { demoResult } from '@/lib/demo';
+import { sampleResult } from '@/lib/sample';
 import { detectorInfo } from '@/lib/detectors';
 import {
   countFindings,
@@ -93,8 +93,8 @@ describe('the finding filter in the address', () => {
 });
 
 describe('the check descriptions', () => {
-  it('agree with the severity the scanner gives each check in the demo data', () => {
-    for (const { detector, severity } of demoResult.findings) {
+  it('agree with the severity the scanner gives each check in the sample data', () => {
+    for (const { detector, severity } of sampleResult.findings) {
       expect(detectorInfo[detector].severity).toBe(severity);
     }
   });

@@ -5,14 +5,15 @@ import { Icon } from '../ui/Icon';
 import styles from './SourceControl.module.css';
 
 export function SourceControl() {
-  const { view, liveAvailable, showDemo, startScan } = useScanControls();
-  const live = view.kind !== 'demo';
+  const { source, liveAvailable, phase, refreshing, selectLive, selectSample, scanNow } =
+    useScanControls();
+  const live = source === 'live';
 
   if (!liveAvailable) {
     return (
-      <p className={styles.note} title="Synthetic workflows produced by GreenLight. No instance is contacted.">
-        <span className={styles.pill}>Demo data</span>
-        <span className={styles.description}>No instance is contacted</span>
+      <p className={styles.note}>
+        <span className={styles.pill}>Sample data</span>
+        <span className={styles.description}>not a live instance</span>
       </p>
     );
   }
@@ -20,17 +21,17 @@ export function SourceControl() {
   return (
     <div className={styles.controls}>
       <div className={styles.switch} role="group" aria-label="Data source">
-        <button type="button" aria-pressed={!live} onClick={live ? showDemo : undefined}>
-          Demo data
-        </button>
-        <button type="button" aria-pressed={live} onClick={live ? undefined : startScan}>
+        <button type="button" aria-pressed={live} onClick={live ? undefined : selectLive}>
           Live instance
         </button>
+        <button type="button" aria-pressed={!live} onClick={live ? selectSample : undefined}>
+          Sample data
+        </button>
       </div>
-      {view.kind === 'live' && (
-        <button type="button" className={styles.rescan} onClick={startScan}>
+      {live && phase === 'ready' && (
+        <button type="button" className={styles.rescan} disabled={refreshing} onClick={scanNow}>
           <Icon name="scan" />
-          Scan again
+          {refreshing ? 'Scanning' : 'Scan now'}
         </button>
       )}
     </div>

@@ -20,9 +20,9 @@ export const detectorInfo: Record<DetectorName, DetectorInfo> = {
     label: 'Silent error',
     severity: 'critical',
     question: 'Did a step fail inside a run that reported success?',
-    appliesTo: 'Any workflow with a recent successful execution',
+    appliesTo: 'Active workflows with a recent successful execution',
     method:
-      'Opens a sample of the most recent successful executions and reads the output of every node. A node that emits an error as ordinary data is reported, even though the run finished green. This usually happens when a step has continue on fail enabled.',
+      'Opens a sample of the most recent successful executions and reads the output of every node. A node that emits an error as ordinary data is reported, even though the run finished green. This usually happens when a step has continue on fail enabled. A workflow that is switched off is not checked, because its history may hold old failures nobody needs to act on.',
     thresholds: [
       { name: 'sample', value: '5 successful executions by default' },
       { name: 'history needed', value: 'none' },

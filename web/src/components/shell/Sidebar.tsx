@@ -7,6 +7,7 @@ import { activeSection, sections, type SectionId } from '@/lib/navigation';
 import { useOptionalResult, useScanControls } from '@/lib/scan-context';
 import type { SidebarState } from '@/lib/sidebar';
 import { Icon } from '../ui/Icon';
+import { useDataAge } from './Freshness';
 import { Logo } from './Logo';
 import styles from './Sidebar.module.css';
 
@@ -25,7 +26,8 @@ function useSectionCounts(): Partial<Record<SectionId, number>> {
 
 export function Sidebar({ state, onToggle }: SidebarProps) {
   const pathname = usePathname();
-  const { view } = useScanControls();
+  const { source } = useScanControls();
+  const age = useDataAge();
   const result = useOptionalResult();
   const counts = useSectionCounts();
   const current = activeSection(pathname);
@@ -65,13 +67,14 @@ export function Sidebar({ state, onToggle }: SidebarProps) {
         <dl className={styles.source}>
           <div>
             <dt>source</dt>
-            <dd>{view.kind === 'demo' ? 'Demo data' : 'Live instance'}</dd>
+            <dd>{source === 'live' ? 'Live instance' : 'Sample data'}</dd>
           </div>
           {result !== null && (
             <div>
               <dt>scanned</dt>
               <dd>
                 <time dateTime={result.scannedAt}>{formatUtc(result.scannedAt)}</time>
+                {age !== null && <span className={styles.age}>{age.label}</span>}
               </dd>
             </div>
           )}

@@ -10,7 +10,7 @@ export class InvalidScanResultError extends Error {
 
 type Fields = Record<string, unknown>;
 
-function asRecord(value: unknown, path: string): Fields {
+export function asRecord(value: unknown, path: string): Fields {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
     throw new InvalidScanResultError(path, 'an object');
   }
@@ -24,21 +24,21 @@ function asArray(value: unknown, path: string): unknown[] {
   return value;
 }
 
-function asString(value: unknown, path: string): string {
+export function asString(value: unknown, path: string): string {
   if (typeof value !== 'string') {
     throw new InvalidScanResultError(path, 'text');
   }
   return value;
 }
 
-function asCount(value: unknown, path: string): number {
+export function asCount(value: unknown, path: string): number {
   if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) {
     throw new InvalidScanResultError(path, 'a whole number');
   }
   return value;
 }
 
-function asBoolean(value: unknown, path: string): boolean {
+export function asBoolean(value: unknown, path: string): boolean {
   if (typeof value !== 'boolean') {
     throw new InvalidScanResultError(path, 'true or false');
   }
