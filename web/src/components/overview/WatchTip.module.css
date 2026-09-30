@@ -1,0 +1,57 @@
+.tip {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+}
+
+.text {
+  display: grid;
+  gap: 8px;
+  max-width: 62ch;
+}
+
+.text h2 {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+}
+
+.code {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 6px 6px 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.code code {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+}
+
+.dismiss {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--panel);
+  cursor: pointer;
+}
+
+.dismiss:hover {
+  background: var(--panel-raised);
+}
+
+@media (max-width: 599px) {
+  .tip {
+    flex-direction: column;
+  }
+}

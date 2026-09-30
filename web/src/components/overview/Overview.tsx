@@ -10,6 +10,7 @@ import { FindingRow } from '../findings/FindingRow';
 import { PageHeader } from '../ui/PageHeader';
 import { StatusIcon, StatusLabel } from '../ui/StatusIcon';
 import styles from './Overview.module.css';
+import { WatchTip } from './WatchTip';
 import { WorkflowMap } from './WorkflowMap';
 
 const ATTENTION_LIMIT = 6;
@@ -20,6 +21,25 @@ export function Overview() {
   const bySeverity = countBySeverity(result.findings);
   const entries = keyFindings(result.findings);
   const withHistory = result.workflows.length - counts['no-runs'];
+
+  if (result.workflows.length === 0) {
+    return (
+      <>
+        <PageHeader title="overview" meta="no workflows found" />
+        <section className={styles.verdict} aria-labelledby="empty-heading">
+          <h2 id="empty-heading" className={styles.clean} data-state="no-runs">
+            <StatusIcon state="no-runs" />
+            No workflows to check
+          </h2>
+          <p className={styles.explain}>
+            The instance answered but has no workflows, so there is nothing to scan. Create one in n8n and
+            press Scan now.
+          </p>
+        </section>
+        <WatchTip />
+      </>
+    );
+  }
 
   return (
     <>
@@ -69,7 +89,7 @@ export function Overview() {
           )}
         </div>
 
-        <ul className={styles.tiles}>
+        <ul className={styles.tiles} data-tour="states">
           {healthStates.map((state) => (
             <li key={state} className={styles.tile} data-state={state}>
               <div className={styles.tileHead}>
@@ -89,6 +109,8 @@ export function Overview() {
           ))}
         </ul>
       </section>
+
+      <WatchTip />
 
       <WorkflowMap workflows={result.workflows} />
 
