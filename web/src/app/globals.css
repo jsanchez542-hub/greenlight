@@ -1,0 +1,151 @@
+:root {
+  color-scheme: light dark;
+
+  --bg: #f3f5f1;
+  --surface: #ffffff;
+  --surface-sunk: #eaeee8;
+  --ink: #131b16;
+  --ink-muted: #526058;
+  --line: #d6ddd3;
+  --line-strong: #aeb9ab;
+  --accent: #17663b;
+  --focus: #0b57d0;
+
+  --critical: #b3261e;
+  --warning: #8a5700;
+  --healthy: #17663b;
+  --neutral: #59636d;
+
+  --critical-fill: #c9372c;
+  --warning-fill: #c17d00;
+  --healthy-fill: #1f8a4d;
+  --neutral-fill: #8a949d;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', 'Cascadia Code', Menlo, Consolas, monospace;
+
+  --radius: 6px;
+  --gutter: 16px;
+  --content-width: 1080px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0c120e;
+    --surface: #131b16;
+    --surface-sunk: #0a0f0c;
+    --ink: #e6ede8;
+    --ink-muted: #9aa99f;
+    --line: #26332b;
+    --line-strong: #3c4d41;
+    --accent: #5fd08a;
+    --focus: #8ab4f8;
+
+    --critical: #ff8f86;
+    --warning: #f0b84a;
+    --healthy: #67d493;
+    --neutral: #a3adb5;
+
+    --critical-fill: #e5574b;
+    --warning-fill: #d69a1f;
+    --healthy-fill: #39a769;
+    --neutral-fill: #66717a;
+  }
+}
+
+@media (min-width: 720px) {
+  :root {
+    --gutter: 32px;
+  }
+}
+
+[data-state='critical'] {
+  --state: var(--critical);
+  --state-fill: var(--critical-fill);
+}
+
+[data-state='warning'] {
+  --state: var(--warning);
+  --state-fill: var(--warning-fill);
+}
+
+[data-state='healthy'] {
+  --state: var(--healthy);
+  --state-fill: var(--healthy-fill);
+}
+
+[data-state='no-runs'] {
+  --state: var(--neutral);
+  --state-fill: var(--neutral-fill);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+p,
+dl,
+dd,
+ul {
+  margin: 0;
+  padding: 0;
+}
+
+ul {
+  list-style: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
