@@ -3,6 +3,13 @@
   "version": "0.1.0",
   "description": "Detects n8n workflow failures that report success",
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
   "bin": {
     "greenlight": "dist/cli.js"
   },
@@ -15,7 +22,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "example": "npm run build && node examples/synthetic-instance.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
