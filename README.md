@@ -146,9 +146,16 @@ is. Duration drift requires the recent median to clear both the historical 95th
 percentile and twice the historical median, because either condition alone reports
 ordinary variation.
 
-**It refuses to judge without enough history.** No check reports anything below ten
-baseline runs and three recent ones. An alert that is confident and wrong costs more
-trust than a missed one.
+**It refuses to judge without enough history.** Duration drift needs ten baseline runs and
+three recent ones, frequency drop needs ten baseline runs, and silence needs three runs to
+know what a usual interval is. Silent error needs no history at all, because one error
+inside a run that reported success is already the finding. An alert that is confident and
+wrong costs more trust than a missed one.
+
+**The remaining defaults are stated, not hidden.** Silence is reported when a scheduled
+workflow has been quiet for more than four times its usual interval between runs. Frequency
+drop is reported when the last 24 hours hold fewer than half the runs the history predicts;
+a workflow that did not run at all in that window is judged by the silence check instead.
 
 **It reads the trigger node rather than inferring the schedule.** The first version
 worked out whether a workflow was scheduled by measuring how evenly its runs were
