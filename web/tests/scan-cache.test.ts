@@ -25,6 +25,7 @@ function build(outcomes: Array<ScanResult | Error>, intervalMinutes = 5) {
     scan,
     describeFailure: (error) => `failed: ${(error as Error).message}`,
     intervalMinutes,
+    host: 'n8n.test',
     now: () => clock.now,
   });
   return { cache, clock, calls };
@@ -117,6 +118,11 @@ describe('ScanCache', () => {
 
     void cache.refresh();
     expect(calls.count).toBe(2);
+  });
+
+  it('reports the host it was given and nothing more of the address', () => {
+    const { cache } = build([sampleResult]);
+    expect(cache.snapshot().host).toBe('n8n.test');
   });
 
   it('reports the interval it was given', () => {

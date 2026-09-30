@@ -3,11 +3,13 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { formatUtc } from '@/lib/format';
-import { activeSection, sections, type SectionId } from '@/lib/navigation';
+import { connectEntry } from '@/lib/connect-entry';
+import { SETUP_HREF, activeSection, sections, type SectionId } from '@/lib/navigation';
 import { useOptionalResult, useScanControls } from '@/lib/scan-context';
 import type { SidebarState } from '@/lib/sidebar';
 import { Icon } from '../ui/Icon';
 import { useDataAge } from './Freshness';
+import { ConnectHint } from './ConnectHint';
 import { Logo } from './Logo';
 import styles from './Sidebar.module.css';
 
@@ -27,7 +29,8 @@ function useSectionCounts(): Partial<Record<SectionId, number>> {
 
 export function Sidebar({ state, onToggle, onTour }: SidebarProps) {
   const pathname = usePathname();
-  const { source } = useScanControls();
+  const { source, liveAvailable, host } = useScanControls();
+  const connect = connectEntry(liveAvailable, host);
   const age = useDataAge();
   const result = useOptionalResult();
   const counts = useSectionCounts();
@@ -64,6 +67,23 @@ export function Sidebar({ state, onToggle, onTour }: SidebarProps) {
           })}
         </ul>
       </nav>
+
+      <div className={styles.connectZone}>
+        <Link
+          href={SETUP_HREF}
+          className={`${styles.link} ${styles.connect}`}
+          aria-current={pathname === SETUP_HREF ? 'page' : undefined}
+          data-emphasis={connect.emphasized}
+          title={connect.connected ? `Connected to ${connect.detail ?? 'your n8n'}` : 'Connect your n8n'}
+        >
+          <Icon name="connect" />
+          <span className={styles.connectText}>
+            <span>{connect.label}</span>
+            {connect.detail !== null && <span className={styles.detail}>{connect.detail}</span>}
+          </span>
+        </Link>
+        <ConnectHint placement="sidebar" />
+      </div>
 
       <div className={styles.footer}>
         <dl className={styles.source}>

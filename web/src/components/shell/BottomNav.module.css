@@ -15,7 +15,7 @@
 
   .bar ul {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
   }
 
   .link {
@@ -43,6 +43,26 @@
     height: 3px;
     border-radius: 0 0 2px 2px;
     background: var(--accent);
+  }
+
+  .link[data-emphasis='true'] {
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  .link[data-emphasis='true'] svg {
+    color: var(--accent-strong);
+  }
+
+  .link[data-emphasis='true']::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: calc(50% + 8px);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-strong);
   }
 
   .link[aria-current='page'] svg {

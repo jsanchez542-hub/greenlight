@@ -1,6 +1,6 @@
 import { N8nApiError } from 'greenlight';
 import { describe, expect, it } from 'vitest';
-import { describeScanFailure, isLiveScanConfigured, liveCache } from '@/lib/server/live-scan';
+import { describeScanFailure, hostOf, isLiveScanConfigured, liveCache } from '@/lib/server/live-scan';
 
 const env = {
   N8N_BASE_URL: 'https://reader:hunter2@n8n.internal.test',
@@ -69,5 +69,18 @@ describe('liveCache', () => {
   it('starts a new cache when the interval changes', () => {
     const before = liveCache(settings);
     expect(liveCache({ ...settings, GREENLIGHT_SCAN_INTERVAL_MINUTES: '9' })).not.toBe(before);
+  });
+});
+
+describe('hostOf', () => {
+  it('keeps only the host and port, never the path or credentials', () => {
+    expect(hostOf({ N8N_BASE_URL: 'https://user:secret@n8n.example.com:5678/some/path?x=1' })).toBe(
+      'n8n.example.com:5678',
+    );
+  });
+
+  it('is null when there is no usable address', () => {
+    expect(hostOf({})).toBeNull();
+    expect(hostOf({ N8N_BASE_URL: 'not a url' })).toBeNull();
   });
 });

@@ -7,6 +7,7 @@ export interface ScanCacheOptions {
   scan: () => Promise<ScanResult>;
   describeFailure: (error: unknown) => string;
   intervalMinutes: number;
+  host: string | null;
   now?: () => number;
 }
 
@@ -27,6 +28,7 @@ export class ScanCache {
       error: this.error,
       refreshing: this.inFlight !== null,
       intervalMinutes: this.options.intervalMinutes,
+      host: this.options.host,
     };
   }
 

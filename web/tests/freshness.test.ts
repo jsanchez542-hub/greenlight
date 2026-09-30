@@ -49,8 +49,10 @@ describe('parseLiveSnapshot', () => {
       error: null,
       refreshing: false,
       intervalMinutes: 5,
+      host: 'n8n.test',
     });
     expect(snapshot.result).toEqual(sampleResult);
+    expect(snapshot.host).toBe('n8n.test');
   });
 
   it('reads a snapshot with no result yet', () => {
@@ -59,19 +61,20 @@ describe('parseLiveSnapshot', () => {
       error: 'The scan could not finish: unreachable',
       refreshing: true,
       intervalMinutes: 5,
+      host: 'n8n.test',
     });
     expect(snapshot).toMatchObject({ result: null, refreshing: true });
   });
 
   it('rejects a snapshot missing a field', () => {
-    expect(() => parseLiveSnapshot({ result: null, error: null, refreshing: false })).toThrow(
+    expect(() => parseLiveSnapshot({ result: null, error: null, refreshing: false, host: null })).toThrow(
       'intervalMinutes',
     );
   });
 
   it('rejects a result that breaks the contract', () => {
     expect(() =>
-      parseLiveSnapshot({ result: { version: 2 }, error: null, refreshing: false, intervalMinutes: 5 }),
+      parseLiveSnapshot({ result: { version: 2 }, error: null, refreshing: false, intervalMinutes: 5, host: null }),
     ).toThrow('version');
   });
 });
