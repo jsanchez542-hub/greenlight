@@ -46,6 +46,17 @@ export function WorkflowsView() {
     replaceParams(workflowQueryToParams({ ...query, ...next }));
   }
 
+  if (result.workflows.length === 0) {
+    return (
+      <>
+        <PageHeader title="workflows" meta="no workflows found" />
+        <section className={styles.empty}>
+          <p>The instance has no workflows yet. Create one in n8n and scan again.</p>
+        </section>
+      </>
+    );
+  }
+
   return (
     <>
       <PageHeader
