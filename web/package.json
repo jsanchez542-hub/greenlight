@@ -10,10 +10,10 @@
   "scripts": {
     "backend": "npm --prefix .. run build",
     "predev": "npm run backend",
-    "dev": "next dev",
+    "dev": "next dev -H 127.0.0.1",
     "prebuild": "npm run backend",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -H 127.0.0.1",
     "lint": "eslint .",
     "pretypecheck": "npm run backend",
     "typecheck": "tsc --noEmit",

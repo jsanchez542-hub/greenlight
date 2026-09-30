@@ -42,6 +42,13 @@ describe('describeScanFailure', () => {
     expect(text).toContain('[redacted]');
   });
 
+  it('names the error code when the underlying error has no message', () => {
+    const cause = Object.assign(new AggregateError([]), { code: 'ECONNREFUSED' });
+    const text = describeScanFailure(new TypeError('fetch failed', { cause }), env);
+
+    expect(text).toBe('The scan could not finish: fetch failed (ECONNREFUSED)');
+  });
+
   it('describes a thrown value that is not an error', () => {
     expect(describeScanFailure('boom', env)).toBe('The scan could not finish: unknown error');
   });
