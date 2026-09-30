@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { SETUP_HREF } from '@/lib/navigation';
 import { useScanControls } from '@/lib/scan-context';
 import { ConnectLink } from '../ui/ConnectLink';
@@ -11,15 +12,26 @@ import styles from './ScanBanner.module.css';
 export function ScanBanner() {
   const { source, liveAvailable, problem, intervalMinutes } = useScanControls();
   const age = useDataAge();
+  const pathname = usePathname();
 
   if (source === 'sample') {
     return (
       <p className={styles.banner} role="note">
-        <strong>Sample data, not a live instance.</strong>
-        {liveAvailable
-          ? ' Choose Live instance to see your own workflows.'
-          : ' Connect your n8n to see your own workflows.'}
-        {!liveAvailable && <ConnectLink />}
+        <strong>These are invented workflows.</strong>
+        {liveAvailable && ' Choose Live instance to see your own.'}
+        {!liveAvailable && pathname === '/' && (
+          <>
+            {' '}
+            Connect your n8n to see your own.
+            <ConnectLink />
+          </>
+        )}
+        {!liveAvailable && pathname !== '/' && (
+          <>
+            {' '}
+            <Link href={SETUP_HREF}>Connect your n8n to see your own.</Link>
+          </>
+        )}
       </p>
     );
   }

@@ -94,26 +94,15 @@
   min-height: 48px;
 }
 
-.connect[data-emphasis='true'] {
-  border: 1px solid var(--accent);
-  background: var(--accent-soft);
-  color: var(--ink);
-  font-weight: 600;
-}
-
 .connect[data-emphasis='true']::after {
   content: '';
   position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 8px;
-  height: 8px;
+  top: 10px;
+  right: 10px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--accent-strong);
-}
-
-.connect[data-emphasis='true'] svg {
-  color: var(--accent-strong);
 }
 
 .connectText {
@@ -155,12 +144,6 @@
 .source dd {
   margin-top: 1px;
   font-size: 0.8125rem;
-}
-
-.age {
-  display: block;
-  color: var(--ink-muted);
-  font-size: 0.75rem;
 }
 
 .hint {

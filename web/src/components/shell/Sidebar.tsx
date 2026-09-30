@@ -8,7 +8,6 @@ import { SETUP_HREF, activeSection, sections, type SectionId } from '@/lib/navig
 import { useOptionalResult, useScanControls } from '@/lib/scan-context';
 import type { SidebarState } from '@/lib/sidebar';
 import { Icon } from '../ui/Icon';
-import { useDataAge } from './Freshness';
 import { ConnectHint } from './ConnectHint';
 import { Logo } from './Logo';
 import styles from './Sidebar.module.css';
@@ -31,7 +30,6 @@ export function Sidebar({ state, onToggle, onTour }: SidebarProps) {
   const pathname = usePathname();
   const { source, liveAvailable, host } = useScanControls();
   const connect = connectEntry(liveAvailable, host);
-  const age = useDataAge();
   const result = useOptionalResult();
   const counts = useSectionCounts();
   const current = activeSection(pathname);
@@ -96,7 +94,6 @@ export function Sidebar({ state, onToggle, onTour }: SidebarProps) {
               <dt>scanned</dt>
               <dd>
                 <time dateTime={result.scannedAt}>{formatUtc(result.scannedAt)}</time>
-                {age !== null && <span className={styles.age}>{age.label}</span>}
               </dd>
             </div>
           )}
