@@ -27,7 +27,7 @@ things that might theoretically go wrong.
 ## Example
 
 ```
-GreenLight  scanned 18 workflows  3 findings, 1 critical
+GreenLight  scanned 18 workflows  4 findings, 2 critical
 
 CRITICAL Order confirmations
          "Send receipt" emitted an error in 5 of the last 5 successful
@@ -35,6 +35,13 @@ CRITICAL Order confirmations
              node                 Send receipt
              executionsWithError  5
              executionsInspected  5
+
+CRITICAL Warehouse load
+         Active workflow has not run for 9.0 h despite running every 1.0 h. Its
+         trigger is most likely no longer registered.
+             lastRunAt      2026-03-02T00:00:00.000Z
+             silentFor      9.0 h
+             usualInterval  1.0 h
 
 WARNING  Inventory sync
          Typical run time rose from 1.2s to 10.5s, 8.6 times slower than before,

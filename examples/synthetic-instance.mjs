@@ -109,7 +109,7 @@ const executions = {
   signup: onDemand('signup', 25, 900, 120),
   payments: onDemand('payments', 110, 1300, 72),
   bookings: onDemand('bookings', 35, 1800, 96),
-  warehouse: everyHour('warehouse', 140, 26000),
+  warehouse: everyHour('warehouse', 140, 26000, 9),
   onboarding: [],
   social: [],
   survey: [],

@@ -13,6 +13,15 @@
       "health": "critical"
     },
     {
+      "id": "warehouse",
+      "name": "Warehouse load",
+      "active": true,
+      "trigger": "schedule",
+      "executionsRead": 140,
+      "lastStartedAt": "2026-03-02T00:00:00.000Z",
+      "health": "critical"
+    },
+    {
       "id": "inventory",
       "name": "Inventory sync",
       "active": true,
@@ -112,15 +121,6 @@
       "health": "healthy"
     },
     {
-      "id": "warehouse",
-      "name": "Warehouse load",
-      "active": true,
-      "trigger": "schedule",
-      "executionsRead": 140,
-      "lastStartedAt": "2026-03-02T09:00:00.000Z",
-      "health": "healthy"
-    },
-    {
       "id": "audit",
       "name": "Access audit",
       "active": false,
@@ -177,6 +177,18 @@
         "node": "Send receipt",
         "executionsWithError": 5,
         "executionsInspected": 5
+      }
+    },
+    {
+      "workflowId": "warehouse",
+      "workflowName": "Warehouse load",
+      "detector": "silence",
+      "severity": "critical",
+      "summary": "Active workflow has not run for 9.0 h despite running every 1.0 h. Its trigger is most likely no longer registered.",
+      "evidence": {
+        "lastRunAt": "2026-03-02T00:00:00.000Z",
+        "silentFor": "9.0 h",
+        "usualInterval": "1.0 h"
       }
     },
     {
