@@ -1,4 +1,4 @@
-type Environment = Record<string, string | undefined>;
+import { currentEnvironment, type Environment } from './environment';
 
 const LOOPBACK_HOSTS = ['localhost', '127.0.0.1', '[::1]'];
 
@@ -10,7 +10,7 @@ function hostnameOf(hostHeader: string): string | undefined {
   }
 }
 
-export function isAllowedHost(hostHeader: string | null, env: Environment = process.env): boolean {
+export function isAllowedHost(hostHeader: string | null, env: Environment = currentEnvironment()): boolean {
   if (hostHeader === null) {
     return false;
   }
