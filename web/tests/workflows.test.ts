@@ -4,7 +4,7 @@ import {
   countByHealth,
   countBySeverity,
   filterByHealth,
-  findingsByWorkflow,
+  countFindingsByWorkflow,
 } from '@/lib/workflows';
 
 function workflow(id: string, health: WorkflowHealth): WorkflowSummary {
@@ -70,13 +70,13 @@ describe('filterByHealth', () => {
   });
 });
 
-describe('findingsByWorkflow', () => {
-  it('groups findings by workflow and remembers the first position', () => {
+describe('countFindingsByWorkflow', () => {
+  it('counts the findings each workflow has', () => {
     const findings = [finding('a', 'critical'), finding('b', 'warning'), finding('a', 'warning')];
-    const grouped = findingsByWorkflow(findings);
+    const counts = countFindingsByWorkflow(findings);
 
-    expect(grouped.get('a')).toEqual({ count: 2, firstIndex: 0 });
-    expect(grouped.get('b')).toEqual({ count: 1, firstIndex: 1 });
-    expect(grouped.has('c')).toBe(false);
+    expect(counts.get('a')).toBe(2);
+    expect(counts.get('b')).toBe(1);
+    expect(counts.has('c')).toBe(false);
   });
 });
