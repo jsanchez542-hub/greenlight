@@ -1,0 +1,106 @@
+.map {
+  display: grid;
+  gap: 12px;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 16px;
+}
+
+.head h2 {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+}
+
+.head p {
+  color: var(--ink-muted);
+  font-size: 0.8125rem;
+}
+
+.lanes {
+  display: grid;
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--line);
+}
+
+.lane {
+  padding: 14px 16px 6px;
+  background: var(--panel);
+}
+
+.laneTitle {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 0.8125rem;
+}
+
+.laneTitle span:last-child {
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.nodes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  margin: 8px -4px 0;
+}
+
+.nodeLink {
+  position: relative;
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  padding: 4px 4px 12px;
+  text-decoration: none;
+}
+
+.nodeLink::before {
+  content: '';
+  position: absolute;
+  inset: 15px 0 auto;
+  border-top: 2px solid color-mix(in srgb, var(--state) 40%, transparent);
+}
+
+[data-state='no-runs'] .nodeLink::before {
+  border-top-style: dashed;
+}
+
+.glyph {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin-left: 4px;
+  border-radius: 50%;
+  background: var(--panel);
+  font-size: 1.125rem;
+  box-shadow: 0 0 0 4px var(--panel);
+}
+
+.name {
+  max-width: 100%;
+  padding-left: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.nodeLink:hover .name {
+  text-decoration: underline;
+}
+
+.nodeLink:hover .glyph,
+.nodeLink:focus-visible .glyph {
+  outline: 2px solid var(--state);
+  outline-offset: 1px;
+}

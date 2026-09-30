@@ -1,0 +1,45 @@
+.back,
+.workflowLink {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+}
+
+.panel {
+  display: grid;
+  gap: 12px;
+  padding: 20px 22px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--state);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+  font-size: 0.875rem;
+}
+
+.heading span:last-child {
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-weight: 400;
+}
+
+.summary {
+  max-width: 68ch;
+  font-size: 1.0625rem;
+}
+
+.block {
+  display: grid;
+  gap: 12px;
+  max-width: 44rem;
+}
+
+.blockTitle {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+}
