@@ -29,7 +29,7 @@ export function loadConfig(env: Record<string, string | undefined>): Config {
 
   if (!baseUrl || !apiKey) {
     throw new Error(
-      'Set N8N_BASE_URL and N8N_API_KEY before running GreenLight. Copy .env.example to .env for a starting point.',
+      'N8N_BASE_URL and N8N_API_KEY are not set. Run greenlight init for a guided setup, or set them in the environment or in a .env file.',
     );
   }
 

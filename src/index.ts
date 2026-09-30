@@ -27,3 +27,5 @@ export {
 } from './watch/notify.js';
 export { FileStateStore, type StateStore, type WatchState } from './watch/state.js';
 export { defaultWatchOptions, runCycle, watch, type CycleOutcome, type WatchDependencies } from './watch/watch.js';
+export { diagnose, type CheckStep, type Diagnosis, type DiagnoseInput, type StepId, type StepStatus } from './setup/diagnose.js';
+export { quoteEnvValue, readEnvValue, upsertEnv } from './setup/env-file.js';

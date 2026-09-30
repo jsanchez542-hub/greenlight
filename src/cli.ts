@@ -2,15 +2,24 @@
 import { loadConfig, loadWatchConfig } from './config.js';
 import { N8nClient } from './n8n/client.js';
 import { renderReport } from './report.js';
+import { diagnose } from './setup/diagnose.js';
+import { runInit, renderDiagnosis } from './setup/init.js';
+import { SetupCancelled, createTerminalPrompter } from './setup/prompter.js';
 import { scan } from './scan.js';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { deliverAlert } from './watch/notify.js';
 import { FileStateStore } from './watch/state.js';
 import { defaultWatchOptions, runCycle, watch, type WatchDependencies } from './watch/watch.js';
 
 const usage = `GreenLight  checks an n8n instance for workflows that fail without saying so.
 
+  greenlight init                     guided first-time setup: connects to your n8n and saves .env
+  greenlight doctor                   checks the connection step by step and says what to fix
   greenlight [--json]                 scan once and print the report
   greenlight watch [--once]           scan on a schedule and alert when something new appears
+
+Settings are read from the environment and from a .env file in the current folder.
+Running greenlight init writes that file for you.
 
 Environment:
   N8N_BASE_URL                URL of the n8n instance
@@ -29,8 +38,61 @@ Exit codes: 0 nothing found, 1 findings, 2 the scan could not run.
 With watch --once it is the same, so it can run from cron or a scheduler.
 `;
 
+function loadEnvFile(path = '.env'): void {
+  try {
+    process.loadEnvFile(path);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      throw new Error(`Could not read ${path}: ${error instanceof Error ? error.message : 'unknown error'}`);
+    }
+  }
+}
+
 function stamp(line: string): string {
   return `[${new Date().toISOString()}] ${line}\n`;
+}
+
+async function runInitCommand(): Promise<number> {
+  const prompter = createTerminalPrompter();
+  try {
+    return await runInit({
+      prompter,
+      diagnose,
+      envPath: '.env',
+      readFile: (path) => {
+        try {
+          return readFileSync(path, 'utf8');
+        } catch (error) {
+          if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+            return null;
+          }
+          throw error;
+        }
+      },
+      writeFile: (path, text) => writeFileSync(path, text, { encoding: 'utf8', mode: 0o600 }),
+    });
+  } catch (error) {
+    if (error instanceof SetupCancelled) {
+      process.stderr.write(`\n${error.message}\n`);
+      return 1;
+    }
+    throw error;
+  } finally {
+    prompter.close();
+  }
+}
+
+async function runDoctor(): Promise<number> {
+  const result = await diagnose({ baseUrl: process.env['N8N_BASE_URL'], apiKey: process.env['N8N_API_KEY'] });
+  const heading = result.host === null ? 'GreenLight doctor' : `GreenLight doctor  ${result.host}`;
+  process.stdout.write(`${heading}\n\n`);
+  process.stdout.write(`${renderDiagnosis(result).join('\n')}\n\n`);
+  if (result.ok) {
+    process.stdout.write('Everything needed is in place.\n');
+    return 0;
+  }
+  process.stdout.write('Run greenlight init to fix the settings.\n');
+  return 1;
 }
 
 async function runScan(argv: string[]): Promise<number> {
@@ -101,6 +163,14 @@ async function main(argv: string[]): Promise<number> {
     return 0;
   }
 
+  loadEnvFile();
+
+  if (argv[0] === 'init') {
+    return runInitCommand();
+  }
+  if (argv[0] === 'doctor') {
+    return runDoctor();
+  }
   return argv[0] === 'watch' ? runWatch(argv.slice(1)) : runScan(argv);
 }
 
