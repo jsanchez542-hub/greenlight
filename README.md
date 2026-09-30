@@ -86,7 +86,70 @@ exits with 1 when something is found, so it can gate a deployment pipeline.
 | `GREENLIGHT_EXECUTION_LIMIT` | 200 | executions read per workflow |
 | `GREENLIGHT_DETAIL_SAMPLE` | 5 | executions inspected node by node |
 
-Only read endpoints are used. GreenLight never writes to the instance.
+Only read endpoints are used. GreenLight never writes to the instance; the only thing it sends
+anywhere is the alert that `watch` posts to the webhook you configure.
+
+## Watching
+
+```bash
+node dist/cli.js watch
+```
+
+Scans on a schedule and reports only what changed. A finding is announced once when it
+appears and once when it has stayed away for two scans in a row, so a borderline case that
+flickers does not produce an alert every few minutes. What was already reported is kept in a
+small file (`.greenlight-state.json`), so restarting does not repeat old alerts.
+
+If the scan itself cannot run three times in a row, which usually means the instance is down
+or the key was revoked, it says so, because a watcher that fails quietly is the problem this
+project exists to solve. It says so again when scanning resumes.
+
+Without a webhook, changes are only printed. With one, each change is posted as JSON:
+
+```json
+{
+  "source": "greenlight",
+  "type": "findings",
+  "subject": "GreenLight: 1 new critical finding on n8n.example.com",
+  "text": "CRITICAL Order confirmations (silent-error)
+\"Send receipt\" emitted an error in 5 of the last 5 successful executions. ...",
+  "instance": "n8n.example.com",
+  "scannedAt": "2026-03-02T09:00:00.000Z",
+  "newFindings": [
+    {
+      "workflowId": "orders",
+      "workflowName": "Order confirmations",
+      "detector": "silent-error",
+      "severity": "critical",
+      "summary": "\"Send receipt\" emitted an error in 5 of the last 5 successful executions. ..."
+    }
+  ],
+  "resolvedFindings": []
+}
+```
+
+`type` is `findings`, `scan-failing` or `scan-recovered`. `subject` and `text` are written to be
+used as they are in an email or a chat message; the arrays carry the same information as data.
+If a delivery fails, the alert is kept and tried again on the next scan.
+
+GreenLight does not know what is behind the URL, so it works with anything that accepts a JSON
+POST. [`examples/n8n-alert-to-email.json`](examples/n8n-alert-to-email.json) is a two-node n8n
+workflow that turns the alert into an email: import it, choose your own SMTP credentials and
+addresses, and create a Header Auth credential whose name is `Authorization` and whose value is
+`Bearer ` followed by your token. Then set `GREENLIGHT_WEBHOOK_URL` to the production URL of its
+webhook and `GREENLIGHT_WEBHOOK_TOKEN` to the same token. The webhook URL is treated as a secret
+and never appears in error messages.
+
+`watch --once` runs a single scan and exits, with the same exit codes as a normal scan, so it can
+run from cron or a scheduler instead of staying alive.
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `GREENLIGHT_WEBHOOK_URL` | none | where alerts are posted |
+| `GREENLIGHT_WEBHOOK_TOKEN` | none | sent as `Authorization: Bearer <token>` |
+| `GREENLIGHT_INTERVAL_MINUTES` | 5 | time between scans |
+| `GREENLIGHT_NOTIFY_MIN` | `warning` | `critical` to alert only on critical findings |
+| `GREENLIGHT_STATE_FILE` | `.greenlight-state.json` | what has already been reported |
 
 ## Output
 
@@ -171,14 +234,15 @@ why each one can be covered by a test and reproduced from the evidence printed b
 ## Limits
 
 It reads whatever execution history the instance still holds, so a short retention
-window limits what can be compared. Workflows that have never run are skipped rather
+window limits what can be compared. A workflow that is switched off is not checked for silent
+errors: its history may hold old failures that nobody needs to act on. Workflows that have never run are skipped rather
 than guessed at. Detail inspection is sampled, not exhaustive, because that endpoint is
 expensive.
 
 ## Development
 
 ```bash
-npm test        # 43 tests
+npm test        # 79 tests
 npm run example # the report above, from a synthetic instance
 npm run typecheck
 npm run build
