@@ -54,8 +54,13 @@ export async function requestConnect(
   apiKey: string,
   signal: AbortSignal,
   fetchImpl: typeof fetch = fetch,
+  checkUpdates?: boolean,
 ): Promise<ConnectResult> {
-  const body = await send({ action: 'connect', baseUrl, apiKey }, signal, fetchImpl);
+  const body = await send(
+    { action: 'connect', baseUrl, apiKey, ...(checkUpdates === undefined ? {} : { checkUpdates }) },
+    signal,
+    fetchImpl,
+  );
   try {
     const fields = asRecord(body, 'the answer');
     return {

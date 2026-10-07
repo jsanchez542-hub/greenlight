@@ -327,6 +327,47 @@ function canLink(): boolean {
   }
 }
 
+describe('the notice of new versions in the same request', () => {
+  it('is written with the connection when the box is ticked', async () => {
+    writeFileSync(file, '# mine\n');
+    const response = await handleConnect(post({ ...connectBody, checkUpdates: true }), context());
+
+    expect((await response.json()).saved).toBe(true);
+    expect(readFileSync(file, 'utf8')).toBe(`# mine\nN8N_BASE_URL=${ADDRESS}\nN8N_API_KEY=${KEY}\nGREENLIGHT_CHECK_UPDATES=1\n`);
+  });
+
+  it('is written as 0 when the box is not ticked', async () => {
+    await handleConnect(post({ ...connectBody, checkUpdates: false }), context());
+    expect(readFileSync(file, 'utf8')).toBe(`N8N_BASE_URL=${ADDRESS}\nN8N_API_KEY=${KEY}\nGREENLIGHT_CHECK_UPDATES=0\n`);
+  });
+
+  it('is left alone when the request does not mention it', async () => {
+    writeFileSync(file, 'GREENLIGHT_CHECK_UPDATES=1\n');
+    await handleConnect(post(connectBody), context());
+    expect(readFileSync(file, 'utf8')).toBe(`GREENLIGHT_CHECK_UPDATES=1\nN8N_BASE_URL=${ADDRESS}\nN8N_API_KEY=${KEY}\n`);
+  });
+
+  it('is refused unless it is a real boolean, and then nothing is written', async () => {
+    for (const checkUpdates of ['yes', 1, null, [], {}]) {
+      const response = await handleConnect(post({ ...connectBody, checkUpdates }), context());
+      expect(response.status).toBe(400);
+    }
+    expect(existsSync(file)).toBe(false);
+  });
+
+  it('is not written when the connection fails', async () => {
+    passes = false;
+    await handleConnect(post({ ...connectBody, checkUpdates: true }), context());
+    expect(existsSync(file)).toBe(false);
+  });
+
+  it('is kept when the connection is removed, because it is not part of the connection', async () => {
+    writeFileSync(file, `N8N_BASE_URL=${ADDRESS}\nN8N_API_KEY=${KEY}\nGREENLIGHT_CHECK_UPDATES=1\n`);
+    await handleConnect(post({ action: 'disconnect' }), context());
+    expect(readFileSync(file, 'utf8')).toBe('GREENLIGHT_CHECK_UPDATES=1\n');
+  });
+});
+
 describe('disconnect', () => {
   it('removes the two settings and keeps the rest', async () => {
     writeFileSync(file, `# mine\nN8N_BASE_URL=${ADDRESS}\nOTHER=1\nN8N_API_KEY=${KEY}\n`);

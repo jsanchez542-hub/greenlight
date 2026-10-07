@@ -4,7 +4,8 @@ import path from 'node:path';
 import { removeEnvKeys, upsertEnv } from 'greenlight';
 import { EnvFileError, MAX_ENV_FILE_BYTES, readEnvText } from './environment';
 
-export const WRITABLE_SETTINGS = ['N8N_BASE_URL', 'N8N_API_KEY'] as const;
+export const CONNECTION_SETTINGS = ['N8N_BASE_URL', 'N8N_API_KEY'] as const;
+export const WRITABLE_SETTINGS = [...CONNECTION_SETTINGS, 'GREENLIGHT_CHECK_UPDATES'] as const;
 export type WritableSetting = (typeof WRITABLE_SETTINGS)[number];
 
 let queue: Promise<unknown> = Promise.resolve();
@@ -71,28 +72,35 @@ function serialised<T>(task: () => T): Promise<T> {
   return run;
 }
 
-/** Sets the address and the key and leaves every other line of the file as it was. */
-export function saveSettings(filePath: string, values: Record<WritableSetting, string>): Promise<void> {
+/** Sets the values given, which can only be the settings listed above, and leaves every other line as it was. */
+export function saveSettings(filePath: string, values: Partial<Record<WritableSetting, string>>): Promise<void> {
   return serialised(() => {
+    const allowed: Record<string, string> = {};
+    for (const name of WRITABLE_SETTINGS) {
+      const value = values[name];
+      if (value !== undefined) {
+        allowed[name] = value;
+      }
+    }
     const existing = readEnvText(filePath) ?? '';
-    replaceFile(filePath, upsertEnv(existing, { N8N_BASE_URL: values.N8N_BASE_URL, N8N_API_KEY: values.N8N_API_KEY }));
+    replaceFile(filePath, upsertEnv(existing, allowed));
   });
 }
 
-/** Removes the address and the key and leaves every other line of the file as it was. */
+/** Removes the address and the key, and only those, and leaves every other line of the file as it was. */
 export function clearSettings(filePath: string): Promise<boolean> {
   return serialised(() => {
     const existing = readEnvText(filePath);
     if (existing === null) {
       return false;
     }
-    const present = WRITABLE_SETTINGS.some((name) =>
+    const present = CONNECTION_SETTINGS.some((name) =>
       new RegExp(String.raw`^\s*(?:export\s+)?${name}\s*=`, 'm').test(existing),
     );
     if (!present) {
       return false;
     }
-    replaceFile(filePath, removeEnvKeys(existing, [...WRITABLE_SETTINGS]));
+    replaceFile(filePath, removeEnvKeys(existing, [...CONNECTION_SETTINGS]));
     return true;
   });
 }
