@@ -7,14 +7,14 @@
 .dim {
   position: absolute;
   inset: 0;
-  background: rgb(0 0 0 / 0.6);
+  background: var(--scrim);
 }
 
 .ring {
   position: absolute;
   border: 2px solid var(--accent-strong);
   border-radius: var(--radius);
-  box-shadow: 0 0 0 100vmax rgb(0 0 0 / 0.6);
+  box-shadow: 0 0 0 100vmax var(--scrim);
   pointer-events: none;
   transition:
     top 0.2s,
@@ -33,7 +33,7 @@
   border: 1px solid var(--line-strong);
   border-radius: var(--radius);
   background: var(--panel);
-  box-shadow: 0 12px 32px rgb(0 0 0 / 0.35);
+  box-shadow: 0 12px 32px var(--shadow);
 }
 
 .card:focus {
