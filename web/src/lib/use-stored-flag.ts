@@ -1,20 +1,33 @@
 'use client';
 
 import { useCallback, useSyncExternalStore } from 'react';
-import { readFlag, writeFlag } from './stored-flag';
+import { copyStoredFlagsToCookie, isFlagSet, setFlag, type FlagSources } from './stored-flag';
 
 const values = new Map<string, boolean>();
 const listeners = new Set<() => void>();
+let copied = false;
 
-function browserStorage(): Storage | undefined {
-  try {
-    return window.localStorage;
-  } catch {
-    return undefined;
-  }
+function browserSources(): FlagSources {
+  return {
+    get storage() {
+      try {
+        return window.localStorage;
+      } catch {
+        return undefined;
+      }
+    },
+    readCookies: () => document.cookie,
+    writeCookie: (cookie) => {
+      document.cookie = cookie;
+    },
+  };
 }
 
 function subscribe(listener: () => void): () => void {
+  if (!copied) {
+    copied = true;
+    copyStoredFlagsToCookie(browserSources());
+  }
   listeners.add(listener);
   return () => listeners.delete(listener);
 }
@@ -26,7 +39,7 @@ function getServerSnapshot(): boolean {
 export function useStoredFlag(key: string): [boolean, () => void] {
   const getSnapshot = useCallback((): boolean => {
     if (!values.has(key)) {
-      values.set(key, readFlag(browserStorage(), key));
+      values.set(key, isFlagSet(key, browserSources()));
     }
     return values.get(key) ?? false;
   }, [key]);
@@ -35,7 +48,7 @@ export function useStoredFlag(key: string): [boolean, () => void] {
 
   const set = useCallback(() => {
     values.set(key, true);
-    writeFlag(browserStorage(), key);
+    setFlag(key, browserSources());
     listeners.forEach((listener) => listener());
   }, [key]);
 
