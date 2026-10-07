@@ -19,6 +19,7 @@ interface ScanControls {
   settingsProblem: string | null;
   selectLive: () => void;
   connectLive: () => void;
+  disconnectLive: () => void;
   selectSample: () => void;
   scanNow: () => void;
 }
@@ -43,7 +44,8 @@ export function ScanProvider({
 }: ScanProviderProps) {
   const [source, setSource] = useState<Source>(liveAvailable ? 'live' : 'sample');
   const [connected, setConnected] = useState(false);
-  const available = liveAvailable || connected;
+  const [disconnected, setDisconnected] = useState(false);
+  const available = connected || (liveAvailable && !disconnected);
   const { feed, scanNow } = useLiveFeed(available && source === 'live', initialSnapshot);
 
   const live = source === 'live';
@@ -68,7 +70,13 @@ export function ScanProvider({
       selectLive: () => setSource('live'),
       connectLive: () => {
         setConnected(true);
+        setDisconnected(false);
         setSource('live');
+      },
+      disconnectLive: () => {
+        setConnected(false);
+        setDisconnected(true);
+        setSource('sample');
       },
       selectSample: () => setSource('sample'),
       scanNow: () => void scanNow(),

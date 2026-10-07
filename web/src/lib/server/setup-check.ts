@@ -21,13 +21,14 @@ export function createSetupChecker({ diagnose = runDiagnosis, now = Date.now }: 
   return function check(env: Environment = currentEnvironment()): Promise<SetupStatus> {
     const baseUrl = env['N8N_BASE_URL']?.trim();
     const apiKey = env['N8N_API_KEY']?.trim();
-    const settings = `${baseUrl ?? ''}\n${apiKey ?? ''}`;
+    const settings = `${baseUrl ?? ''}\n${apiKey ?? ''}\n${env['GREENLIGHT_ALLOW_INSECURE_HTTP'] ?? ''}`;
 
     if (recent !== null && recent.settings === settings && now() - recent.at < REUSE_WINDOW_MS) {
       return recent.status;
     }
 
-    const status = diagnose({ baseUrl, apiKey }).then((diagnosis) => ({
+    const allowInsecureHttp = ['1', 'true'].includes((env['GREENLIGHT_ALLOW_INSECURE_HTTP'] ?? '').trim().toLowerCase());
+    const status = diagnose({ baseUrl, apiKey, allowInsecureHttp }).then((diagnosis) => ({
       hasAddress: Boolean(baseUrl),
       hasKey: Boolean(apiKey),
       diagnosis,
