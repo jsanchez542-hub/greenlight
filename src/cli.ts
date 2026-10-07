@@ -2,6 +2,7 @@
 import { loadConfig, loadWatchConfig } from './config.js';
 import { N8nClient } from './n8n/client.js';
 import { renderReport } from './report.js';
+import { nodeVersionProblem } from './runtime.js';
 import { diagnose } from './setup/diagnose.js';
 import { runInit, renderDiagnosis } from './setup/init.js';
 import { SetupCancelled, createTerminalPrompter } from './setup/prompter.js';
@@ -163,6 +164,12 @@ async function runWatch(argv: string[]): Promise<number> {
 }
 
 async function main(argv: string[]): Promise<number> {
+  const problem = nodeVersionProblem(process.versions.node);
+  if (problem !== null) {
+    process.stderr.write(`${problem}\n`);
+    return 2;
+  }
+
   if (argv.includes('--help') || argv.includes('-h')) {
     process.stdout.write(usage);
     return 0;
