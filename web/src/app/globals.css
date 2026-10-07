@@ -1,23 +1,26 @@
 :root {
   color-scheme: light dark;
 
-  --bg: #f1f5ee;
-  --panel: #ffffff;
-  --panel-raised: #e8eee4;
-  --line: #d1dccd;
-  --line-strong: #9fb19b;
-  --ink: #0b1a15;
-  --ink-muted: #4a5f56;
-  --accent: #4d7c0f;
-  --accent-strong: #3f6212;
+  --bg: light-dark(#f1f5ee, #01110e);
+  --panel: light-dark(#ffffff, #05201a);
+  --panel-raised: light-dark(#e8eee4, #0a2c24);
+  --line: light-dark(#d1dccd, #11352c);
+  --line-strong: light-dark(#748a70, #4a8573);
+  --ink: light-dark(#0b1a15, #e4efe9);
+  --ink-muted: light-dark(#4a5f56, #8fab9f);
+  --accent: light-dark(#4d7c0f, #94c423);
+  --accent-strong: light-dark(#3f6212, #c2f670);
   --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--panel));
-  --on-accent: #ffffff;
-  --focus: #0b57d0;
+  --on-accent: light-dark(#ffffff, #01110e);
+  --focus: light-dark(#0b57d0, #c2f670);
 
-  --critical: #b3261e;
-  --warning: #8a5700;
-  --healthy: #0b6b62;
-  --neutral: #55646c;
+  --critical: light-dark(#b3261e, #ff7b6f);
+  --warning: light-dark(#8a5700, #f2b84b);
+  --healthy: light-dark(#0b6b62, #36d1c0);
+  --neutral: light-dark(#55646c, #93a7ae);
+
+  --scrim: light-dark(rgb(11 26 21 / 0.55), rgb(0 0 0 / 0.65));
+  --shadow: light-dark(rgb(11 26 21 / 0.25), rgb(0 0 0 / 0.5));
 
   --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-mono: ui-monospace, 'Cascadia Code', 'SFMono-Regular', Menlo, Consolas, monospace;
@@ -30,25 +33,12 @@
   --bottom-nav-height: 3.5rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #01110e;
-    --panel: #05201a;
-    --panel-raised: #0a2c24;
-    --line: #11352c;
-    --line-strong: #2a5a4c;
-    --ink: #e4efe9;
-    --ink-muted: #8fab9f;
-    --accent: #94c423;
-    --accent-strong: #c2f670;
-    --on-accent: #01110e;
-    --focus: #c2f670;
+:root[data-theme='light'] {
+  color-scheme: light;
+}
 
-    --critical: #ff7b6f;
-    --warning: #f2b84b;
-    --healthy: #36d1c0;
-    --neutral: #93a7ae;
-  }
+:root[data-theme='dark'] {
+  color-scheme: dark;
 }
 
 @media (min-width: 900px) {
