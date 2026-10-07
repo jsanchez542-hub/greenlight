@@ -6,23 +6,29 @@
   overflow-wrap: anywhere;
 }
 
-.note[data-placement='sidebar'] {
+.wrap {
+  display: grid;
+  gap: 4px;
+}
+
+.wrap[data-placement='sidebar'] .note {
   padding: 0 4px;
 }
 
-.note[data-placement='page'] {
+.wrap[data-placement='page'] {
   display: none;
 }
 
 @media (max-width: 899px) {
-  .note[data-placement='page'] {
-    display: block;
+  .wrap[data-placement='page'] {
+    display: grid;
+    justify-items: center;
     padding: 0 var(--gutter) 24px;
     text-align: center;
   }
 }
 
-:global([data-sidebar='collapsed']) .note[data-placement='sidebar'] {
+:global([data-sidebar='collapsed']) .wrap[data-placement='sidebar'] {
   position: absolute;
   width: 1px;
   height: 1px;

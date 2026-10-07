@@ -147,3 +147,25 @@
     width: 100%;
   }
 }
+
+.choice {
+  display: grid;
+  gap: 6px;
+  padding-left: 42px;
+}
+
+.choiceLabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 32px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.choiceLabel input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}

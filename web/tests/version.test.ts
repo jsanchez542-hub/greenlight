@@ -12,9 +12,9 @@ describe('version note', () => {
   });
 
   it('is plain text, readable by a screen reader, with no hidden labels or links', () => {
-    for (const [placement, tag] of [['sidebar', 'p'], ['page', 'footer']] as const) {
+    for (const [placement, tag] of [['sidebar', 'div'], ['page', 'footer']] as const) {
       const markup = renderToStaticMarkup(createElement(VersionNote, { version: '1.0.0', placement }));
-      expect(markup).toMatch(new RegExp(`^<${tag} [^>]*>GreenLight v1\.0\.0</${tag}>$`));
+      expect(markup).toMatch(new RegExp(String.raw`^<${tag} [^>]*><p [^>]*>GreenLight v1\.0\.0</p></${tag}>$`));
       expect(markup).not.toContain('aria-hidden');
     }
   });

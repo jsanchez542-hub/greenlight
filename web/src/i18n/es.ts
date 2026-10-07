@@ -361,6 +361,7 @@ export const es: Messages = {
     notYet:
       'Todavía no estás conectado. Corrige el paso marcado como Fallido, vuelve a pegar la clave y pulsa Conectar.',
     savedFails: 'La conexión guardada no funciona en este momento.',
+    checking: 'Comprobando la conexión…',
     terminalSummary: '¿Prefieres la terminal?',
     terminalBody:
       'Abre una terminal en la carpeta de GreenLight y ejecuta esto. Te pide los mismos dos datos y los guarda por ti.',

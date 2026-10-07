@@ -8,6 +8,7 @@ import { useResult } from '@/lib/scan-context';
 import { healthStates } from '@/lib/status';
 import { countByHealth, countBySeverity } from '@/lib/workflows';
 import { FindingRow } from '../findings/FindingRow';
+import { UpdateNotice } from '../shell/UpdateNotice';
 import { PageHeader } from '../ui/PageHeader';
 import { StatusIcon, StatusLabel } from '../ui/StatusIcon';
 import styles from './Overview.module.css';
@@ -28,6 +29,7 @@ export function Overview() {
   if (result.workflows.length === 0) {
     return (
       <>
+        <UpdateNotice variant="banner" />
         <PageHeader title={t.overview.title} meta={t.overview.noWorkflowsMeta} />
         <section className={styles.verdict} aria-labelledby="empty-heading">
           <h2 id="empty-heading" className={styles.clean} data-state="no-runs">
@@ -43,6 +45,7 @@ export function Overview() {
 
   return (
     <>
+      <UpdateNotice variant="banner" />
       <PageHeader
         title={t.overview.title}
         meta={
