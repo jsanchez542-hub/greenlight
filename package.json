@@ -46,7 +46,7 @@
     "doctor": "node dist/cli.js doctor",
     "scan": "node dist/cli.js",
     "watch": "node dist/cli.js watch",
-    "panel": "npm install --prefix web && npm run dev --prefix web",
+    "panel": "node scripts/panel.mjs",
     "prepare": "npm run build"
   },
   "devDependencies": {
