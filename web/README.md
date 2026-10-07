@@ -70,10 +70,10 @@ The dashboard shows what an n8n instance holds, so the assets are the **API key*
 | Threat | Defence |
 | --- | --- |
 | Someone on the network opens the page | It listens on `127.0.0.1` only, and any `Host` other than `localhost`, `127.0.0.1` or `[::1]` is refused with 403, which also stops DNS rebinding. Other names go in `GREENLIGHT_ALLOWED_HOSTS`. |
-| A web page you visit calls the dashboard | Routes answer only requests a browser marks as made from the dashboard itself (`Sec-Fetch-Site`). Forced scans cannot be started from anywhere else. There are no cookies and no cross-origin access. |
+| A web page you visit calls the dashboard | Routes answer only requests a browser marks as made from the dashboard itself (`Sec-Fetch-Site`). Forced scans cannot be started from anywhere else. The server sets no cookies, and nothing is readable from another origin. |
 | An instance sends names or messages that are markup | Everything from the instance is rendered as text. There is no raw HTML anywhere, identifiers are encoded in addresses, and a strict policy blocks script even if a bug let markup through. |
 | The page is framed or its scripts replaced | `Content-Security-Policy` with a nonce per request: scripts and styles only from this origin, `frame-ancestors 'none'`, `base-uri 'none'`, `object-src 'none'`, forms only to itself. In `npm run dev` it also allows what hot reloading needs (`unsafe-eval`, inline styles); production does not. |
-| The key leaks | It stays on the server. It is not in any page, response, header, log, cookie or `localStorage`, and error messages are stripped of it before they are returned. |
+| The key leaks | It stays on the server. It is not in any page, response, header, log, the interface cookie or `localStorage`, and error messages are stripped of it before they are returned. |
 | The key is sent to the wrong place | The address comes only from the settings, never from a request. It must be http or https, carry no credentials, and be https unless the host is private or `GREENLIGHT_ALLOW_INSECURE_HTTP` is set. The scanner never follows a redirect to another host with the key. |
 | The settings file is hostile or broken | It is opened without following links, refused above 64 KiB or when it is not a regular file, and any failure shows as a short notice that names neither the path nor the contents. |
 | The instance is hammered | A manual scan joins one that is running and otherwise waits 30 seconds after the last one (429 with `Retry-After`). The stored scan serves every visitor. |
@@ -145,13 +145,30 @@ and scrollbars follow the theme too, and the logo changes variant with it.
 
 ## Tour and keyboard
 
-The welcome dialog appears the first time the dashboard is opened in a browser. It offers the
-tour and, when no instance is connected, the connection page. The tour has six short steps that
-point at the real interface. It can be skipped until its last step, which offers **Connect my n8n**
-when no instance is connected and only **Done** otherwise. `Esc` closes it, focus stays inside
-it and returns where it was, and it reopens from the foot of the sidebar or with `?`. The
-"seen" flag is stored in the browser under a versioned key; if the browser blocks storage the
-dialog simply shows again.
+The welcome dialog appears once to a new visitor, and is marked as seen the moment it is shown:
+closing the window, reloading or navigating away without pressing anything does not bring it
+back. The tour has six short steps that point at the real interface. It can be skipped until its
+last step, which offers **Connect my n8n** when no instance is connected and only **Done**
+otherwise. `Esc` closes it, focus stays inside it and returns where it was, and it reopens from
+the foot of the sidebar or with `?`.
+
+### The interface cookie
+
+What a visitor has already seen is remembered in the browser storage and in one cookie,
+`greenlight_ui`. The cookie exists because browser storage is separate for every port, and the
+port changes whenever 3000 is busy. A cookie ignores the port, so the same address on another
+port does not show the welcome again.
+
+- Its value is a list of flag names such as `welcome-v1.watch-tip-v1`: which hints were seen. Nothing else.
+- It is set by the page, not by the server, so it cannot be `HttpOnly`. It is `Path=/`,
+  `SameSite=Strict`, lasts one year, and has no `Domain`, so it stays on the host that set it.
+- It holds no key, address, name or identifier, and the server never reads or sets it. The
+  content security policy and the other headers are unaffected by it.
+- Only names the dashboard knows are read back, so a cookie edited by hand or by another
+  application on the same host cannot add anything.
+- If the browser blocks cookies or storage the dialog simply shows again. The theme choice stays
+  in the browser storage and is not in the cookie.
+- `127.0.0.1` and `localhost` are different hosts to the browser, so each is a new visitor once.
 
 `g` then `o`, `f`, `w` or `c` moves to overview, findings, workflows or checks. `/` focuses
 the workflow search. The sidebar collapses to icons and remembers that choice. On a narrow
