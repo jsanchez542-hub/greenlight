@@ -20,3 +20,11 @@ think the impact is. It will be answered as soon as possible.
 - **Execution data can be sensitive.** A scan reads execution output to find errors. It does not
   store it, and a finding only carries a short summary and counts, but run it where you would run
   your other admin tools.
+
+## Known advisories in development tooling
+
+`npm audit` in `web/` reports `braces` (GHSA-vfj7-8cjw-p6xm, denial of service through deeply nested
+patterns). It arrives through the lint configuration of Next.js, it is only used on this repository's
+own files while linting, and no patched release exists yet. Everything the scanner and the dashboard
+run is clean: `npm audit --omit=dev` reports no vulnerabilities in either project. The dependency
+will be updated as soon as a fix is published.
