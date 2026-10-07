@@ -1,14 +1,15 @@
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useCallback, useReducer, useState } from 'react';
 import { onboardingReducer, visibleState, type OnboardingState } from './onboarding';
 import { WELCOME_FLAG, WELCOME_SKIPPED_FLAG } from './stored-flag';
+import { usePath } from './use-path';
 import { useStoredFlag } from './use-stored-flag';
 
 export function useOnboarding() {
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = usePath();
   const [welcomeSeen, markWelcomeSeen] = useStoredFlag(WELCOME_FLAG);
   const [, markWelcomeSkipped] = useStoredFlag(WELCOME_SKIPPED_FLAG);
   const [shownThisVisit, setShownThisVisit] = useState(false);

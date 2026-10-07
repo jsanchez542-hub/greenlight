@@ -1,11 +1,11 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
 import { useMessages } from '@/i18n/context';
 import type { Messages } from '@/i18n';
 import { pageLabel } from '@/lib/navigation';
 import { decodeSegment } from '@/lib/routes';
 import { useScanControls } from '@/lib/scan-context';
+import { usePath } from '@/lib/use-path';
 import { Freshness } from './Freshness';
 import { LanguageSwitch } from './LanguageSwitch';
 import { Logo } from './Logo';
@@ -20,7 +20,7 @@ function locationOf(pathname: string, source: 'live' | 'sample', t: Messages): s
 
 export function TopBar() {
   const t = useMessages();
-  const pathname = usePathname();
+  const pathname = usePath();
   const { source } = useScanControls();
   const segments = locationOf(pathname, source, t);
 

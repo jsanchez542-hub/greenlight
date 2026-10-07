@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation';
 import { useLang, useMessages } from '@/i18n/context';
 import type { Lang } from '@/i18n';
 import { browserSources } from '@/lib/browser-sources';
+import { STATIC_DEMO } from '@/lib/demo';
+import { chooseDemoLanguage } from '@/lib/demo-language';
 import { setLanguage } from '@/lib/stored-flag';
 import styles from './LanguageSwitch.module.css';
 
@@ -16,6 +18,10 @@ export function LanguageSwitch({ placement }: { placement: 'sidebar' | 'top' }) 
 
   function choose(next: Lang) {
     if (next === lang) {
+      return;
+    }
+    if (STATIC_DEMO) {
+      chooseDemoLanguage(next);
       return;
     }
     setLanguage(next, browserSources());

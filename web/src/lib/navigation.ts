@@ -17,7 +17,17 @@ export const sections: readonly Section[] = [
 
 export const SETUP_HREF = '/setup';
 
-export function pageLabel(pathname: string, t: Messages): string {
+/** A path without the slash that a host serving folders puts at its end, so '/setup/' and '/setup' are one page. */
+export function normalizePath(pathname: string): string {
+  let end = pathname.length;
+  while (end > 1 && pathname.charCodeAt(end - 1) === 47) {
+    end -= 1;
+  }
+  return pathname.slice(0, end);
+}
+
+export function pageLabel(rawPath: string, t: Messages): string {
+  const pathname = normalizePath(rawPath);
   if (pathname === SETUP_HREF) {
     return t.nav.pages.setup;
   }
@@ -25,7 +35,8 @@ export function pageLabel(pathname: string, t: Messages): string {
   return section === undefined ? t.nav.pages.notFound : t.nav.pages[section.id];
 }
 
-export function activeSection(pathname: string): Section | undefined {
+export function activeSection(rawPath: string): Section | undefined {
+  const pathname = normalizePath(rawPath);
   if (pathname === '/') {
     return sections[0];
   }

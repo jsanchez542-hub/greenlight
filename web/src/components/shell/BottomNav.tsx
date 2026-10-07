@@ -1,18 +1,18 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { useMessages } from '@/i18n/context';
-import { connectEntry } from '@/lib/connect-entry';
+import { connectEntry, connectTexts } from '@/lib/connect-entry';
 import { SETUP_HREF, activeSection, sections } from '@/lib/navigation';
 import { useScanControls } from '@/lib/scan-context';
+import { usePath } from '@/lib/use-path';
 import { Icon } from '../ui/Icon';
 import { ConnectHint } from './ConnectHint';
 import styles from './BottomNav.module.css';
 
 export function BottomNav() {
   const t = useMessages();
-  const pathname = usePathname();
+  const pathname = usePath();
   const current = activeSection(pathname);
   const { liveAvailable, host } = useScanControls();
   const connect = connectEntry(liveAvailable, host);
@@ -41,7 +41,7 @@ export function BottomNav() {
             aria-current={pathname === SETUP_HREF ? 'page' : undefined}
           >
             <Icon name="connect" />
-            {connect.connected ? t.sidebar.connected : t.sidebar.connect}
+            {connectTexts(t, connect).label}
           </Link>
         </li>
       </ul>

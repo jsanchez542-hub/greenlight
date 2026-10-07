@@ -1,6 +1,5 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { useMessages } from '@/i18n/context';
 import { SETUP_HREF } from '@/lib/navigation';
@@ -8,6 +7,7 @@ import { useScanControls } from '@/lib/scan-context';
 import { useOnboarding } from '@/lib/use-onboarding';
 import { useShortcuts } from '@/lib/use-shortcuts';
 import { useSidebar } from '@/lib/use-sidebar';
+import { usePath } from '@/lib/use-path';
 import { Onboarding } from '../onboarding/Onboarding';
 import { ScanFailure, ScanProgress } from '../ui/Notice';
 import styles from './AppShell.module.css';
@@ -19,7 +19,7 @@ import { VersionNote } from './VersionNote';
 
 function Content({ children }: { children: ReactNode }) {
   const { phase, problem, liveAvailable, selectSample, scanNow } = useScanControls();
-  const pathname = usePathname();
+  const pathname = usePath();
 
   if (pathname === SETUP_HREF) {
     return children;
