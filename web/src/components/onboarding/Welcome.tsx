@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { welcomeChoices } from '@/lib/onboarding';
 import { useDialogFocus } from '@/lib/use-dialog-focus';
 import { Logo } from '../shell/Logo';
@@ -11,12 +11,17 @@ interface WelcomeProps {
   onTour: () => void;
   onConnect: () => void;
   onClose: () => void;
+  onShown: () => void;
 }
 
-export function Welcome({ liveAvailable, onTour, onConnect, onClose }: WelcomeProps) {
+export function Welcome({ liveAvailable, onTour, onConnect, onClose, onShown }: WelcomeProps) {
   const dialog = useRef<HTMLDivElement>(null);
   const choices = welcomeChoices(liveAvailable);
   useDialogFocus(dialog, onClose);
+
+  useEffect(() => {
+    onShown();
+  }, [onShown]);
 
   return (
     <div className={styles.layer}>
