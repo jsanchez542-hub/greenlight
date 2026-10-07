@@ -294,7 +294,7 @@ export const es: Messages = {
         question: '¿Falló un paso dentro de una ejecución que informó éxito?',
         appliesTo: 'Workflows activos con una ejecución correcta reciente',
         method:
-          'Abre una muestra de las ejecuciones correctas más recientes y lee la salida de cada nodo. Si un nodo emite un error como si fuera un dato normal, se reporta aunque la ejecución haya terminado en verde. Suele ocurrir cuando un paso tiene activada la opción de continuar si falla. Un workflow desactivado no se revisa, porque su historial puede contener fallos antiguos sobre los que nadie necesita actuar.',
+          'Abre una muestra de las ejecuciones correctas más recientes y lee la salida de cada nodo. Si un nodo emite un error como si fuera un dato normal, se señala aunque la ejecución haya terminado en verde. Suele ocurrir cuando un paso tiene activada la opción de continuar si falla. Un workflow desactivado no se revisa, porque su historial puede contener fallos antiguos sobre los que nadie necesita actuar.',
         thresholds: [
           { name: 'muestra', value: '5 ejecuciones correctas por defecto' },
           { name: 'historial necesario', value: 'ninguno' },
@@ -303,11 +303,11 @@ export const es: Messages = {
           'Abre el nodo indicado y lee el error que devuelve. Revisa la credencial o el servicio que hay detrás y decide si el workflow debería detenerse ante ese fallo en lugar de seguir adelante.',
       },
       'duration-drift': {
-        label: 'Deriva de duración',
+        label: 'Ralentización',
         question: '¿Este workflow es de repente mucho más lento que antes?',
         appliesTo: 'Cualquier workflow con historial suficiente',
         method:
-          'Compara el tiempo mediano de las ejecuciones recientes con el historial del propio workflow. Cada condición por separado reportaría variaciones normales, así que deben cumplirse las dos.',
+          'Compara el tiempo mediano de las ejecuciones recientes con el historial del propio workflow. Cada condición por separado señalaría variaciones normales, así que deben cumplirse las dos.',
         thresholds: [
           { name: 'mediana reciente', value: 'por encima del percentil 95 histórico' },
           { name: 'mediana reciente', value: 'al menos el doble de la mediana histórica' },
@@ -338,7 +338,7 @@ export const es: Messages = {
           'Cuenta las ejecuciones de la ventana reciente y las compara con lo que predice el historial del propio workflow. Un workflow que no se ejecutó ni una vez en la ventana lo juzga la comprobación de silencio, que compara el tiempo sin ejecutarse con el intervalo habitual del workflow.',
         thresholds: [
           { name: 'ventana', value: '24 horas' },
-          { name: 'reporta cuando', value: 'menos de la mitad de las ejecuciones previstas' },
+          { name: 'señala cuando', value: 'menos de la mitad de las ejecuciones previstas' },
           { name: 'ejecuciones de referencia', value: '10 o más' },
         ],
         review:
