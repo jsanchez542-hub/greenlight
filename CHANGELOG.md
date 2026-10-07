@@ -5,9 +5,9 @@ and the project follows [semantic versioning](https://semver.org); the README sa
 
 ## [Unreleased]
 
-## [1.0.0]
+## [1.0.0] - 2026-10-08
 
-First public release. The date is added when the version is tagged.
+First public release.
 
 ### What it does
 
