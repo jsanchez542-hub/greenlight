@@ -3,12 +3,20 @@ import type { LiveSnapshot } from '../live-snapshot';
 
 const MINUTE_MS = 60_000;
 
+export const FORCED_REFRESH_COOLDOWN_MS = 30_000;
+
 export interface ScanCacheOptions {
   scan: () => Promise<ScanResult>;
   describeFailure: (error: unknown) => string;
   intervalMinutes: number;
   host: string | null;
+  cooldownMs?: number;
   now?: () => number;
+}
+
+export interface RefreshOutcome {
+  accepted: boolean;
+  retryAfterSeconds: number;
 }
 
 export class ScanCache {
@@ -37,6 +45,23 @@ export class ScanCache {
       this.inFlight = null;
     });
     return this.inFlight;
+  }
+
+  /**
+   * A manual refresh joins a scan that is already running, and otherwise waits out a
+   * cooldown after the last one, so repeated requests cannot hammer the instance.
+   */
+  forceRefresh(): RefreshOutcome {
+    if (this.inFlight !== null) {
+      return { accepted: true, retryAfterSeconds: 0 };
+    }
+    const cooldown = this.options.cooldownMs ?? FORCED_REFRESH_COOLDOWN_MS;
+    const sinceLast = this.lastAttemptAt === null ? Infinity : this.clock() - this.lastAttemptAt;
+    if (sinceLast < cooldown) {
+      return { accepted: false, retryAfterSeconds: Math.ceil((cooldown - sinceLast) / 1000) };
+    }
+    void this.refresh();
+    return { accepted: true, retryAfterSeconds: 0 };
   }
 
   private isDue(): boolean {

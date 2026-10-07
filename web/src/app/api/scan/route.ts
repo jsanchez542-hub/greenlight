@@ -1,41 +1,36 @@
-import { headers } from 'next/headers';
-import { currentEnvironment } from '@/lib/server/environment';
-import { isAllowedHost } from '@/lib/server/host';
+import { apiError, apiJson, authorize } from '@/lib/server/api';
 import { isLiveScanConfigured, liveCache } from '@/lib/server/live-scan';
 
 export const dynamic = 'force-dynamic';
 
-const noStore = { 'Cache-Control': 'no-store' };
-
-function failure(message: string, status: number): Response {
-  return Response.json({ error: message }, { status, headers: noStore });
-}
-
-async function refusal(request: Request, checkSite: boolean): Promise<Response | null> {
-  const env = currentEnvironment();
-  if (!isLiveScanConfigured(env)) {
-    return failure('Live scanning is not configured on this server.', 404);
-  }
-  if (!isAllowedHost((await headers()).get('host'), env)) {
-    return failure('This host is not allowed. Open the dashboard through localhost.', 403);
-  }
-  const fetchSite = request.headers.get('sec-fetch-site');
-  if (checkSite && fetchSite !== null && fetchSite !== 'same-origin') {
-    return failure('Live scans can only be started from this dashboard.', 403);
-  }
-  return null;
-}
-
 export async function GET(request: Request): Promise<Response> {
-  return (await refusal(request, false)) ?? Response.json(liveCache().snapshot(), { headers: noStore });
+  const access = await authorize(request);
+  if ('refusal' in access) {
+    return access.refusal;
+  }
+  if (!isLiveScanConfigured(access.env)) {
+    return apiError('Live scanning is not configured on this server.', 404);
+  }
+  return apiJson(liveCache(access.env).snapshot());
 }
 
 export async function POST(request: Request): Promise<Response> {
-  const refused = await refusal(request, true);
-  if (refused !== null) {
-    return refused;
+  const access = await authorize(request);
+  if ('refusal' in access) {
+    return access.refusal;
   }
-  const cache = liveCache();
-  void cache.refresh();
-  return Response.json(cache.snapshot(), { status: 202, headers: noStore });
+  if (!isLiveScanConfigured(access.env)) {
+    return apiError('Live scanning is not configured on this server.', 404);
+  }
+
+  const cache = liveCache(access.env);
+  const outcome = cache.forceRefresh();
+  if (!outcome.accepted) {
+    return apiError(
+      `A scan ran moments ago. Try again in ${outcome.retryAfterSeconds} seconds.`,
+      429,
+      { 'Retry-After': String(outcome.retryAfterSeconds) },
+    );
+  }
+  return apiJson(cache.snapshot(), 202);
 }
