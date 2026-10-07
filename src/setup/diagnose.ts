@@ -86,7 +86,7 @@ function explainNetworkFailure(error: unknown, timeoutMs: number): { detail: str
   if (code !== undefined && tlsCodes.has(code)) {
     return {
       detail: 'The HTTPS certificate of the instance is not trusted.',
-      hint: 'Use a valid certificate. For a self-signed one, start GreenLight with NODE_EXTRA_CA_CERTS pointing to your certificate authority file.',
+      hint: "The padlock of that address is not one this computer trusts. If it is your own server, install a proper certificate (a free one from Let's Encrypt works). Advanced: for a self-signed certificate, set NODE_EXTRA_CA_CERTS to your certificate file.",
     };
   }
   return {
@@ -114,14 +114,14 @@ function explainStatus(status: number): { stage: 'authenticate' | 'reach'; detai
     return {
       stage: 'reach',
       detail: 'The address answered, but there is no n8n API there.',
-      hint: 'Use the address of n8n itself, without /api/v1 at the end. If the public API was turned off on the instance, enable it first.',
+      hint: 'Use the address you open n8n with, without /api/v1 at the end. If it is right, the n8n API may be switched off on that server: turn it on and try again.',
     };
   }
   if (status >= 300 && status < 400) {
     return {
       stage: 'reach',
       detail: 'The address redirects somewhere GreenLight will not follow.',
-      hint: 'Use the address n8n is finally served from, often the https one. A redirect is followed only on the same host and never from https down to http, so the key cannot be sent elsewhere.',
+      hint: 'That address sends visitors somewhere else. Use the address you end up on, usually the one that starts with https.',
     };
   }
   return {
