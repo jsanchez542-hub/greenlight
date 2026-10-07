@@ -1,6 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useLang } from '@/i18n/context';
+import { failureCodeOf, type FailureCode } from './failure';
 import { fetchSetupStatus } from './setup-client';
 import { pollDelayMs, setupPhase, type SetupStatus } from './setup-status';
 
@@ -8,7 +10,8 @@ const RETRY_MS = 10_000;
 
 export function useSetupStatus() {
   const [status, setStatus] = useState<SetupStatus | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<FailureCode | null>(null);
+  const lang = useLang();
   const [checking, setChecking] = useState(false);
   const restart = useRef<() => Promise<void>>(async () => undefined);
 
@@ -32,7 +35,7 @@ export function useSetupStatus() {
         }
       } catch (failure) {
         if (!abort.signal.aborted) {
-          setError(failure instanceof Error ? failure.message : 'The connection check failed.');
+          setError(failureCodeOf(failure));
           timer = setTimeout(run, RETRY_MS);
         }
       }
@@ -53,7 +56,7 @@ export function useSetupStatus() {
       clearTimeout(timer);
       document.removeEventListener('visibilitychange', onVisible);
     };
-  }, []);
+  }, [lang]);
 
   const checkAgain = useCallback(async () => {
     setChecking(true);

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useMessages } from '@/i18n/context';
 import styles from './CopyButton.module.css';
 
 type CopyState = 'idle' | 'copied' | 'failed';
@@ -13,6 +14,7 @@ interface CopyButtonProps {
 }
 
 export function CopyButton({ text, label }: CopyButtonProps) {
+  const t = useMessages();
   const [state, setState] = useState<CopyState>('idle');
 
   useEffect(() => {
@@ -33,10 +35,10 @@ export function CopyButton({ text, label }: CopyButtonProps) {
   }
 
   return (
-    <button type="button" className={styles.button} onClick={copy} aria-label={`Copy ${label}`}>
-      {state === 'copied' ? 'Copied' : state === 'failed' ? 'Select and copy' : 'Copy'}
+    <button type="button" className={styles.button} onClick={copy} aria-label={t.copy.label(label)}>
+      {state === 'copied' ? t.copy.copied : state === 'failed' ? t.copy.failed : t.copy.copy}
       <span className="visually-hidden" role="status">
-        {state === 'copied' ? `${label} copied` : ''}
+        {state === 'copied' ? t.copy.done(label) : ''}
       </span>
     </button>
   );

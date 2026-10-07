@@ -2,6 +2,7 @@
 
 import type { ScanResult } from 'greenlight';
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+import type { FailureCode } from './failure';
 import type { LiveSnapshot } from './live-snapshot';
 import { useLiveFeed } from './use-live-feed';
 
@@ -12,11 +13,11 @@ interface ScanControls {
   source: Source;
   liveAvailable: boolean;
   phase: Phase;
-  problem: string | null;
+  problem: FailureCode | null;
   refreshing: boolean;
   intervalMinutes: number | null;
   host: string | null;
-  settingsProblem: string | null;
+  settingsProblem: FailureCode | null;
   selectLive: () => void;
   connectLive: () => void;
   disconnectLive: () => void;
@@ -30,7 +31,7 @@ const ResultContext = createContext<ScanResult | null>(null);
 interface ScanProviderProps {
   sample: ScanResult;
   liveAvailable: boolean;
-  settingsProblem: string | null;
+  settingsProblem: FailureCode | null;
   initialSnapshot: LiveSnapshot | null;
   children: ReactNode;
 }

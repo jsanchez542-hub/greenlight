@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { useMessages } from '@/i18n/context';
+import { failureText, type FailureCode } from '@/lib/failure';
 import { formatElapsed } from '@/lib/format';
 import styles from './Notice.module.css';
 
@@ -17,6 +19,7 @@ function useElapsed(): number {
 }
 
 export function ScanProgress({ onCancel }: { onCancel?: (() => void) | undefined }) {
+  const t = useMessages();
   const elapsed = useElapsed();
 
   return (
@@ -25,16 +28,15 @@ export function ScanProgress({ onCancel }: { onCancel?: (() => void) | undefined
         <span className={styles.runner} />
       </div>
       <h1 id="progress-heading" className={styles.title}>
-        Scanning the instance
+        {t.scan.progressTitle}
       </h1>
       <p role="status" className={styles.body}>
-        Reading the execution history of each workflow, one at a time. On a mid-sized instance this
-        takes tens of seconds. Elapsed: {formatElapsed(elapsed)}.
+        {t.scan.progressBody(formatElapsed(elapsed))}
       </p>
       {onCancel !== undefined && (
         <div className={styles.actions}>
           <button type="button" onClick={onCancel}>
-            Show sample data meanwhile
+            {t.scan.showSampleMeanwhile}
           </button>
         </div>
       )}
@@ -43,25 +45,27 @@ export function ScanProgress({ onCancel }: { onCancel?: (() => void) | undefined
 }
 
 interface ScanFailureProps {
-  message: string;
+  problem: FailureCode;
   onRetry: () => void;
   onShowSample: () => void;
 }
 
-export function ScanFailure({ message, onRetry, onShowSample }: ScanFailureProps) {
+export function ScanFailure({ problem, onRetry, onShowSample }: ScanFailureProps) {
+  const t = useMessages();
+
   return (
     <section className={styles.notice} data-state="critical" role="alert">
-      <h1 className={styles.title}>The scan did not finish</h1>
-      <p className={styles.message}>{message}</p>
+      <h1 className={styles.title}>{t.scan.failedTitle}</h1>
+      <p className={styles.message}>{failureText(problem, t)}</p>
       <div className={styles.actions}>
         <button type="button" className={styles.primary} onClick={onRetry}>
-          Run the scan again
+          {t.scan.runAgain}
         </button>
         <Link href="/setup" className={styles.linkButton}>
-          Run the connection check
+          {t.scan.runCheck}
         </Link>
         <button type="button" onClick={onShowSample}>
-          Show sample data
+          {t.scan.showSample}
         </button>
       </div>
     </section>
@@ -69,22 +73,20 @@ export function ScanFailure({ message, onRetry, onShowSample }: ScanFailureProps
 }
 
 interface NotInScanProps {
-  what: string;
+  kind: 'finding' | 'workflow';
   backHref: string;
-  backLabel: string;
 }
 
-export function NotInScan({ what, backHref, backLabel }: NotInScanProps) {
+export function NotInScan({ kind, backHref }: NotInScanProps) {
+  const t = useMessages();
+
   return (
     <section className={styles.notice}>
-      <h1 className={styles.title}>Not in this scan</h1>
-      <p className={styles.body}>
-        {what} does not exist in the result being shown. The data source may have changed since the
-        link was made.
-      </p>
+      <h1 className={styles.title}>{t.scan.notInScanTitle}</h1>
+      <p className={styles.body}>{t.scan.notInScanBody(kind)}</p>
       <div className={styles.actions}>
         <Link href={backHref} className={styles.linkButton}>
-          {backLabel}
+          {kind === 'finding' ? t.scan.backToFindings : t.scan.backToWorkflows}
         </Link>
       </div>
     </section>

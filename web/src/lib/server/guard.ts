@@ -1,3 +1,4 @@
+import type { FailureCode } from '../failure';
 import { isAllowedHost } from './host';
 import type { Environment } from './environment';
 
@@ -7,7 +8,7 @@ export interface RequestFacts {
   fetchSite: string | null;
 }
 
-export type GuardVerdict = { allowed: true } | { allowed: false; status: 403; message: string };
+export type GuardVerdict = { allowed: true } | { allowed: false; status: 403; code: FailureCode };
 
 const READ_METHODS = new Set(['GET', 'HEAD']);
 
@@ -19,7 +20,7 @@ const READ_METHODS = new Set(['GET', 'HEAD']);
  */
 export function guardRequest(facts: RequestFacts, env: Environment): GuardVerdict {
   if (!isAllowedHost(facts.host, env)) {
-    return { allowed: false, status: 403, message: 'This host is not allowed. Open the dashboard through localhost.' };
+    return { allowed: false, status: 403, code: 'hostNotAllowed' };
   }
   const { fetchSite } = facts;
   if (fetchSite === null || fetchSite === 'same-origin') {
@@ -28,7 +29,7 @@ export function guardRequest(facts: RequestFacts, env: Environment): GuardVerdic
   if (fetchSite === 'none' && READ_METHODS.has(facts.method.toUpperCase())) {
     return { allowed: true };
   }
-  return { allowed: false, status: 403, message: 'This route only answers requests made from the dashboard itself.' };
+  return { allowed: false, status: 403, code: 'notFromDashboard' };
 }
 
 export interface WriteFacts extends RequestFacts {
@@ -52,13 +53,9 @@ function sameHost(origin: string, host: string): boolean {
  */
 export function guardWrite(facts: WriteFacts, env: Environment): GuardVerdict {
   if (!isAllowedHost(facts.host, env)) {
-    return { allowed: false, status: 403, message: 'This host is not allowed. Open the dashboard through localhost.' };
+    return { allowed: false, status: 403, code: 'hostNotAllowed' };
   }
-  const refusal: GuardVerdict = {
-    allowed: false,
-    status: 403,
-    message: 'Settings can only be changed from the dashboard itself.',
-  };
+  const refusal: GuardVerdict = { allowed: false, status: 403, code: 'settingsNotFromDashboard' };
   if (facts.fetchSite !== null) {
     return facts.fetchSite === 'same-origin' ? { allowed: true } : refusal;
   }

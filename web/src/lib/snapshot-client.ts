@@ -1,19 +1,14 @@
+import { failureOf, silence } from './api-client';
+import { ApiFailure } from './failure';
 import { parseLiveSnapshot, type LiveSnapshot } from './live-snapshot';
 
 export const SCAN_ENDPOINT = '/api/scan';
 
 export class RefreshRefusedError extends Error {
   constructor(readonly retryAfterSeconds: number) {
-    super(`A scan ran moments ago. Try again in ${retryAfterSeconds} seconds.`);
+    super('A scan ran moments ago.');
     this.name = 'RefreshRefusedError';
   }
-}
-
-function errorMessageIn(body: unknown): string | undefined {
-  if (typeof body === 'object' && body !== null && 'error' in body && typeof body.error === 'string') {
-    return body.error;
-  }
-  return undefined;
 }
 
 async function call(
@@ -28,7 +23,7 @@ async function call(
     if (signal.aborted) {
       throw error;
     }
-    throw new Error('The dashboard server did not answer. Check that it is still running.');
+    throw silence();
   }
 
   const body: unknown = await response.json().catch(() => null);
@@ -37,9 +32,13 @@ async function call(
     throw new RefreshRefusedError(Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : 30);
   }
   if (!response.ok) {
-    throw new Error(errorMessageIn(body) ?? `The server answered with status ${response.status}.`);
+    throw failureOf(response, body);
   }
-  return parseLiveSnapshot(body);
+  try {
+    return parseLiveSnapshot(body);
+  } catch {
+    throw new ApiFailure('invalidAnswer');
+  }
 }
 
 export function fetchSnapshot(signal: AbortSignal, fetchImpl: typeof fetch = fetch): Promise<LiveSnapshot> {

@@ -1,13 +1,8 @@
+import { failureOf, silence } from './api-client';
+import { ApiFailure } from './failure';
 import { parseSetupStatus, type SetupStatus } from './setup-status';
 
 export const SETUP_ENDPOINT = '/api/setup';
-
-function errorMessageIn(body: unknown): string | undefined {
-  if (typeof body === 'object' && body !== null && 'error' in body && typeof body.error === 'string') {
-    return body.error;
-  }
-  return undefined;
-}
 
 export async function fetchSetupStatus(
   signal: AbortSignal,
@@ -20,12 +15,16 @@ export async function fetchSetupStatus(
     if (signal.aborted) {
       throw error;
     }
-    throw new Error('The dashboard server did not answer. Check that it is still running.');
+    throw silence();
   }
 
   const body: unknown = await response.json().catch(() => null);
   if (!response.ok) {
-    throw new Error(errorMessageIn(body) ?? `The server answered with status ${response.status}.`);
+    throw failureOf(response, body);
   }
-  return parseSetupStatus(body);
+  try {
+    return parseSetupStatus(body);
+  } catch {
+    throw new ApiFailure('invalidAnswer');
+  }
 }

@@ -34,6 +34,7 @@ function diagnosis(ok: boolean, hint = 'Check the address.'): Diagnosis {
 function context(overrides: Partial<ConnectContext> = {}): ConnectContext {
   return {
     host: 'localhost:3000',
+    lang: 'en',
     env: {},
     processEnv: {},
     filePath: file,
@@ -190,7 +191,7 @@ describe('what it accepts', () => {
     for (const body of bad) {
       const response = await handleConnect(post(body), context());
       expect(response.status).toBe(400);
-      expect(await response.json()).toEqual({ error: expect.stringMatching(/^[A-Z].*\.$/) });
+      expect(await response.json()).toEqual({ error: expect.stringMatching(/^(fieldsMissing|fieldsTooLong|notUnderstood)$/) });
     }
     expect(existsSync(file)).toBe(false);
   });
@@ -280,7 +281,7 @@ describe('connect', () => {
     const answer = await response.json();
 
     expect(answer.saved).toBe(true);
-    expect(answer.notice).toContain('environment of this program');
+    expect(answer.notice).toBe('processEnv');
     expect(JSON.stringify(answer)).not.toContain('from-the-environment');
   });
 
@@ -293,7 +294,7 @@ describe('connect', () => {
     const text = await response.text();
 
     expect(response.status).toBe(409);
-    expect(text).toContain('symbolic link');
+    expect(JSON.parse(text)).toEqual({ error: 'envSymlink' });
     expect(text).not.toContain(folder);
     expect(readFileSync(target, 'utf8')).toBe('UNTOUCHED=1\n');
   });
@@ -349,7 +350,7 @@ describe('disconnect', () => {
     const answer = await response.json();
 
     expect(answer.disconnected).toBe(false);
-    expect(answer.notice).toContain('environment of this program');
+    expect(answer.notice).toBe('processEnv');
     expect(readFileSync(file, 'utf8')).toBe('');
   });
 
@@ -369,7 +370,7 @@ describe('how often', () => {
 
     expect(refused.status).toBe(429);
     expect(refused.headers.get('retry-after')).toBe('1');
-    expect((await refused.json()).error).toBe('Too many attempts. Try again in 1 second.');
+    expect(await refused.json()).toEqual({ error: 'rateLimited', retryAfterSeconds: 1 });
     expect(diagnoseCalls).toHaveLength(1);
 
     now += 1_000;

@@ -1,6 +1,7 @@
 'use client';
 
-import { themeButtonLabel, themeLabel, type ThemePreference } from '@/lib/theme';
+import { useMessages } from '@/i18n/context';
+import { themeButtonLabel, type ThemePreference } from '@/lib/theme';
 import { useTheme } from '@/lib/use-theme';
 import { Icon, type IconName } from '../ui/Icon';
 import styles from './ThemeToggle.module.css';
@@ -12,8 +13,9 @@ const icons: Record<ThemePreference, IconName> = {
 };
 
 export function ThemeToggle({ placement }: { placement: 'sidebar' | 'top' }) {
+  const t = useMessages();
   const { preference, systemDark, cycle } = useTheme();
-  const label = themeButtonLabel(preference, systemDark);
+  const label = themeButtonLabel(preference, systemDark, t);
 
   return (
     <button
@@ -26,7 +28,7 @@ export function ThemeToggle({ placement }: { placement: 'sidebar' | 'top' }) {
     >
       <Icon name={icons[preference]} />
       <span className={styles.text} aria-hidden="true">
-        Theme: {themeLabel[preference]}
+        {t.theme.prefix}: {t.theme[preference]}
       </span>
     </button>
   );

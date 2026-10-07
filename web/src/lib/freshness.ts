@@ -1,3 +1,5 @@
+import type { Messages } from '@/i18n';
+
 const MINUTE_MS = 60_000;
 const HOUR_MS = 60 * MINUTE_MS;
 const DAY_MS = 24 * HOUR_MS;
@@ -12,15 +14,15 @@ export function isStale(age: number, intervalMinutes: number): boolean {
   return age > STALE_AFTER_INTERVALS * intervalMinutes * MINUTE_MS;
 }
 
-export function formatAge(age: number): string {
+export function formatAge(age: number, t: Messages): string {
   if (age < MINUTE_MS) {
-    return 'just now';
+    return t.age.justNow;
   }
   if (age < HOUR_MS) {
-    return `${Math.floor(age / MINUTE_MS)} min ago`;
+    return t.age.minutes(Math.floor(age / MINUTE_MS));
   }
   if (age < DAY_MS) {
-    return `${Math.floor(age / HOUR_MS)} h ago`;
+    return t.age.hours(Math.floor(age / HOUR_MS));
   }
-  return `${Math.floor(age / DAY_MS)} days ago`;
+  return t.age.days(Math.floor(age / DAY_MS));
 }

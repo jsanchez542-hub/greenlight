@@ -65,10 +65,10 @@ describe('parseSetupStatus', () => {
 describe('createSetupChecker', () => {
   function checker() {
     const clock = { now: 0 };
-    const calls: Array<{ baseUrl: string | undefined; apiKey: string | undefined }> = [];
+    const calls: Array<{ baseUrl: string | undefined; apiKey: string | undefined; lang: string | undefined }> = [];
     const check = createSetupChecker({
       diagnose: async (input) => {
-        calls.push({ baseUrl: input.baseUrl, apiKey: input.apiKey });
+        calls.push({ baseUrl: input.baseUrl, apiKey: input.apiKey, lang: input.lang });
         return diagnosis({ ok: true, host: 'n8n.test', workflowCount: 3 });
       },
       now: () => clock.now,
@@ -78,7 +78,7 @@ describe('createSetupChecker', () => {
 
   it('reports which values are present without exposing them', async () => {
     const { check } = checker();
-    const result = await check({ N8N_BASE_URL: 'https://n8n.test', N8N_API_KEY: 'secret' });
+    const result = await check('en', { N8N_BASE_URL: 'https://n8n.test', N8N_API_KEY: 'secret' });
 
     expect(result).toMatchObject({ hasAddress: true, hasKey: true });
     expect(JSON.stringify(result)).not.toContain('secret');
@@ -86,17 +86,17 @@ describe('createSetupChecker', () => {
 
   it('passes trimmed values to the diagnosis', async () => {
     const { check, calls } = checker();
-    await check({ N8N_BASE_URL: ' https://n8n.test ', N8N_API_KEY: ' k ' });
+    await check('en', { N8N_BASE_URL: ' https://n8n.test ', N8N_API_KEY: ' k ' });
 
-    expect(calls).toEqual([{ baseUrl: 'https://n8n.test', apiKey: 'k' }]);
+    expect(calls).toEqual([{ baseUrl: 'https://n8n.test', apiKey: 'k', lang: 'en' }]);
   });
 
   it('reuses a fresh answer for the same settings', async () => {
     const { check, clock, calls } = checker();
     const env = { N8N_BASE_URL: 'https://n8n.test', N8N_API_KEY: 'k' };
-    await check(env);
+    await check('en', env);
     clock.now += 1_000;
-    await check(env);
+    await check('en', env);
 
     expect(calls).toHaveLength(1);
   });
@@ -104,17 +104,17 @@ describe('createSetupChecker', () => {
   it('checks again after the answer has aged', async () => {
     const { check, clock, calls } = checker();
     const env = { N8N_BASE_URL: 'https://n8n.test', N8N_API_KEY: 'k' };
-    await check(env);
+    await check('en', env);
     clock.now += 2_500;
-    await check(env);
+    await check('en', env);
 
     expect(calls).toHaveLength(2);
   });
 
   it('checks again at once when the settings change', async () => {
     const { check, calls } = checker();
-    await check({ N8N_BASE_URL: 'https://n8n.test', N8N_API_KEY: 'k' });
-    await check({ N8N_BASE_URL: 'https://n8n.test', N8N_API_KEY: 'other' });
+    await check('en', { N8N_BASE_URL: 'https://n8n.test', N8N_API_KEY: 'k' });
+    await check('en', { N8N_BASE_URL: 'https://n8n.test', N8N_API_KEY: 'other' });
 
     expect(calls).toHaveLength(2);
   });

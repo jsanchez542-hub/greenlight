@@ -1,3 +1,5 @@
+import { en } from '@/i18n/en';
+import { es } from '@/i18n/es';
 import { describe, expect, it } from 'vitest';
 import {
   nextFocusIndex,
@@ -70,17 +72,20 @@ describe('welcomeChoices', () => {
 });
 
 describe('the tour content', () => {
-  it('has unique steps with short text and an anchor each', () => {
+  it('has unique steps with an anchor each', () => {
     expect(new Set(tourSteps.map((step) => step.id)).size).toBe(tourSteps.length);
     for (const step of tourSteps) {
       expect(step.anchor).not.toBe('');
-      expect(step.body.length).toBeLessThan(260);
     }
   });
 
-  it('never uses a long dash', () => {
-    for (const step of tourSteps) {
-      expect(`${step.title}${step.body}`).not.toMatch(/[—–]/);
+  it('has short text and no long dash in every language', () => {
+    for (const messages of [en, es]) {
+      for (const step of tourSteps) {
+        const { title, body } = messages.tour.steps[step.id];
+        expect(body.length).toBeLessThan(300);
+        expect(`${title}${body}`).not.toMatch(/[—–]/);
+      }
     }
   });
 });

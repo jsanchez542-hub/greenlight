@@ -2,10 +2,10 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
-import { pluralise } from '@/lib/format';
+import { useMessages } from '@/i18n/context';
 import { useResult } from '@/lib/scan-context';
 import { SEARCH_INPUT_ID } from '@/lib/shortcuts';
-import { healthLabel, healthStates } from '@/lib/status';
+import { healthStates } from '@/lib/status';
 import { useReplaceParams } from '@/lib/use-replace-params';
 import {
   defaultWorkflowQuery,
@@ -24,6 +24,7 @@ import styles from './WorkflowsView.module.css';
 import { WorkflowTable } from './WorkflowTable';
 
 export function WorkflowsView() {
+  const t = useMessages();
   const result = useResult();
   const replaceParams = useReplaceParams();
   const fromAddress = parseWorkflowQuery(useSearchParams());
@@ -33,10 +34,10 @@ export function WorkflowsView() {
   const counts = countByHealth(result.workflows);
   const visible = queryWorkflows(result.workflows, query);
   const options: FilterOption[] = [
-    { value: 'all', label: 'all', count: result.workflows.length },
+    { value: 'all', label: t.status.all, count: result.workflows.length },
     ...healthStates.map((state) => ({
       value: state,
-      label: healthLabel[state].toLowerCase(),
+      label: t.status.health[state].label.toLowerCase(),
       count: counts[state],
       state,
     })),
@@ -49,9 +50,9 @@ export function WorkflowsView() {
   if (result.workflows.length === 0) {
     return (
       <>
-        <PageHeader title="workflows" meta="no workflows found" />
+        <PageHeader title={t.workflows.title} meta={t.workflows.noWorkflowsMeta} />
         <section className={styles.empty}>
-          <p>The instance has no workflows yet. Create one in n8n and scan again.</p>
+          <p>{t.workflows.emptyBody}</p>
         </section>
       </>
     );
@@ -59,20 +60,17 @@ export function WorkflowsView() {
 
   return (
     <>
-      <PageHeader
-        title="workflows"
-        meta={`${visible.length} of ${pluralise(result.workflows.length, 'workflow')} shown`}
-      />
+      <PageHeader title={t.workflows.title} meta={t.workflows.shown(visible.length, result.workflows.length)} />
 
       <div className={styles.toolbar}>
         <label className={styles.search}>
-          <span className="visually-hidden">Filter workflows by name</span>
+          <span className="visually-hidden">{t.workflows.searchLabel}</span>
           <Icon name="search" />
           <input
             id={SEARCH_INPUT_ID}
             type="search"
             value={search}
-            placeholder="filter by name"
+            placeholder={t.workflows.searchPlaceholder}
             autoComplete="off"
             spellCheck={false}
             onChange={(event) => {
@@ -83,7 +81,7 @@ export function WorkflowsView() {
           <kbd aria-hidden="true">/</kbd>
         </label>
         <FilterGroup
-          label="status"
+          label={t.filter.status}
           options={options}
           value={query.state}
           onChange={(state) => update({ state: state as HealthFilter })}
@@ -92,7 +90,7 @@ export function WorkflowsView() {
 
       {visible.length === 0 ? (
         <section className={styles.empty}>
-          <p>No workflow matches the current search and filter.</p>
+          <p>{t.workflows.noMatch}</p>
           <button
             type="button"
             onClick={() => {
@@ -100,7 +98,7 @@ export function WorkflowsView() {
               replaceParams(workflowQueryToParams({ ...defaultWorkflowQuery, ...pickSort(query) }));
             }}
           >
-            Clear search and filter
+            {t.workflows.clear}
           </button>
         </section>
       ) : (

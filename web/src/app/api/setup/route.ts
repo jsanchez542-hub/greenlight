@@ -1,4 +1,5 @@
 import { apiError, apiJson, authorize, methodNotAllowed, optionsResponse } from '@/lib/server/api';
+import { currentLanguage } from '@/lib/server/language';
 import { checkSetup } from '@/lib/server/setup-check';
 
 export const dynamic = 'force-dynamic';
@@ -11,9 +12,9 @@ export async function GET(request: Request): Promise<Response> {
     return access.refusal;
   }
   try {
-    return apiJson(await checkSetup(access.env));
+    return apiJson(await checkSetup(await currentLanguage(), access.env));
   } catch {
-    return apiError('The connection check failed.', 500);
+    return apiError('checkFailed', 500);
   }
 }
 

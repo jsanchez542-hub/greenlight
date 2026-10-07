@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
+import { useMessages } from '@/i18n/context';
 import { SETUP_HREF } from '@/lib/navigation';
 import { useScanControls } from '@/lib/scan-context';
 import { useOnboarding } from '@/lib/use-onboarding';
@@ -28,7 +29,7 @@ function Content({ children }: { children: ReactNode }) {
     case 'connecting':
       return <ScanProgress onCancel={liveAvailable ? selectSample : undefined} />;
     case 'failed':
-      return <ScanFailure message={problem ?? ''} onRetry={scanNow} onShowSample={selectSample} />;
+      return <ScanFailure problem={problem ?? 'scanFailed'} onRetry={scanNow} onShowSample={selectSample} />;
     default:
       return (
         <>
@@ -40,6 +41,7 @@ function Content({ children }: { children: ReactNode }) {
 }
 
 export function AppShell({ children, version }: { children: ReactNode; version: string }) {
+  const t = useMessages();
   const sidebar = useSidebar();
   const { liveAvailable } = useScanControls();
   const onboarding = useOnboarding();
@@ -48,7 +50,7 @@ export function AppShell({ children, version }: { children: ReactNode; version: 
   return (
     <div className={styles.shell} data-sidebar={sidebar.state}>
       <a href="#content" className={styles.skip}>
-        Skip to content
+        {t.nav.skip}
       </a>
       <Sidebar state={sidebar.state} onToggle={sidebar.toggle} onTour={onboarding.startTour} version={version} />
       <div className={styles.column}>

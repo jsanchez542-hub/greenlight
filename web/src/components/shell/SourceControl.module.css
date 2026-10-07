@@ -52,6 +52,10 @@
   background: var(--panel-raised);
 }
 
+.short {
+  display: none;
+}
+
 .sampleLabel {
   display: flex;
   gap: 6px;
@@ -74,6 +78,14 @@
     display: none;
   }
 
+  .full {
+    display: none;
+  }
+
+  .short {
+    display: inline;
+  }
+
   .extra {
     position: absolute;
     width: 1px;
@@ -87,5 +99,22 @@
   .rescan {
     gap: 0;
     padding: 0 10px;
+  }
+}
+
+@media (max-width: 479px) {
+  .controls {
+    flex: 0 0 100%;
+    order: 3;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+  .switch button {
+    padding: 0 8px;
+  }
+
+  .rescan {
+    padding: 0 8px;
   }
 }

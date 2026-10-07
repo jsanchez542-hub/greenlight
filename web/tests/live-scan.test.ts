@@ -21,36 +21,50 @@ describe('isLiveScanConfigured', () => {
 });
 
 describe('describeScanFailure', () => {
-  it('keeps the backend message for an API error', () => {
-    const error = new N8nApiError('n8n API returned 401 for /api/v1/workflows.', 401);
-    expect(describeScanFailure(error, env)).toBe(
-      'The scan could not finish: n8n API returned 401 for /api/v1/workflows.',
-    );
+  it('names the kind of failure an API status stands for', () => {
+    const cases: Array<[number, string]> = [
+      [401, 'scanRejectedKey'],
+      [403, 'scanForbidden'],
+      [404, 'scanNotFound'],
+      [500, 'scanServerError'],
+      [503, 'scanServerError'],
+      [418, 'scanFailed'],
+    ];
+    for (const [status, code] of cases) {
+      expect(describeScanFailure(new N8nApiError('n8n API returned a status.', status))).toBe(code);
+    }
   });
 
-  it('removes the API key wherever it appears', () => {
-    const error = new Error('request failed with key-4f9c1e in the header');
-    expect(describeScanFailure(error, env)).not.toContain('key-4f9c1e');
+  it('names the network failures that have a cause the person can act on', () => {
+    const cause = (code: string) => Object.assign(new Error('low level'), { code });
+    const failure = (code: string) => new TypeError('fetch failed', { cause: cause(code) });
+
+    expect(describeScanFailure(failure('ENOTFOUND'))).toBe('scanUnresolved');
+    expect(describeScanFailure(failure('EAI_AGAIN'))).toBe('scanUnresolved');
+    expect(describeScanFailure(failure('ECONNREFUSED'))).toBe('scanRefused');
+    expect(describeScanFailure(failure('ETIMEDOUT'))).toBe('scanTimeout');
+    expect(describeScanFailure(failure('SELF_SIGNED_CERT_IN_CHAIN'))).toBe('scanCertificate');
+    expect(describeScanFailure(failure('UNABLE_TO_VERIFY_LEAF_SIGNATURE'))).toBe('scanCertificate');
+    expect(describeScanFailure(failure('SOMETHING_ELSE'))).toBe('scanFailed');
   });
 
-  it('removes credentials embedded in the instance address', () => {
-    const cause = new Error('connect ECONNREFUSED https://reader:hunter2@n8n.internal.test');
-    const text = describeScanFailure(new Error('fetch failed', { cause }), env);
-
-    expect(text).toContain('fetch failed');
-    expect(text).not.toContain('hunter2');
-    expect(text).toContain('[redacted]');
+  it('names a timeout by the name of the error', () => {
+    expect(describeScanFailure(Object.assign(new Error('late'), { name: 'TimeoutError' }))).toBe('scanTimeout');
   });
 
-  it('names the error code when the underlying error has no message', () => {
-    const cause = Object.assign(new AggregateError([]), { code: 'ECONNREFUSED' });
-    const text = describeScanFailure(new TypeError('fetch failed', { cause }), env);
+  it('carries no text of the error at all, so no secret can travel with it', () => {
+    const secretError = new Error(`request failed with ${env.N8N_API_KEY} for https://reader:hunter2@n8n.internal.test`, {
+      cause: new Error('connect ECONNREFUSED https://reader:hunter2@n8n.internal.test'),
+    });
+    const code = describeScanFailure(secretError);
 
-    expect(text).toBe('The scan could not finish: fetch failed (ECONNREFUSED)');
+    expect(code).toBe('scanFailed');
+    expect(code).not.toContain('hunter2');
+    expect(code).not.toContain(env.N8N_API_KEY);
   });
 
   it('describes a thrown value that is not an error', () => {
-    expect(describeScanFailure('boom', env)).toBe('The scan could not finish: unknown error');
+    expect(describeScanFailure('boom')).toBe('scanFailed');
   });
 });
 

@@ -1,25 +1,22 @@
 import type { Diagnosis } from 'greenlight';
+import { failureOf, silence } from './api-client';
+import { ApiFailure } from './failure';
+import { asBoolean, asRecord } from './scan-result';
 import { parseDiagnosis } from './setup-status';
-import { asBoolean, asRecord, asString } from './scan-result';
 
 export const CONNECT_ENDPOINT = '/api/connect';
+
+export type ConnectNotice = 'processEnv';
 
 export interface ConnectResult {
   saved: boolean;
   diagnosis: Diagnosis;
-  notice: string | null;
+  notice: ConnectNotice | null;
 }
 
 export interface DisconnectResult {
   disconnected: boolean;
-  notice: string | null;
-}
-
-function errorMessageIn(body: unknown): string | undefined {
-  if (typeof body === 'object' && body !== null && 'error' in body && typeof body.error === 'string') {
-    return body.error;
-  }
-  return undefined;
+  notice: ConnectNotice | null;
 }
 
 async function send(payload: object, signal: AbortSignal, fetchImpl: typeof fetch): Promise<unknown> {
@@ -38,18 +35,18 @@ async function send(payload: object, signal: AbortSignal, fetchImpl: typeof fetc
     if (signal.aborted) {
       throw error;
     }
-    throw new Error('The dashboard did not answer. Check that it is still running.');
+    throw silence();
   }
 
   const body: unknown = await response.json().catch(() => null);
   if (!response.ok) {
-    throw new Error(errorMessageIn(body) ?? `The dashboard answered with status ${response.status}.`);
+    throw failureOf(response, body);
   }
   return body;
 }
 
-function noticeOf(fields: Record<string, unknown>): string | null {
-  return fields['notice'] === null ? null : asString(fields['notice'], 'notice');
+function noticeOf(fields: Record<string, unknown>): ConnectNotice | null {
+  return fields['notice'] === 'processEnv' ? 'processEnv' : null;
 }
 
 export async function requestConnect(
@@ -58,15 +55,25 @@ export async function requestConnect(
   signal: AbortSignal,
   fetchImpl: typeof fetch = fetch,
 ): Promise<ConnectResult> {
-  const fields = asRecord(await send({ action: 'connect', baseUrl, apiKey }, signal, fetchImpl), 'the answer');
-  return {
-    saved: asBoolean(fields['saved'], 'saved'),
-    diagnosis: parseDiagnosis(fields['diagnosis']),
-    notice: noticeOf(fields),
-  };
+  const body = await send({ action: 'connect', baseUrl, apiKey }, signal, fetchImpl);
+  try {
+    const fields = asRecord(body, 'the answer');
+    return {
+      saved: asBoolean(fields['saved'], 'saved'),
+      diagnosis: parseDiagnosis(fields['diagnosis']),
+      notice: noticeOf(fields),
+    };
+  } catch {
+    throw new ApiFailure('invalidAnswer');
+  }
 }
 
 export async function requestDisconnect(signal: AbortSignal, fetchImpl: typeof fetch = fetch): Promise<DisconnectResult> {
-  const fields = asRecord(await send({ action: 'disconnect' }, signal, fetchImpl), 'the answer');
-  return { disconnected: asBoolean(fields['disconnected'], 'disconnected'), notice: noticeOf(fields) };
+  const body = await send({ action: 'disconnect' }, signal, fetchImpl);
+  try {
+    const fields = asRecord(body, 'the answer');
+    return { disconnected: asBoolean(fields['disconnected'], 'disconnected'), notice: noticeOf(fields) };
+  } catch {
+    throw new ApiFailure('invalidAnswer');
+  }
 }

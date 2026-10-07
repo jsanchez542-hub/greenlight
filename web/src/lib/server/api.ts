@@ -1,5 +1,6 @@
 import { headers } from 'next/headers';
-import { currentEnvironment, describeEnvironmentProblem, type Environment } from './environment';
+import type { FailureCode } from '../failure';
+import { currentEnvironment, environmentProblem, type Environment } from './environment';
 import { guardRequest } from './guard';
 
 const NO_STORE = { 'Cache-Control': 'no-store' };
@@ -8,8 +9,13 @@ export function apiJson(body: unknown, status = 200, extra: Record<string, strin
   return Response.json(body, { status, headers: { ...NO_STORE, ...extra } });
 }
 
-export function apiError(message: string, status: number, extra: Record<string, string> = {}): Response {
-  return apiJson({ error: message }, status, extra);
+export function apiError(
+  code: FailureCode,
+  status: number,
+  extra: Record<string, string> = {},
+  retryAfterSeconds?: number,
+): Response {
+  return apiJson(retryAfterSeconds === undefined ? { error: code } : { error: code, retryAfterSeconds }, status, extra);
 }
 
 /**
@@ -18,11 +24,11 @@ export function apiError(message: string, status: number, extra: Record<string, 
  */
 export async function authorize(request: Request): Promise<{ env: Environment } | { refusal: Response }> {
   let env: Environment = {};
-  let problem: string | null = null;
+  let problem: FailureCode | null = null;
   try {
     env = currentEnvironment();
   } catch (error) {
-    problem = describeEnvironmentProblem(error);
+    problem = environmentProblem(error);
   }
 
   const verdict = guardRequest(
@@ -34,7 +40,7 @@ export async function authorize(request: Request): Promise<{ env: Environment } 
     env,
   );
   if (!verdict.allowed) {
-    return { refusal: apiError(verdict.message, verdict.status) };
+    return { refusal: apiError(verdict.code, verdict.status) };
   }
   if (problem !== null) {
     return { refusal: apiError(problem, 500) };
@@ -43,7 +49,7 @@ export async function authorize(request: Request): Promise<{ env: Environment } 
 }
 
 export function methodNotAllowed(allow: string): () => Response {
-  return () => apiError('That method is not allowed here.', 405, { Allow: allow });
+  return () => apiError('methodNotAllowed', 405, { Allow: allow });
 }
 
 export function optionsResponse(allow: string): () => Response {

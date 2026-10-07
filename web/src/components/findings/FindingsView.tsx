@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { detectorInfo } from '@/lib/detectors';
+import { useMessages } from '@/i18n/context';
 import {
   countFindings,
   filterFindings,
@@ -11,9 +11,8 @@ import {
   parseFindingFilter,
   type FindingFilter,
 } from '@/lib/findings';
-import { pluralise } from '@/lib/format';
 import { useResult } from '@/lib/scan-context';
-import { detectorNames, severities, severityLabel } from '@/lib/status';
+import { detectorNames, severities } from '@/lib/status';
 import { useReplaceParams } from '@/lib/use-replace-params';
 import { FilterGroup, type FilterOption } from '../ui/FilterGroup';
 import { PageHeader } from '../ui/PageHeader';
@@ -22,6 +21,7 @@ import { FindingRow } from './FindingRow';
 import styles from './FindingsView.module.css';
 
 export function FindingsView() {
+  const t = useMessages();
   const result = useResult();
   const replaceParams = useReplaceParams();
   const filter = parseFindingFilter(useSearchParams());
@@ -31,19 +31,19 @@ export function FindingsView() {
   const visible = filterFindings(entries, filter);
 
   const severityOptions: FilterOption[] = [
-    { value: 'all', label: 'all', count: entries.length },
+    { value: 'all', label: t.status.all, count: entries.length },
     ...severities.map((severity) => ({
       value: severity,
-      label: severityLabel[severity].toLowerCase(),
+      label: t.status.severity[severity].toLowerCase(),
       count: counts.bySeverity[severity],
       state: severity,
     })),
   ];
   const checkOptions: FilterOption[] = [
-    { value: 'all', label: 'all', count: entries.length },
+    { value: 'all', label: t.status.all, count: entries.length },
     ...detectorNames.map((name) => ({
       value: name,
-      label: detectorInfo[name].label.toLowerCase(),
+      label: t.checks.detectors[name].label.toLowerCase(),
       count: counts.byCheck[name],
     })),
   ];
@@ -54,30 +54,27 @@ export function FindingsView() {
 
   return (
     <>
-      <PageHeader
-        title="findings"
-        meta={`${visible.length} of ${pluralise(entries.length, 'finding')} shown`}
-      />
+      <PageHeader title={t.findings.title} meta={t.findings.shown(visible.length, entries.length)} />
 
       {entries.length === 0 ? (
         <section className={styles.empty} data-state="healthy">
           <p className={styles.emptyTitle}>
             <StatusIcon state="healthy" />
-            Nothing to report
+            {t.findings.emptyTitle}
           </p>
-          <p>None of the checks raised a finding in this scan.</p>
+          <p>{t.findings.emptyBody}</p>
         </section>
       ) : (
         <>
           <div className={styles.filters}>
             <FilterGroup
-              label="severity"
+              label={t.filter.severity}
               options={severityOptions}
               value={filter.severity}
               onChange={(severity) => update({ severity: severity as FindingFilter['severity'] })}
             />
             <FilterGroup
-              label="check"
+              label={t.filter.check}
               options={checkOptions}
               value={filter.check}
               onChange={(check) => update({ check: check as FindingFilter['check'] })}
@@ -86,9 +83,9 @@ export function FindingsView() {
 
           {visible.length === 0 ? (
             <section className={styles.empty}>
-              <p>No finding matches these filters.</p>
+              <p>{t.findings.noMatch}</p>
               <button type="button" onClick={() => replaceParams(findingFilterToParams(noFindingFilter))}>
-                Clear filters
+                {t.findings.clear}
               </button>
             </section>
           ) : (

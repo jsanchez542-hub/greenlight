@@ -1,4 +1,5 @@
-import { formatFlagCookie, parseFlagCookie } from './flag-cookie';
+import type { Lang } from 'greenlight/i18n';
+import { LANGUAGE_TOKENS, formatFlagCookie, languageFromTokens, parseFlagCookie, withLanguage } from './flag-cookie';
 
 export const WELCOME_FLAG = 'greenlight.welcome.v1';
 export const WATCH_TIP_FLAG = 'greenlight.watch-tip.v1';
@@ -12,7 +13,7 @@ export const FLAG_TOKENS: Record<string, string> = {
   [CONNECT_HINT_FLAG]: 'connect-hint-v1',
 };
 
-const KNOWN_TOKENS = Object.values(FLAG_TOKENS);
+const KNOWN_TOKENS = [...Object.values(FLAG_TOKENS), ...Object.values(LANGUAGE_TOKENS)];
 
 type ReadableStorage = Pick<Storage, 'getItem'>;
 type WritableStorage = Pick<Storage, 'setItem'>;
@@ -82,4 +83,13 @@ export function copyStoredFlagsToCookie(sources: FlagSources): void {
   if (missing.length > 0) {
     writeCookieTokens([...present, ...missing], sources);
   }
+}
+
+export function readLanguage(sources: FlagSources): Lang | null {
+  return languageFromTokens(cookieTokens(sources));
+}
+
+/** Remembers the language in the interface cookie, next to the flags that are already there. */
+export function setLanguage(lang: Lang, sources: FlagSources): void {
+  writeCookieTokens(withLanguage(cookieTokens(sources), lang), sources);
 }

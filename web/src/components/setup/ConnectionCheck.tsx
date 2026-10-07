@@ -1,8 +1,13 @@
-import { stepIconState, stepStatusLabel, type SetupStatus } from '@/lib/setup-status';
+'use client';
+
+import { useMessages } from '@/i18n/context';
+import { stepIconState, type SetupStatus } from '@/lib/setup-status';
 import { StatusIcon } from '../ui/StatusIcon';
 import styles from './ConnectionCheck.module.css';
 
 export function ConnectionCheck({ status }: { status: SetupStatus }) {
+  const t = useMessages();
+
   return (
     <ol className={styles.steps}>
       {status.diagnosis.steps.map((step) => {
@@ -12,7 +17,7 @@ export function ConnectionCheck({ status }: { status: SetupStatus }) {
             <div className={styles.head}>
               <StatusIcon state={state} />
               <span className={styles.label}>{step.label}</span>
-              <span className={styles.status}>{stepStatusLabel[step.status]}</span>
+              <span className={styles.status}>{t.setup.steps[step.status]}</span>
             </div>
             <p className={styles.detail}>{step.detail}</p>
             {step.hint !== undefined && <p className={styles.hint}>{step.hint}</p>}

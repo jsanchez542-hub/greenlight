@@ -2,7 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
-import { requestConnect, requestDisconnect, type ConnectResult } from '@/lib/connect-client';
+import { useMessages } from '@/i18n/context';
+import { requestConnect, requestDisconnect, type ConnectNotice, type ConnectResult } from '@/lib/connect-client';
+import { ApiFailure, failureCodeOf, failureText, type FailureCode } from '@/lib/failure';
 import { useScanControls } from '@/lib/scan-context';
 import { setupPhase } from '@/lib/setup-status';
 import { useSetupStatus } from '@/lib/use-setup-status';
@@ -15,18 +17,24 @@ import styles from './SetupView.module.css';
 
 const TERMINAL_COMMAND = 'npm run setup';
 
-function messageOf(error: unknown): string {
-  return error instanceof Error ? error.message : 'Something went wrong. Try again.';
+interface Problem {
+  code: FailureCode;
+  seconds: number | null;
+}
+
+function problemOf(failure: unknown): Problem {
+  return { code: failureCodeOf(failure), seconds: failure instanceof ApiFailure ? failure.seconds : null };
 }
 
 export function SetupView() {
+  const t = useMessages();
   const router = useRouter();
   const { connectLive, disconnectLive } = useScanControls();
   const { status, error, checkAgain } = useSetupStatus();
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ConnectResult | null>(null);
-  const [problem, setProblem] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [problem, setProblem] = useState<Problem | null>(null);
+  const [notice, setNotice] = useState<ConnectNotice | 'disconnected' | null>(null);
   const [editing, setEditing] = useState(false);
   const request = useRef<AbortController | null>(null);
 
@@ -52,7 +60,7 @@ export function SetupView() {
         void checkAgain();
       }
     } catch (failure) {
-      setProblem(messageOf(failure));
+      setProblem(problemOf(failure));
     } finally {
       setBusy(false);
     }
@@ -70,9 +78,9 @@ export function SetupView() {
         disconnectLive();
         await checkAgain();
       }
-      setNotice(answer.notice ?? (answer.disconnected ? 'Disconnected. The dashboard shows sample data again.' : null));
+      setNotice(answer.notice ?? (answer.disconnected ? 'disconnected' : null));
     } catch (failure) {
-      setProblem(messageOf(failure));
+      setProblem(problemOf(failure));
     } finally {
       setBusy(false);
     }
@@ -85,26 +93,23 @@ export function SetupView() {
 
   return (
     <>
-      <PageHeader title="connect your n8n" meta="GreenLight only reads. Your key stays on this computer." />
+      <PageHeader title={t.setup.title} meta={t.setup.meta} />
 
       <div className={styles.layout}>
         <section className={styles.panel} aria-labelledby="connect-heading">
           <h2 id="connect-heading" className="visually-hidden">
-            {showConnected ? 'Connected' : 'Connect'}
+            {showConnected ? t.setup.connectedHeading : t.setup.connectHeading}
           </h2>
 
           {showConnected && connected !== undefined ? (
             <div className={styles.connected} data-state="healthy">
               <p className={styles.headline}>
                 <StatusIcon state="healthy" />
-                <span>
-                  Connected to {connected.host}. {connected.workflowCount}{' '}
-                  {connected.workflowCount === 1 ? 'workflow' : 'workflows'} found.
-                </span>
+                <span>{t.setup.connectedTo(connected.host ?? '', connected.workflowCount ?? 0)}</span>
               </p>
               <div className={styles.buttons}>
                 <button type="button" className={styles.primary} onClick={openDashboard}>
-                  Open the dashboard
+                  {t.setup.openDashboard}
                 </button>
                 <button
                   type="button"
@@ -115,10 +120,10 @@ export function SetupView() {
                     setNotice(null);
                   }}
                 >
-                  Change key
+                  {t.setup.changeKey}
                 </button>
                 <button type="button" className={styles.secondary} onClick={disconnect} disabled={busy}>
-                  Disconnect
+                  {t.setup.disconnect}
                 </button>
               </div>
             </div>
@@ -129,22 +134,24 @@ export function SetupView() {
           <div className={styles.outcome} role="status" aria-live="polite">
             {problem !== null && (
               <p className={styles.problem} role="alert">
-                {problem}
+                {failureText(problem.code, t, problem.seconds)}
               </p>
             )}
-            {notice !== null && <p className={styles.notice}>{notice}</p>}
-            {error !== null && !showConnected && <p className={styles.notice}>{error}</p>}
+            {notice !== null && (
+              <p className={styles.notice}>
+                {notice === 'disconnected' ? t.setup.disconnected : t.setup.notices[notice]}
+              </p>
+            )}
+            {error !== null && !showConnected && <p className={styles.notice}>{failureText(error, t)}</p>}
             {result !== null && !result.saved && (
               <>
-                <p className={styles.problem}>
-                  Not connected yet. Fix the step marked Failed, then paste the key again and press Connect.
-                </p>
+                <p className={styles.problem}>{t.setup.notYet}</p>
                 <ConnectionCheck status={{ hasAddress: true, hasKey: true, diagnosis: result.diagnosis }} />
               </>
             )}
             {result === null && !showConnected && status !== null && phase === 'failing' && (
               <>
-                <p className={styles.notice}>The saved connection does not work at the moment.</p>
+                <p className={styles.notice}>{t.setup.savedFails}</p>
                 <ConnectionCheck status={status} />
               </>
             )}
@@ -152,13 +159,11 @@ export function SetupView() {
         </section>
 
         <details className={styles.terminal}>
-          <summary>Prefer the terminal?</summary>
-          <p>
-            Open a terminal in the GreenLight folder and run this. It asks for the same two things and saves them for you.
-          </p>
+          <summary>{t.setup.terminalSummary}</summary>
+          <p>{t.setup.terminalBody}</p>
           <div className={styles.code}>
             <code>{TERMINAL_COMMAND}</code>
-            <CopyButton text={TERMINAL_COMMAND} label="the command" />
+            <CopyButton text={TERMINAL_COMMAND} label={t.copy.setupCommand} />
           </div>
         </details>
       </div>

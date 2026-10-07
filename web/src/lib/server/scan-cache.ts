@@ -1,4 +1,5 @@
 import type { ScanResult } from 'greenlight';
+import type { FailureCode } from '../failure';
 import type { LiveSnapshot } from '../live-snapshot';
 
 const MINUTE_MS = 60_000;
@@ -7,7 +8,7 @@ export const FORCED_REFRESH_COOLDOWN_MS = 30_000;
 
 export interface ScanCacheOptions {
   scan: () => Promise<ScanResult>;
-  describeFailure: (error: unknown) => string;
+  describeFailure: (error: unknown) => FailureCode;
   intervalMinutes: number;
   host: string | null;
   cooldownMs?: number;
@@ -21,7 +22,7 @@ export interface RefreshOutcome {
 
 export class ScanCache {
   private result: ScanResult | null = null;
-  private error: string | null = null;
+  private error: FailureCode | null = null;
   private lastAttemptAt: number | null = null;
   private inFlight: Promise<void> | null = null;
 

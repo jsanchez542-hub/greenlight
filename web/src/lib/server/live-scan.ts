@@ -1,9 +1,9 @@
-import { N8nClient, loadConfig, scan, type ScanResult } from 'greenlight';
+import { N8nApiError, N8nClient, loadConfig, scan, type ScanResult } from 'greenlight';
+import type { FailureCode } from '../failure';
 import { currentEnvironment, type Environment } from './environment';
 import { checkInstanceUrl } from './instance-url';
 import { ScanCache } from './scan-cache';
 
-const REDACTED = '[redacted]';
 export const DEFAULT_INTERVAL_MINUTES = 5;
 
 const SETTING_NAMES = [
@@ -62,7 +62,7 @@ export function liveCache(env: Environment = currentEnvironment()): ScanCache {
       settings,
       cache: new ScanCache({
         scan: () => executeScan(env),
-        describeFailure: (error) => describeScanFailure(error, env),
+        describeFailure: describeScanFailure,
         intervalMinutes: scanIntervalMinutes(env),
         host: hostOf(env),
       }),
@@ -71,39 +71,60 @@ export function liveCache(env: Environment = currentEnvironment()): ScanCache {
   return holder.greenlightScanCache.cache;
 }
 
-function urlCredentials(baseUrl: string | undefined): string[] {
-  try {
-    const { username, password } = new URL(baseUrl ?? '');
-    return [username, decodeURIComponent(username), password, decodeURIComponent(password)];
-  } catch {
-    return [];
-  }
-}
+const CERTIFICATE_CODES = new Set([
+  'CERT_HAS_EXPIRED',
+  'DEPTH_ZERO_SELF_SIGNED_CERT',
+  'SELF_SIGNED_CERT_IN_CHAIN',
+  'UNABLE_TO_GET_ISSUER_CERT_LOCALLY',
+  'UNABLE_TO_VERIFY_LEAF_SIGNATURE',
+  'ERR_TLS_CERT_ALTNAME_INVALID',
+]);
 
-function secretsIn(env: Environment): string[] {
-  return [env['N8N_API_KEY']?.trim(), ...urlCredentials(env['N8N_BASE_URL']?.trim())].filter(
-    (secret): secret is string => Boolean(secret),
-  );
-}
-
-function causeOf(error: Error): string | undefined {
+function causeCode(error: Error): string | undefined {
   const { cause } = error;
   if (!(cause instanceof Error)) {
     return undefined;
   }
-  const code = 'code' in cause && typeof cause.code === 'string' ? cause.code : undefined;
-  return cause.message === '' ? code : cause.message;
+  return 'code' in cause && typeof cause.code === 'string' ? cause.code : undefined;
 }
 
-function messageOf(error: unknown): string {
-  if (!(error instanceof Error)) {
-    return 'unknown error';
+function statusFailure(status: number): FailureCode {
+  if (status === 401) {
+    return 'scanRejectedKey';
   }
-  const cause = causeOf(error);
-  return cause === undefined ? error.message : `${error.message} (${cause})`;
+  if (status === 403) {
+    return 'scanForbidden';
+  }
+  if (status === 404) {
+    return 'scanNotFound';
+  }
+  return status >= 500 ? 'scanServerError' : 'scanFailed';
 }
 
-export function describeScanFailure(error: unknown, env: Environment = currentEnvironment()): string {
-  const message = `The scan could not finish: ${messageOf(error)}`;
-  return secretsIn(env).reduce((text, secret) => text.split(secret).join(REDACTED), message);
+/**
+ * Names what went wrong without carrying any of the text of the error. The text of an error
+ * can hold the address of the instance, the key or what the instance said, none of which
+ * belongs in a page, so only the kind of failure travels and the page words it itself.
+ */
+export function describeScanFailure(error: unknown): FailureCode {
+  if (error instanceof N8nApiError) {
+    return statusFailure(error.status);
+  }
+  if (!(error instanceof Error)) {
+    return 'scanFailed';
+  }
+  if (error.name === 'TimeoutError' || error.name === 'AbortError') {
+    return 'scanTimeout';
+  }
+  const code = causeCode(error);
+  if (code === 'ENOTFOUND' || code === 'EAI_AGAIN') {
+    return 'scanUnresolved';
+  }
+  if (code === 'ECONNREFUSED') {
+    return 'scanRefused';
+  }
+  if (code === 'ETIMEDOUT' || code === 'UND_ERR_CONNECT_TIMEOUT') {
+    return 'scanTimeout';
+  }
+  return code !== undefined && CERTIFICATE_CODES.has(code) ? 'scanCertificate' : 'scanFailed';
 }

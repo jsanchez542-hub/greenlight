@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { useMessages } from '@/i18n/context';
 import { welcomeChoices } from '@/lib/onboarding';
 import { useDialogFocus } from '@/lib/use-dialog-focus';
 import { Logo } from '../shell/Logo';
@@ -15,6 +16,7 @@ interface WelcomeProps {
 }
 
 export function Welcome({ liveAvailable, onTour, onConnect, onClose, onShown }: WelcomeProps) {
+  const t = useMessages();
   const dialog = useRef<HTMLDivElement>(null);
   const choices = welcomeChoices(liveAvailable);
   useDialogFocus(dialog, onClose);
@@ -36,28 +38,26 @@ export function Welcome({ liveAvailable, onTour, onConnect, onClose, onShown }: 
       >
         <Logo size={44} />
         <h2 id="welcome-title" className={styles.title}>
-          Welcome to GreenLight
+          {t.tour.welcomeTitle}
         </h2>
         <p id="welcome-body" className={styles.body}>
-          Some n8n workflows finish green and still fail inside. GreenLight reads your run history and shows which ones.
-          {choices.connect
-            ? ' Take a one-minute tour, or connect your own n8n first.'
-            : ' Take a one-minute tour of what is on screen.'}
+          {t.tour.welcomeBody}
+          {choices.connect ? t.tour.welcomeWithConnect : t.tour.welcomeTourOnly}
         </p>
         <div className={styles.actions}>
           {choices.tour && (
             <button type="button" className={styles.primary} onClick={onTour}>
-              Take the 1-minute tour
+              {t.tour.startTour}
             </button>
           )}
           {choices.connect && (
             <button type="button" className={styles.secondary} onClick={onConnect}>
-              Connect my n8n
+              {t.tour.connect}
             </button>
           )}
         </div>
         <button type="button" className={styles.skip} onClick={onClose}>
-          Skip for now
+          {t.tour.skipWelcome}
         </button>
       </div>
     </div>

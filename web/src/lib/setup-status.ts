@@ -61,12 +61,6 @@ export function stepIconState(status: StepStatus): WorkflowHealth {
   return status === 'failed' ? 'critical' : 'no-runs';
 }
 
-export const stepStatusLabel: Record<StepStatus, string> = {
-  ok: 'Passed',
-  failed: 'Failed',
-  skipped: 'Skipped',
-};
-
 export type SetupPhase = 'waiting' | 'failing' | 'connected';
 
 export function setupPhase(status: SetupStatus): SetupPhase {

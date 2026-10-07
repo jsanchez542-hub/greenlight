@@ -40,6 +40,7 @@ real ones.
 | `GREENLIGHT_EXECUTION_LIMIT` | 200 | executions read per workflow |
 | `GREENLIGHT_DETAIL_SAMPLE` | 5 | executions inspected node by node |
 | `GREENLIGHT_ALLOWED_HOSTS` | none | extra host names allowed, see Security |
+| `GREENLIGHT_LANG` | the browser's language | `en` or `es`: the language of the dashboard when the person has not chosen one on the page, see Language |
 | `GREENLIGHT_ENV_FILE` | the `.env` at the root | another settings file, read only from the process environment; this is how tests keep the real file untouched |
 
 **Live instance.** With the address and key present, the server scans your instance with
@@ -54,8 +55,10 @@ the copy every few seconds and shows how old it is. **Scan now** starts a refres
 - The first scan after a start takes tens of seconds on a mid-sized instance; until it ends
   the page shows a progress notice.
 - If the copy is older than three intervals and has not refreshed, the page says so.
-- The key stays on the server. It is never sent to the browser, and failure messages are
-  stripped of it, and of credentials written into `N8N_BASE_URL`, before they leave.
+- The key stays on the server. It is never sent to the browser. When a scan fails the server
+  sends only the kind of failure (the instance rejected the key, could not be reached, took too
+  long, has an untrusted certificate...) and the page words it itself, so no text of the error,
+  and with it no key and no credentials written into `N8N_BASE_URL`, can travel with it.
 
 **Sample data.** Without an address and key the dashboard shows
 [`examples/scan-result.json`](../examples/scan-result.json), which the program generated
@@ -163,6 +166,55 @@ After you connect, Overview shows one dismissible card about alerts: `npm run wa
 when something new appears. The Watching section of the root `README.md` explains where the
 alerts can go.
 
+## Language
+
+The dashboard speaks English and Spanish. **ES | EN** sits at the foot of the sidebar, next to the
+theme switch, and in the top bar on a narrow screen. Changing it keeps the page, the filters and
+whatever you were doing: the choice is stored and the page is rendered again by the server.
+
+The language is the first of these that says something:
+
+1. the choice made on the page, kept in the interface cookie (see below);
+2. `GREENLIGHT_LANG` in the settings, `en` or `es`, for an installation that should always speak one;
+3. the `Accept-Language` of the browser, weighted as the browser sends it;
+4. English.
+
+`<html lang>` follows it, and so do the title and the description of every page.
+
+Every sentence the dashboard writes comes from two typed dictionaries in `src/i18n`: `es.ts` is
+typed against `en.ts`, so a sentence that exists in one and is missing in the other does not
+compile. Tests also check that no Spanish sentence is left in English, that no sentence uses a
+long dash, that questions and exclamations open with `¿` and `¡`, and that the glossary below is
+kept. What the dashboard does not translate is data: the names of workflows and nodes, and the
+values of the evidence.
+
+Dates, hours and numbers are written with `Intl` for the language (`2 mar 2026, 09:00 UTC`,
+`12,3 s`, `12.345`), and so are "5 min ago" and "hace 5 min". The sentence that explains a
+finding is written from its evidence by `describeFinding` of `greenlight/i18n`, the same
+function the command line uses, so both always say the same thing.
+
+Messages from the server are never shown as they arrive. A refusal or a failure travels as a short
+code (`hostNotAllowed`, `scanRejectedKey`, `rateLimited`...) and the page words it in the
+language of the reader. The connection check is written by the scanner in the language of the
+request.
+
+| Concept | English | Spanish |
+| --- | --- | --- |
+| a flow in n8n | workflow, workflows | workflow, workflows (not translated) |
+| what a check raises | finding | hallazgo |
+| a run of the scanner | scan | análisis |
+| what looks for a problem | check | comprobación |
+| this program | dashboard | panel |
+| severity | critical, warning | crítico, advertencia |
+| a message sent out | alert (webhook) | alerta (webhook) |
+| the credential | API key | clave de API |
+| what n8n keeps | execution history | historial de ejecuciones |
+| the two sources | Sample data, Live | Datos de ejemplo, En vivo |
+
+Spanish is neutral, addresses the reader as *tú*, uses sentence case and the opening `¿` and `¡`,
+and has no long dashes. Headings written in lowercase in English, like the prompt of a terminal,
+are lowercase in Spanish too. The shortcut keys stay `g` then `o`, `f`, `w` and `c` in both.
+
 ## Theme
 
 Light, dark or follow the system. The switch is at the foot of the sidebar, above "Take the
@@ -192,15 +244,18 @@ What a visitor has already seen is remembered in the browser storage and in one 
 port changes whenever 3000 is busy. A cookie ignores the port, so the same address on another
 port does not show the welcome again.
 
-- Its value is a list of flag names such as `welcome-v1.watch-tip-v1`: which hints were seen. Nothing else.
+- Its value is a list of flag names such as `welcome-v1.watch-tip-v1.lang-es`: which hints were
+  seen and, as `lang-es` or `lang-en` (never both), the language the person chose. Nothing else.
 - It is set by the page, not by the server, so it cannot be `HttpOnly`. It is `Path=/`,
   `SameSite=Strict`, lasts one year, and has no `Domain`, so it stays on the host that set it.
-- It holds no key, address, name or identifier, and the server never reads or sets it. The
-  content security policy and the other headers are unaffected by it.
+- It holds no key, address, name or identifier. The server never sets it, and reads only the
+  language token out of it, to render the page in that language; every other flag is for the page
+  alone. The content security policy and the other headers are unaffected by it.
 - Only names the dashboard knows are read back, so a cookie edited by hand or by another
-  application on the same host cannot add anything.
-- If the browser blocks cookies or storage the dialog simply shows again. The theme choice stays
-  in the browser storage and is not in the cookie.
+  application on the same host cannot add anything. A language it does not speak is ignored.
+- If the browser blocks cookies or storage the dialog simply shows again, and the language falls
+  back to the setting and to the browser. The theme choice stays in the browser storage and is not
+  in the cookie.
 - `127.0.0.1` and `localhost` are different hosts to the browser, so each is a new visitor once.
 
 `g` then `o`, `f`, `w` or `c` moves to overview, findings, workflows or checks. `/` focuses

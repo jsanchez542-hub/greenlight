@@ -23,7 +23,7 @@ function build(outcomes: Array<ScanResult | Error>, intervalMinutes = 5) {
   const { scan, calls } = scanner(outcomes);
   const cache = new ScanCache({
     scan,
-    describeFailure: (error) => `failed: ${(error as Error).message}`,
+    describeFailure: (error) => ((error as Error).message === 'unreachable' ? 'scanRefused' : 'scanFailed'),
     intervalMinutes,
     host: 'n8n.test',
     now: () => clock.now,
@@ -84,14 +84,14 @@ describe('ScanCache', () => {
     const snapshot = cache.snapshot();
 
     expect(snapshot.result).toEqual(sampleResult);
-    expect(snapshot.error).toBe('failed: unreachable');
+    expect(snapshot.error).toBe('scanRefused');
   });
 
   it('clears the error after a scan succeeds again', async () => {
     const { cache, clock } = build([new Error('down'), sampleResult]);
     cache.snapshot();
     await cache.refresh();
-    expect(cache.snapshot().error).toBe('failed: down');
+    expect(cache.snapshot().error).toBe('scanFailed');
 
     clock.now += 5 * MINUTE;
     cache.snapshot();

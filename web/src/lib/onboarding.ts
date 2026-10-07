@@ -1,47 +1,17 @@
+export type TourStepId = 'purpose' | 'states' | 'findings' | 'workflows' | 'checks' | 'keys';
+
 export interface TourStep {
-  id: string;
+  id: TourStepId;
   anchor: string;
-  title: string;
-  body: string;
 }
 
 export const tourSteps: readonly TourStep[] = [
-  {
-    id: 'purpose',
-    anchor: 'brand',
-    title: 'What GreenLight looks for',
-    body: 'Some n8n workflows finish green and still fail inside. GreenLight reads your run history and shows which ones.',
-  },
-  {
-    id: 'states',
-    anchor: 'states',
-    title: 'Four states',
-    body: 'Critical and warning come from the checks. Healthy means nothing was found in the history it read, which is not a guarantee. No runs is not a verdict: there was no history to judge.',
-  },
-  {
-    id: 'findings',
-    anchor: 'nav-findings',
-    title: 'Findings',
-    body: 'Each finding names the check, the workflow and the evidence. Open one to see the numbers and what to review.',
-  },
-  {
-    id: 'workflows',
-    anchor: 'nav-workflows',
-    title: 'Workflows',
-    body: 'Every workflow that was checked. Sort any column, filter by state, search by name.',
-  },
-  {
-    id: 'checks',
-    anchor: 'nav-checks',
-    title: 'Checks',
-    body: 'What each check looks for and the defaults it uses to decide.',
-  },
-  {
-    id: 'keys',
-    anchor: 'shortcuts',
-    title: 'Keyboard',
-    body: 'Press g then o, f, w or c to move between sections, / to search workflows and ? to open this tour again.',
-  },
+  { id: 'purpose', anchor: 'brand' },
+  { id: 'states', anchor: 'states' },
+  { id: 'findings', anchor: 'nav-findings' },
+  { id: 'workflows', anchor: 'nav-workflows' },
+  { id: 'checks', anchor: 'nav-checks' },
+  { id: 'keys', anchor: 'shortcuts' },
 ];
 
 export type OnboardingState =

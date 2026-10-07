@@ -4,17 +4,18 @@ import type { ReactNode } from 'react';
 import { AppShell } from '@/components/shell/AppShell';
 import { sampleResult } from '@/lib/sample';
 import { ScanProvider } from '@/lib/scan-context';
-import { currentEnvironment, describeEnvironmentProblem, type Environment } from '@/lib/server/environment';
+import type { FailureCode } from '@/lib/failure';
+import { currentEnvironment, environmentProblem, type Environment } from '@/lib/server/environment';
 import { isAllowedHost } from '@/lib/server/host';
 import { isLiveScanConfigured, liveCache } from '@/lib/server/live-scan';
 
 export const dynamic = 'force-dynamic';
 
-function readSettings(): { env: Environment; problem: string | null } {
+function readSettings(): { env: Environment; problem: FailureCode | null } {
   try {
     return { env: currentEnvironment(), problem: null };
   } catch (error) {
-    return { env: {}, problem: describeEnvironmentProblem(error) };
+    return { env: {}, problem: environmentProblem(error) };
   }
 }
 

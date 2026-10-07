@@ -15,24 +15,29 @@ describe('fetchSnapshot', () => {
     await expect(fetchSnapshot(signal, respondWith(snapshot))).resolves.toEqual(snapshot);
   });
 
-  it('surfaces the message the server sent', async () => {
-    const fetchImpl = respondWith({ error: 'This host is not allowed.' }, 403);
-    await expect(fetchSnapshot(signal, fetchImpl)).rejects.toThrow('This host is not allowed.');
+  it('surfaces the kind of failure the server named', async () => {
+    const fetchImpl = respondWith({ error: 'hostNotAllowed' }, 403);
+    await expect(fetchSnapshot(signal, fetchImpl)).rejects.toMatchObject({ code: 'hostNotAllowed' });
   });
 
-  it('names the status when the server sent no message', async () => {
-    await expect(fetchSnapshot(signal, respondWith({}, 500))).rejects.toThrow('status 500');
+  it('never shows text the server wrote, only a kind it knows', async () => {
+    const fetchImpl = respondWith({ error: 'This host is not allowed. <img src=x onerror=alert(1)>' }, 403);
+    await expect(fetchSnapshot(signal, fetchImpl)).rejects.toMatchObject({ code: 'serverStatus' });
+  });
+
+  it('falls back to a generic failure when the server sent no kind', async () => {
+    await expect(fetchSnapshot(signal, respondWith({}, 500))).rejects.toMatchObject({ code: 'serverStatus' });
   });
 
   it('rejects a body that does not follow the contract', async () => {
-    await expect(fetchSnapshot(signal, respondWith({ result: 1 }))).rejects.toThrow('not valid');
+    await expect(fetchSnapshot(signal, respondWith({ result: 1 }))).rejects.toMatchObject({ code: 'invalidAnswer' });
   });
 
   it('explains a server that cannot be reached', async () => {
     const offline: typeof fetch = async () => {
       throw new TypeError('Failed to fetch');
     };
-    await expect(fetchSnapshot(signal, offline)).rejects.toThrow('did not answer');
+    await expect(fetchSnapshot(signal, offline)).rejects.toMatchObject({ code: 'serverSilent' });
   });
 
   it('passes an abort through untouched', async () => {

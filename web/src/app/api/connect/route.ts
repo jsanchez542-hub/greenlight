@@ -2,6 +2,7 @@ import { headers } from 'next/headers';
 import { createLimiter, handleConnect } from '@/lib/server/connect';
 import { currentEnvironment, envFilePath, type Environment } from '@/lib/server/environment';
 import { apiError, methodNotAllowed, optionsResponse } from '@/lib/server/api';
+import { currentLanguage } from '@/lib/server/language';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,13 +22,14 @@ export async function POST(request: Request): Promise<Response> {
   try {
     return await handleConnect(request, {
       host,
+      lang: await currentLanguage(),
       env: readableEnvironment(),
       processEnv: process.env,
       filePath: envFilePath(),
       limiter,
     });
   } catch {
-    return apiError('The settings could not be saved.', 500);
+    return apiError('saveFailed', 500);
   }
 }
 

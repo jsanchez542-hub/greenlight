@@ -8,10 +8,21 @@ const state = vi.hoisted(() => ({
   env: {} as Record<string, string | undefined>,
   problem: null as Error | null,
   now: 1_000_000,
+  cookie: undefined as string | undefined,
+  acceptLanguage: undefined as string | undefined,
 }));
 
 vi.mock('next/headers', () => ({
-  headers: async () => new Headers(state.host === null ? {} : { host: state.host }),
+  headers: async () => {
+    const incoming = new Headers(state.host === null ? {} : { host: state.host });
+    if (state.acceptLanguage !== undefined) {
+      incoming.set('accept-language', state.acceptLanguage);
+    }
+    return incoming;
+  },
+  cookies: async () => ({
+    get: (name: string) => (state.cookie === undefined ? undefined : { name, value: state.cookie }),
+  }),
 }));
 
 vi.mock('@/lib/server/environment', async (importOriginal) => {
@@ -51,9 +62,11 @@ beforeEach(() => {
   state.env = { ...configured };
   state.problem = null;
   state.now = 1_000_000;
+  state.cookie = undefined;
+  state.acceptLanguage = undefined;
   cache = new ScanCache({
     scan: async () => sampleResult,
-    describeFailure: () => 'failed',
+    describeFailure: () => 'scanFailed',
     intervalMinutes: 5,
     host: 'n8n.example.com',
     now: () => state.now,
@@ -76,7 +89,7 @@ describe('GET /api/scan', () => {
     const response = await scan.GET(request('GET', 'same-origin'));
 
     expect(response.status).toBe(403);
-    expect(await response.json()).toEqual({ error: 'This host is not allowed. Open the dashboard through localhost.' });
+    expect(await response.json()).toEqual({ error: 'hostNotAllowed' });
   });
 
   it('refuses a page on another site', async () => {
@@ -85,7 +98,9 @@ describe('GET /api/scan', () => {
 
   it('is not found when no instance is configured', async () => {
     state.env = {};
-    expect((await scan.GET(request('GET', 'same-origin'))).status).toBe(404);
+    const response = await scan.GET(request('GET', 'same-origin'));
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({ error: 'liveNotConfigured' });
   });
 
   it('is not found when the address would send the key to an unsafe place', async () => {
@@ -94,13 +109,14 @@ describe('GET /api/scan', () => {
   });
 
   it('turns an unreadable settings file into a readable 500 that names no path', async () => {
-    state.problem = new EnvFileError('The .env file cannot be read (EACCES).');
+    state.problem = new EnvFileError('envUnreadable', 'The .env file cannot be read (EACCES).');
 
     const response = await scan.GET(request('GET', 'same-origin'));
     const text = await response.text();
 
     expect(response.status).toBe(500);
-    expect(text).toContain('cannot be read (EACCES)');
+    expect(JSON.parse(text)).toEqual({ error: 'envUnreadable' });
+    expect(text).not.toContain('EACCES');
     expect(text).not.toMatch(/[A-Za-z]:\\|\/home\/|\/Users\//);
   });
 
@@ -126,7 +142,7 @@ describe('POST /api/scan', () => {
 
     expect(response.status).toBe(429);
     expect(response.headers.get('retry-after')).toBe('18');
-    expect(await response.json()).toMatchObject({ error: expect.stringContaining('18 seconds') });
+    expect(await response.json()).toEqual({ error: 'scanTooSoon', retryAfterSeconds: 18 });
   });
 
   it('refuses a request from another site and one typed into the address bar', async () => {
@@ -156,6 +172,47 @@ describe('GET /api/setup', () => {
     expect(response.status).toBe(200);
     expect(response.headers.get('cache-control')).toBe('no-store');
     expect(JSON.parse(text)).toMatchObject({ hasAddress: false, hasKey: false });
+  });
+});
+
+describe('the language of the answers', () => {
+  const noAddress = { en: 'No address was given.', es: 'No se indicó ninguna dirección.' };
+
+  async function addressDetail(): Promise<string> {
+    state.env = {};
+    const body = await (await setup.GET(request('GET', 'same-origin'))).json();
+    return body.diagnosis.steps[0].detail;
+  }
+
+  it('speaks English when nothing says otherwise', async () => {
+    expect(await addressDetail()).toBe(noAddress.en);
+  });
+
+  it('follows the browser when it asks for Spanish', async () => {
+    state.acceptLanguage = 'es-CO,es;q=0.9,en;q=0.5';
+    expect(await addressDetail()).toBe(noAddress.es);
+  });
+
+  it('follows the choice stored in the interface cookie before anything else', async () => {
+    state.acceptLanguage = 'en-US';
+    state.cookie = 'welcome-v1.lang-es';
+    expect(await addressDetail()).toBe(noAddress.es);
+
+    state.acceptLanguage = 'es';
+    state.cookie = 'lang-en';
+    expect(await addressDetail()).toBe(noAddress.en);
+  });
+
+  it('follows the setting of the installation before the browser', async () => {
+    state.acceptLanguage = 'en';
+    state.env = { GREENLIGHT_LANG: 'es' };
+    const body = await (await setup.GET(request('GET', 'same-origin'))).json();
+    expect(body.diagnosis.steps[0].detail).toBe(noAddress.es);
+  });
+
+  it('ignores a cookie that holds anything it does not know', async () => {
+    state.cookie = 'lang-fr.lang-<script>';
+    expect(await addressDetail()).toBe(noAddress.en);
   });
 });
 

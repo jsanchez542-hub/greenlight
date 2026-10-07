@@ -10,7 +10,7 @@ export type WritableSetting = (typeof WRITABLE_SETTINGS)[number];
 let queue: Promise<unknown> = Promise.resolve();
 
 function failure(code: string): EnvFileError {
-  return new EnvFileError(`The settings file cannot be written (${code}).`);
+  return new EnvFileError('envUnreadable', `The settings file cannot be written (${code}).`);
 }
 
 function codeOf(error: unknown): string {
@@ -21,7 +21,7 @@ function codeOf(error: unknown): string {
 function refuseLinks(filePath: string): void {
   try {
     if (lstatSync(filePath).isSymbolicLink()) {
-      throw new EnvFileError('The .env file is a symbolic link, which GreenLight does not follow. Use a regular file.');
+      throw new EnvFileError('envSymlink', 'The .env file is a symbolic link, which GreenLight does not follow.');
     }
   } catch (error) {
     if (error instanceof EnvFileError) {
@@ -40,7 +40,7 @@ function refuseLinks(filePath: string): void {
  */
 function replaceFile(filePath: string, text: string): void {
   if (Buffer.byteLength(text) > MAX_ENV_FILE_BYTES) {
-    throw new EnvFileError(`The .env file would be larger than ${MAX_ENV_FILE_BYTES / 1024} KiB.`);
+    throw new EnvFileError('envTooLarge', `The .env file would be larger than ${MAX_ENV_FILE_BYTES / 1024} KiB.`);
   }
   refuseLinks(filePath);
   const temporary = path.join(path.dirname(filePath), `.env.${randomBytes(6).toString('hex')}.tmp`);

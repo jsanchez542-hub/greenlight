@@ -68,9 +68,14 @@ describe('requestConnect', () => {
     expect(result.saved).toBe(false);
   });
 
-  it('shows the plain message the server sent when it refuses', async () => {
+  it('names why the server refused and how long to wait', async () => {
+    const fetchImpl = respondWith({ error: 'rateLimited', retryAfterSeconds: 3 }, 429);
+    await expect(requestConnect('a', 'b', signal, fetchImpl)).rejects.toMatchObject({ code: 'rateLimited', seconds: 3 });
+  });
+
+  it('never shows text the server wrote', async () => {
     const fetchImpl = respondWith({ error: 'Too many attempts. Try again in 3 seconds.' }, 429);
-    await expect(requestConnect('a', 'b', signal, fetchImpl)).rejects.toThrow('Too many attempts. Try again in 3 seconds.');
+    await expect(requestConnect('a', 'b', signal, fetchImpl)).rejects.toMatchObject({ code: 'serverStatus' });
   });
 
   it('never repeats the key in the message when the server cannot be reached', async () => {
@@ -81,12 +86,12 @@ describe('requestConnect', () => {
       () => new Error('it should have failed'),
       (failure: unknown) => failure as Error,
     );
-    expect(error.message).toContain('did not answer');
+    expect(error).toMatchObject({ code: 'serverSilent' });
     expect(error.message).not.toContain('SENTINEL-KEY');
   });
 
   it('rejects an answer that does not follow the contract', async () => {
-    await expect(requestConnect('a', 'b', signal, respondWith({ saved: 'yes' }))).rejects.toThrow();
+    await expect(requestConnect('a', 'b', signal, respondWith({ saved: 'yes' }))).rejects.toMatchObject({ code: 'invalidAnswer' });
   });
 });
 
@@ -95,12 +100,12 @@ describe('requestDisconnect', () => {
     const bodies: string[] = [];
     const fetchImpl: typeof fetch = async (_url, init) => {
       bodies.push(String(init?.body));
-      return new Response(JSON.stringify({ disconnected: false, notice: 'It is also set in the environment of this program.' }), { status: 200 });
+      return new Response(JSON.stringify({ disconnected: false, notice: 'processEnv' }), { status: 200 });
     };
 
     const result = await requestDisconnect(signal, fetchImpl);
 
     expect(JSON.parse(bodies[0] ?? '')).toEqual({ action: 'disconnect' });
-    expect(result).toEqual({ disconnected: false, notice: 'It is also set in the environment of this program.' });
+    expect(result).toEqual({ disconnected: false, notice: 'processEnv' });
   });
 });

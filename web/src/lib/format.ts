@@ -1,38 +1,49 @@
+import type { Lang, Messages } from '@/i18n';
+
 const MINUTE_MS = 60_000;
 const HOUR_MS = 60 * MINUTE_MS;
 const DAY_MS = 24 * HOUR_MS;
 
-const utcFormat = new Intl.DateTimeFormat('en-GB', {
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-  hourCycle: 'h23',
-  timeZone: 'UTC',
-});
+const dateFormats = new Map<Lang, Intl.DateTimeFormat>();
 
-export function formatUtc(iso: string): string {
-  return `${utcFormat.format(new Date(iso))} UTC`;
+function dateFormat(lang: Lang): Intl.DateTimeFormat {
+  let format = dateFormats.get(lang);
+  if (format === undefined) {
+    format = new Intl.DateTimeFormat(lang === 'es' ? 'es' : 'en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+      timeZone: 'UTC',
+    });
+    dateFormats.set(lang, format);
+  }
+  return format;
 }
 
-export function pluralise(count: number, singular: string, plural = `${singular}s`): string {
-  return `${count} ${count === 1 ? singular : plural}`;
+export function formatUtc(iso: string, lang: Lang): string {
+  return `${dateFormat(lang).format(new Date(iso))} UTC`;
 }
 
-export function formatBeforeScan(iso: string, scannedAtIso: string): string {
+export function formatNumber(value: number, lang: Lang): string {
+  return new Intl.NumberFormat(lang).format(value);
+}
+
+export function formatBeforeScan(iso: string, scannedAtIso: string, t: Messages): string {
   const elapsed = Math.max(0, Date.parse(scannedAtIso) - Date.parse(iso));
 
   if (elapsed < MINUTE_MS) {
-    return 'At scan time';
+    return t.age.atScan;
   }
   if (elapsed < 2 * HOUR_MS) {
-    return `${Math.round(elapsed / MINUTE_MS)} min before scan`;
+    return t.age.minutesBefore(Math.round(elapsed / MINUTE_MS));
   }
   if (elapsed < 2 * DAY_MS) {
-    return `${Math.round(elapsed / HOUR_MS)} h before scan`;
+    return t.age.hoursBefore(Math.round(elapsed / HOUR_MS));
   }
-  return `${Math.round(elapsed / DAY_MS)} days before scan`;
+  return t.age.daysBefore(Math.round(elapsed / DAY_MS));
 }
 
 export function formatElapsed(milliseconds: number): string {

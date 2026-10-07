@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
+import { useMessages } from '@/i18n/context';
 import { placeCard, tourActions, tourSteps } from '@/lib/onboarding';
 import { useAnchorRect } from '@/lib/use-anchor-rect';
 import { useDialogFocus } from '@/lib/use-dialog-focus';
@@ -18,6 +19,7 @@ interface TourProps {
 }
 
 export function Tour({ step, onNext, onBack, onClose, onConnect, liveAvailable }: TourProps) {
+  const t = useMessages();
   const current = tourSteps[step];
   const card = useRef<HTMLDivElement>(null);
   const rect = useAnchorRect(current?.anchor ?? '');
@@ -59,44 +61,44 @@ export function Tour({ step, onNext, onBack, onClose, onConnect, liveAvailable }
         style={{ top: placement.top, left: placement.left, width }}
       >
         <p className={styles.count}>
-          {step + 1} of {tourSteps.length}
+          {t.tour.position(step + 1, tourSteps.length)}
         </p>
         <h2 id="tour-title" className={styles.title}>
-          {current.title}
+          {t.tour.steps[current.id].title}
         </h2>
         <p id="tour-body" className={styles.body}>
-          {current.body}
+          {t.tour.steps[current.id].body}
         </p>
         <div className={styles.actions}>
           {actions.skip && (
             <button type="button" className={styles.skip} onClick={onClose}>
-              Skip tour
+              {t.tour.skip}
             </button>
           )}
           <span className={styles.spacer} />
           {actions.back && (
             <button type="button" className={styles.secondary} onClick={onBack}>
-              Back
+              {t.tour.back}
             </button>
           )}
           {actions.secondaryDone && (
             <button type="button" className={styles.secondary} onClick={onClose}>
-              Done
+              {t.tour.done}
             </button>
           )}
           {actions.primary === 'next' && (
             <button type="button" className={styles.primary} onClick={onNext}>
-              Next
+              {t.tour.next}
             </button>
           )}
           {actions.primary === 'done' && (
             <button type="button" className={styles.primary} onClick={onClose}>
-              Done
+              {t.tour.done}
             </button>
           )}
           {actions.primary === 'connect' && (
             <button type="button" className={styles.primary} onClick={onConnect}>
-              Connect my n8n
+              {t.tour.connectShort}
             </button>
           )}
         </div>

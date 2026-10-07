@@ -46,6 +46,7 @@
 .primary,
 .secondary {
   min-height: 40px;
+  white-space: nowrap;
   padding: 0 16px;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius);

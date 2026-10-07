@@ -60,6 +60,7 @@
 
 .actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   margin-top: 6px;
@@ -73,6 +74,7 @@
 .secondary,
 .skip {
   min-height: 34px;
+  white-space: nowrap;
   padding: 0 14px;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius);
