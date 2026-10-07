@@ -41,3 +41,11 @@ export async function authorize(request: Request): Promise<{ env: Environment } 
   }
   return { env };
 }
+
+export function methodNotAllowed(allow: string): () => Response {
+  return () => apiError('That method is not allowed here.', 405, { Allow: allow });
+}
+
+export function optionsResponse(allow: string): () => Response {
+  return () => new Response(null, { status: 204, headers: { ...NO_STORE, Allow: allow } });
+}

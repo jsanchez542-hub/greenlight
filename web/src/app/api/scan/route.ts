@@ -1,7 +1,9 @@
-import { apiError, apiJson, authorize } from '@/lib/server/api';
+import { apiError, apiJson, authorize, methodNotAllowed, optionsResponse } from '@/lib/server/api';
 import { isLiveScanConfigured, liveCache } from '@/lib/server/live-scan';
 
 export const dynamic = 'force-dynamic';
+
+const ALLOW = 'GET, POST, OPTIONS';
 
 export async function GET(request: Request): Promise<Response> {
   const access = await authorize(request);
@@ -34,3 +36,9 @@ export async function POST(request: Request): Promise<Response> {
   }
   return apiJson(cache.snapshot(), 202);
 }
+
+export const OPTIONS = optionsResponse(ALLOW);
+export const HEAD = methodNotAllowed(ALLOW);
+export const PUT = methodNotAllowed(ALLOW);
+export const PATCH = methodNotAllowed(ALLOW);
+export const DELETE = methodNotAllowed(ALLOW);
