@@ -11,21 +11,23 @@ From the root of the project, with Node 22.12 or newer:
 
 ```bash
 npm install
-npm run setup    # asks for your n8n address and API key, checks them, saves .env
-npm run panel    # installs the dashboard's dependencies and starts it
+npm run panel    # builds the dashboard, starts it and opens it in your browser
 ```
 
-Open <http://localhost:3000>. A welcome dialog offers a one-minute tour, and the **Connect
-your n8n** page (`/setup`) walks through the same three steps with a live connection check.
-It also works in the other order: start the panel first, run `npm run setup` in another
-terminal, and the panel switches to your instance by itself, without a restart.
+A welcome dialog offers a one-minute tour. To see your own workflows press **Connect** in the
+sidebar: type the address of your n8n, paste an API key and press the button. No terminal and
+no file editing are needed. The page links to the place in n8n where keys are made.
+
+If you prefer the terminal, `npm run setup` asks for the same two things and saves them. It
+works in either order: the dashboard notices a connection made that way by itself, without a
+restart.
 
 ## Where the data comes from
 
 The dashboard is meant to run on your own machine, next to your own n8n.
 
 **One configuration.** The `.env` at the root of the project is the source of truth. It is what
-`npm run setup` writes and what the command line reads. The dashboard reads it again on every
+`npm run setup` and the **Connect** page write, and what the command line reads. The dashboard reads it again on every
 request. Anything set in the process environment wins over the file, so `web/.env.local` still
 works as an override; blank values there are ignored, so a copied template cannot hide your
 real ones.
@@ -38,6 +40,7 @@ real ones.
 | `GREENLIGHT_EXECUTION_LIMIT` | 200 | executions read per workflow |
 | `GREENLIGHT_DETAIL_SAMPLE` | 5 | executions inspected node by node |
 | `GREENLIGHT_ALLOWED_HOSTS` | none | extra host names allowed, see Security |
+| `GREENLIGHT_ENV_FILE` | the `.env` at the root | another settings file, read only from the process environment; this is how tests keep the real file untouched |
 
 **Live instance.** With the address and key present, the server scans your instance with
 `scan()` from the parent package and keeps the result in memory. Visitors read that copy and
@@ -70,6 +73,7 @@ The dashboard shows what an n8n instance holds, so the assets are the **API key*
 | Threat | Defence |
 | --- | --- |
 | Someone on the network opens the page | It listens on `127.0.0.1` only, and any `Host` other than `localhost`, `127.0.0.1` or `[::1]` is refused with 403, which also stops DNS rebinding. Other names go in `GREENLIGHT_ALLOWED_HOSTS`. |
+| A web page you visit tries to change the connection | Saving or removing it is the only thing the dashboard writes, and it answers only requests that prove they come from the dashboard's own page: `Sec-Fetch-Site: same-origin`, or an `Origin` exactly equal to the host when a browser does not send that. It also requires JSON, which a form on another site cannot send. A plain script with neither is refused. |
 | A web page you visit calls the dashboard | Routes answer only requests a browser marks as made from the dashboard itself (`Sec-Fetch-Site`). Forced scans cannot be started from anywhere else. The server sets no cookies, and nothing is readable from another origin. |
 | An instance sends names or messages that are markup | Everything from the instance is rendered as text. There is no raw HTML anywhere, identifiers are encoded in addresses, and a strict policy blocks script even if a bug let markup through. |
 | The page is framed or its scripts replaced | `Content-Security-Policy` with a nonce per request: scripts and styles only from this origin, `frame-ancestors 'none'`, `base-uri 'none'`, `object-src 'none'`, forms only to itself. In `npm run dev` it also allows what hot reloading needs (`unsafe-eval`, inline styles); production does not. |
@@ -78,6 +82,34 @@ The dashboard shows what an n8n instance holds, so the assets are the **API key*
 | The settings file is hostile or broken | It is opened without following links, refused above 64 KiB or when it is not a regular file, and any failure shows as a short notice that names neither the path nor the contents. |
 | The instance is hammered | A manual scan joins one that is running and otherwise waits 30 seconds after the last one (429 with `Retry-After`). The stored scan serves every visitor. |
 | Browser features are abused | `Permissions-Policy` denies everything except copying to the clipboard; `Cross-Origin-Opener-Policy` and `Cross-Origin-Resource-Policy` are `same-origin`; `X-Content-Type-Options`, `Referrer-Policy: no-referrer` and `X-Frame-Options` are set; there is no `X-Powered-By`. |
+
+### Writing the settings
+
+The dashboard writes one file, and only the **Connect** page does. This is the part to read
+before changing anything.
+
+- **What:** the `N8N_BASE_URL` and `N8N_API_KEY` lines of the `.env` at the root of the project,
+  or of the file named by `GREENLIGHT_ENV_FILE` in the process environment. Every other line is
+  kept exactly as it was. The two names are fixed; nothing in a request can choose another.
+- **When:** only when the person presses Connect, and only after the scanner's own connection
+  check has just passed with that address and key. A failed check writes nothing. Disconnect
+  removes those two lines and nothing else.
+- **How:** the new text goes to a private temporary file beside the original (mode `0600` on
+  systems that have it), which is renamed over it, so a reader never sees half a file. Writes are
+  queued one at a time. A symbolic link, something that is not a regular file, a file over 64 KiB
+  and any value with a line break or other control character are refused.
+- **Who may ask:** a request must be addressed to `localhost`, `127.0.0.1` or `[::1]` (or a name
+  in `GREENLIGHT_ALLOWED_HOSTS`), must prove it comes from the dashboard's own page, must be JSON
+  of at most 8 KB, and is limited to one attempt a second and twenty a minute (`429` with
+  `Retry-After`).
+- **What comes back:** the result of the check and whether it was saved. Never the key and never
+  the path of the file. The key is not logged, not stored in the browser and not put in any
+  address, and the field is cleared as soon as it is sent.
+- **If the program's environment sets them:** values in the process environment win over the
+  file, so the page says so and Disconnect tells the person where to remove them.
+
+Because it writes, the dashboard stays on loopback. A reachable dashboard with no sign-in would
+let anyone who reaches it point GreenLight, and the key it holds, at a server of their choice.
 
 ### What it does not protect
 
@@ -107,9 +139,10 @@ dashboard.
 | `/workflows` | A dense table of every workflow. Sort by any column, filter by state, search by name. The state is kept in the address: `?state=warning&q=sync&sort=runs&dir=desc`. |
 | `/workflows/[id]` | One workflow: state, trigger, last run and its findings. |
 | `/checks` | The four checks, what each applies to and the defaults it uses. |
-| `/setup` | Connect your n8n: three short steps and a live connection check that lists what passed, what failed and what to do about it. |
+| `/setup` | Connect your n8n: two fields and a button, a link to the page in n8n where keys are made, and a plain list of what passed and what failed. Once connected it offers to open the dashboard, change the key or disconnect. |
 | `/api/scan` | `GET` reads the stored scan, `POST` asks for a refresh. |
 | `/api/setup` | `GET` runs the connection check and returns it without the key. |
+| `/api/connect` | `POST` saves or removes the connection: `{action: 'connect', baseUrl, apiKey}` or `{action: 'disconnect'}`. See Writing the settings. |
 
 The data source and the scan result belong to the layout, so they survive moving between
 routes, and the live copy keeps refreshing while you move. Last run is given relative to the
