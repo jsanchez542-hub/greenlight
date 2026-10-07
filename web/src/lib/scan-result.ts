@@ -63,14 +63,14 @@ function asOneOf<T extends string>(value: unknown, options: readonly T[], path: 
 }
 
 function parseEvidence(value: unknown, path: string): Finding['evidence'] {
-  const evidence: Finding['evidence'] = {};
-  for (const [key, entry] of Object.entries(asRecord(value, path))) {
-    if (typeof entry !== 'string' && typeof entry !== 'number') {
-      throw new InvalidScanResultError(`${path}.${key}`, 'text or a number');
-    }
-    evidence[key] = entry;
-  }
-  return evidence;
+  return Object.fromEntries(
+    Object.entries(asRecord(value, path)).map(([key, entry]) => {
+      if (typeof entry !== 'string' && typeof entry !== 'number') {
+        throw new InvalidScanResultError(`${path}.${key}`, 'text or a number');
+      }
+      return [key, entry];
+    }),
+  );
 }
 
 function parseWorkflow(value: unknown, path: string): WorkflowSummary {
