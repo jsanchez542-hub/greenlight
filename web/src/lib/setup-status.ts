@@ -31,21 +31,26 @@ function parseStep(value: unknown, index: number): CheckStep {
   return fields['hint'] === undefined ? step : { ...step, hint: asString(fields['hint'], `${path}.hint`) };
 }
 
+export function parseDiagnosis(value: unknown, path = 'diagnosis'): Diagnosis {
+  const diagnosis = asRecord(value, path);
+  if (!Array.isArray(diagnosis['steps'])) {
+    throw new Error(`The setup status is not valid: ${path}.steps should be a list.`);
+  }
+  return {
+    ok: asBoolean(diagnosis['ok'], `${path}.ok`),
+    steps: diagnosis['steps'].map(parseStep),
+    workflowCount:
+      diagnosis['workflowCount'] === null ? null : asCount(diagnosis['workflowCount'], `${path}.workflowCount`),
+    host: diagnosis['host'] === null ? null : asString(diagnosis['host'], `${path}.host`),
+  };
+}
+
 export function parseSetupStatus(value: unknown): SetupStatus {
   const fields = asRecord(value, 'the setup status');
-  const diagnosis = asRecord(fields['diagnosis'], 'diagnosis');
-  if (!Array.isArray(diagnosis['steps'])) {
-    throw new Error('The setup status is not valid: diagnosis.steps should be a list.');
-  }
   return {
     hasAddress: asBoolean(fields['hasAddress'], 'hasAddress'),
     hasKey: asBoolean(fields['hasKey'], 'hasKey'),
-    diagnosis: {
-      ok: asBoolean(diagnosis['ok'], 'diagnosis.ok'),
-      steps: diagnosis['steps'].map(parseStep),
-      workflowCount: diagnosis['workflowCount'] === null ? null : asCount(diagnosis['workflowCount'], 'diagnosis.workflowCount'),
-      host: diagnosis['host'] === null ? null : asString(diagnosis['host'], 'diagnosis.host'),
-    },
+    diagnosis: parseDiagnosis(fields['diagnosis']),
   };
 }
 
