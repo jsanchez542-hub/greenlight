@@ -103,4 +103,10 @@ describe('isLiveScanConfigured with unsafe addresses', () => {
   it('accepts a plain address', () => {
     expect(isLiveScanConfigured({ N8N_BASE_URL: 'https://n8n.example.com', N8N_API_KEY: key })).toBe(true);
   });
+
+  it('refuses plain http to a public host unless the operator opted in', () => {
+    const settings = { N8N_BASE_URL: 'http://n8n.example.com', N8N_API_KEY: key };
+    expect(isLiveScanConfigured(settings)).toBe(false);
+    expect(isLiveScanConfigured({ ...settings, GREENLIGHT_ALLOW_INSECURE_HTTP: '1' })).toBe(true);
+  });
 });
