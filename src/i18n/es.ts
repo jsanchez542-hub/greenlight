@@ -47,6 +47,15 @@ Con watch --once son los mismos, así que sirve para cron o cualquier programado
       `Hay una versión nueva: ${latest} (tienes la ${current}). Qué ha cambiado: ${url}`,
   },
 
+  panel: {
+    preparing: 'Preparando el panel (la primera vez tarda uno o dos minutos)...',
+    building: 'Construyéndolo...',
+    failed: 'No se pudo preparar el panel. Los mensajes de arriba explican por qué.',
+    portBusy: (port) => `El puerto 3000 lo usa otro programa, así que GreenLight usará el ${port}.`,
+    ready: (url) => `GreenLight está listo: ${url}\nPulsa Ctrl+C aquí para detenerlo.`,
+    noFreePort: (from, to) => `No se encontró ningún puerto libre entre el ${from} y el ${to}.`,
+  },
+
   runtime: {
     nodeTooOld: (needed, found) =>
       `GreenLight necesita Node.js ${needed} o superior y este equipo tiene ${found}. Instala la versión LTS actual desde https://nodejs.org y vuelve a ejecutar el comando.`,
