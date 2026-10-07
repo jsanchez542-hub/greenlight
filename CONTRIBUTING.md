@@ -20,7 +20,7 @@ npm test
 | `npm run typecheck` | TypeScript without emitting |
 | `npm run build` | compiles to `dist/` |
 | `npm run example` | prints the report for the synthetic instance |
-| `npm run panel` | installs and starts the dashboard in `web/` |
+| `npm run panel` | prepares, starts and opens the dashboard in `web/` |
 
 The dashboard has its own project in `web/` with its own `lint`, `typecheck`, `test` and `build`.
 
