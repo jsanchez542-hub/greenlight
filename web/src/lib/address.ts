@@ -24,6 +24,11 @@ export function settingsLink(raw: string): string | null {
   if (url === null) {
     return null;
   }
-  const path = url.pathname.replace(/\/+$/, '');
+  let end = url.pathname.length;
+  // A loop and not a regular expression: one that backtracks over a long run of slashes is quadratic.
+  while (end > 0 && url.pathname.charCodeAt(end - 1) === 47) {
+    end -= 1;
+  }
+  const path = url.pathname.slice(0, end);
   return `${url.origin}${path}/settings/api`;
 }

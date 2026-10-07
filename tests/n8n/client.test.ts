@@ -192,3 +192,24 @@ describe('N8nClient', () => {
     expect(calls[0]?.url.pathname).toBe('/api/v1/workflows');
   });
 });
+
+describe('withoutTrailingSlashes', () => {
+  it('removes every trailing slash and nothing else', async () => {
+    const { withoutTrailingSlashes } = await import('../../src/n8n/client.js');
+
+    expect(withoutTrailingSlashes('https://n8n.example.com/')).toBe('https://n8n.example.com');
+    expect(withoutTrailingSlashes('https://n8n.example.com///')).toBe('https://n8n.example.com');
+    expect(withoutTrailingSlashes('https://n8n.example.com/a/b')).toBe('https://n8n.example.com/a/b');
+    expect(withoutTrailingSlashes('///')).toBe('');
+    expect(withoutTrailingSlashes('')).toBe('');
+  });
+
+  it('stays fast on a long run of slashes', async () => {
+    const { withoutTrailingSlashes } = await import('../../src/n8n/client.js');
+    const hostile = `https://n8n.example.com/${'/'.repeat(200_000)}x`;
+    const started = performance.now();
+
+    expect(withoutTrailingSlashes(hostile)).toBe(hostile);
+    expect(performance.now() - started).toBeLessThan(200);
+  });
+});

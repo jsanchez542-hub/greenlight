@@ -20,6 +20,15 @@ export interface ListExecutionsOptions {
   limit?: number;
 }
 
+/** A loop and not a regular expression: one that backtracks over a long run of slashes is quadratic. */
+export function withoutTrailingSlashes(value: string): string {
+  let end = value.length;
+  while (end > 0 && value.charCodeAt(end - 1) === 47) {
+    end -= 1;
+  }
+  return value.slice(0, end);
+}
+
 export const INSECURE_HTTP_MESSAGE = messagesFor('en').client.insecureHttp;
 
 function assertSafeAddress(baseUrl: string, allowInsecureHttp: boolean, lang: Lang): void {
@@ -56,7 +65,7 @@ export class N8nClient {
   private readonly lang: Lang;
 
   constructor(options: N8nClientOptions) {
-    this.baseUrl = options.baseUrl.replace(/\/+$/, '');
+    this.baseUrl = withoutTrailingSlashes(options.baseUrl);
     this.lang = options.lang ?? 'en';
     assertSafeAddress(this.baseUrl, options.allowInsecureHttp === true, this.lang);
     this.apiKey = options.apiKey;
