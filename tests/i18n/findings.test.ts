@@ -70,6 +70,8 @@ describe('evidence', () => {
   it('shows an unknown key as it is', () => {
     expect(evidenceLabel('somethingNew', 'es')).toBe('somethingNew');
     expect(evidenceLabel('node', 'es')).toBe('Nodo');
+    expect(evidenceLabel('constructor', 'es')).toBe('constructor');
+    expect(evidenceLabel('toString', 'en')).toBe('toString');
   });
 });
 

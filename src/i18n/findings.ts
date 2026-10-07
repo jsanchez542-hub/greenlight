@@ -50,7 +50,8 @@ const evidenceLabels: Record<Lang, Record<string, string>> = {
 
 /** A readable name for an evidence key; an unknown key is shown as it is rather than hidden. */
 export function evidenceLabel(key: string, lang: Lang): string {
-  return evidenceLabels[lang][key] ?? key;
+  const labels = evidenceLabels[lang];
+  return Object.hasOwn(labels, key) ? (labels[key] as string) : key;
 }
 
 const durationKeys = new Set(['baselineMedian', 'baselineP95', 'recentMedian', 'slowdown', 'silentFor', 'usualInterval']);
