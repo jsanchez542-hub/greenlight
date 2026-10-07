@@ -1,109 +1,166 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useRef, useState } from 'react';
+import { requestConnect, requestDisconnect, type ConnectResult } from '@/lib/connect-client';
 import { useScanControls } from '@/lib/scan-context';
 import { setupPhase } from '@/lib/setup-status';
 import { useSetupStatus } from '@/lib/use-setup-status';
 import { CopyButton } from '../ui/CopyButton';
 import { PageHeader } from '../ui/PageHeader';
 import { StatusIcon } from '../ui/StatusIcon';
+import { ConnectForm } from './ConnectForm';
 import { ConnectionCheck } from './ConnectionCheck';
 import styles from './SetupView.module.css';
 
-const SETUP_COMMAND = 'npm run setup';
-const ENV_TEMPLATE = 'N8N_BASE_URL=https://your-n8n.example.com\nN8N_API_KEY=paste-your-key-here';
+const TERMINAL_COMMAND = 'npm run setup';
 
-function Guide() {
-  return (
-    <ol className={styles.guide}>
-      <li>
-        <h3>Create an API key in n8n</h3>
-        <p>
-          In n8n open Settings, then n8n API, then Create an API key. Copy it right away: n8n shows it
-          only once. Read access is enough. GreenLight never writes to your instance.
-        </p>
-      </li>
-      <li>
-        <h3>Save it in this project</h3>
-        <p>In a terminal, in the project folder (the one with package.json), run:</p>
-        <div className={styles.code}>
-          <code>{SETUP_COMMAND}</code>
-          <CopyButton text={SETUP_COMMAND} label="the setup command" />
-        </div>
-        <p>It asks for the address and the key, checks them and writes a .env file. To do it by hand, create .env in that folder with:</p>
-        <div className={styles.code}>
-          <pre>{ENV_TEMPLATE}</pre>
-          <CopyButton text={ENV_TEMPLATE} label="the .env lines" />
-        </div>
-      </li>
-      <li>
-        <h3>Check the connection</h3>
-        <p>Press Check again. This page also checks by itself every few seconds.</p>
-      </li>
-    </ol>
-  );
+function messageOf(error: unknown): string {
+  return error instanceof Error ? error.message : 'Something went wrong. Try again.';
 }
 
 export function SetupView() {
   const router = useRouter();
-  const { connectLive } = useScanControls();
-  const { status, error, checking, checkAgain } = useSetupStatus();
-  const phase = status === null ? null : setupPhase(status);
+  const { connectLive, disconnectLive } = useScanControls();
+  const { status, error, checkAgain } = useSetupStatus();
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<ConnectResult | null>(null);
+  const [problem, setProblem] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  const request = useRef<AbortController | null>(null);
 
-  function openLiveView() {
+  const phase = status === null ? null : setupPhase(status);
+  const justSaved = result?.saved === true;
+  const showConnected = justSaved || (phase === 'connected' && !editing);
+  const connected = justSaved ? result?.diagnosis : status?.diagnosis;
+
+  async function connect(address: string, key: string) {
+    request.current?.abort();
+    request.current = new AbortController();
+    setBusy(true);
+    setProblem(null);
+    setNotice(null);
+    setResult(null);
+    try {
+      const answer = await requestConnect(address.trim(), key, request.current.signal);
+      setResult(answer);
+      if (answer.saved) {
+        setEditing(false);
+        setNotice(answer.notice);
+        connectLive();
+        void checkAgain();
+      }
+    } catch (failure) {
+      setProblem(messageOf(failure));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function disconnect() {
+    setBusy(true);
+    setProblem(null);
+    setNotice(null);
+    try {
+      const answer = await requestDisconnect(new AbortController().signal);
+      if (answer.disconnected) {
+        setResult(null);
+        setEditing(false);
+        disconnectLive();
+        await checkAgain();
+      }
+      setNotice(answer.notice ?? (answer.disconnected ? 'Disconnected. The dashboard shows sample data again.' : null));
+    } catch (failure) {
+      setProblem(messageOf(failure));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function openDashboard() {
     connectLive();
     router.push('/');
   }
 
   return (
     <>
-      <PageHeader
-        title="connect your n8n"
-        meta="GreenLight reads your instance through its API and never writes to it."
-      />
-
-      {phase === 'connected' && status !== null && (
-        <section className={styles.connected} data-state="healthy" aria-labelledby="connected-heading">
-          <h2 id="connected-heading">
-            <StatusIcon state="healthy" />
-            Connected to {status.diagnosis.host}, {status.diagnosis.workflowCount}{' '}
-            {status.diagnosis.workflowCount === 1 ? 'workflow' : 'workflows'} visible
-          </h2>
-          <p>Everything GreenLight needs is in place.</p>
-          <button type="button" className={styles.primary} onClick={openLiveView}>
-            Open live view
-          </button>
-        </section>
-      )}
+      <PageHeader title="connect your n8n" meta="GreenLight only reads. Your key stays on this computer." />
 
       <div className={styles.layout}>
-        {phase !== 'connected' && (
-          <section aria-labelledby="guide-heading" className={styles.panel}>
-            <h2 id="guide-heading">three steps</h2>
-            <Guide />
-          </section>
-        )}
+        <section className={styles.panel} aria-labelledby="connect-heading">
+          <h2 id="connect-heading" className="visually-hidden">
+            {showConnected ? 'Connected' : 'Connect'}
+          </h2>
 
-        <section aria-labelledby="check-heading" className={styles.panel}>
-          <div className={styles.checkHead}>
-            <h2 id="check-heading">connection check</h2>
-            <button type="button" className={styles.secondary} onClick={checkAgain} disabled={checking}>
-              {checking ? 'Checking' : 'Check again'}
-            </button>
+          {showConnected && connected !== undefined ? (
+            <div className={styles.connected} data-state="healthy">
+              <p className={styles.headline}>
+                <StatusIcon state="healthy" />
+                <span>
+                  Connected to {connected.host}. {connected.workflowCount}{' '}
+                  {connected.workflowCount === 1 ? 'workflow' : 'workflows'} found.
+                </span>
+              </p>
+              <div className={styles.buttons}>
+                <button type="button" className={styles.primary} onClick={openDashboard}>
+                  Open the dashboard
+                </button>
+                <button
+                  type="button"
+                  className={styles.secondary}
+                  onClick={() => {
+                    setResult(null);
+                    setEditing(true);
+                    setNotice(null);
+                  }}
+                >
+                  Change key
+                </button>
+                <button type="button" className={styles.secondary} onClick={disconnect} disabled={busy}>
+                  Disconnect
+                </button>
+              </div>
+            </div>
+          ) : (
+            <ConnectForm busy={busy} onConnect={connect} />
+          )}
+
+          <div className={styles.outcome} role="status" aria-live="polite">
+            {problem !== null && (
+              <p className={styles.problem} role="alert">
+                {problem}
+              </p>
+            )}
+            {notice !== null && <p className={styles.notice}>{notice}</p>}
+            {error !== null && !showConnected && <p className={styles.notice}>{error}</p>}
+            {result !== null && !result.saved && (
+              <>
+                <p className={styles.problem}>
+                  Not connected yet. Fix the step marked Failed, then paste the key again and press Connect.
+                </p>
+                <ConnectionCheck status={{ hasAddress: true, hasKey: true, diagnosis: result.diagnosis }} />
+              </>
+            )}
+            {result === null && !showConnected && status !== null && phase === 'failing' && (
+              <>
+                <p className={styles.notice}>The saved connection does not work at the moment.</p>
+                <ConnectionCheck status={status} />
+              </>
+            )}
           </div>
-          {error !== null && (
-            <p className={styles.error} role="alert">
-              {error}
-            </p>
-          )}
-          {status === null && error === null && <p className={styles.note}>Checking…</p>}
-          {phase === 'waiting' && (
-            <p className={styles.note}>
-              Nothing is saved yet. Once you finish step 2 this list fills in on its own.
-            </p>
-          )}
-          {status !== null && phase !== 'waiting' && <ConnectionCheck status={status} />}
         </section>
+
+        <details className={styles.terminal}>
+          <summary>Prefer the terminal?</summary>
+          <p>
+            Open a terminal in the GreenLight folder and run this. It asks for the same two things and saves them for you.
+          </p>
+          <div className={styles.code}>
+            <code>{TERMINAL_COMMAND}</code>
+            <CopyButton text={TERMINAL_COMMAND} label="the command" />
+          </div>
+        </details>
       </div>
     </>
   );

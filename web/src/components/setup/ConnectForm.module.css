@@ -1,0 +1,149 @@
+.form {
+  display: grid;
+  gap: 24px;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 14px;
+}
+
+.number {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  margin: 0;
+  border: 1px solid var(--accent);
+  border-radius: 50%;
+  background: var(--accent-soft);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.body {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.label {
+  font-weight: 600;
+}
+
+.input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.9375rem;
+}
+
+.input::placeholder {
+  color: var(--ink-muted);
+  opacity: 1;
+}
+
+.input:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+  outline: none;
+}
+
+.input[aria-invalid='true'] {
+  border-color: var(--critical);
+}
+
+.help {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+}
+
+.keyHelp {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.keyRow {
+  display: flex;
+  gap: 8px;
+}
+
+.reveal,
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.reveal {
+  min-height: 42px;
+  flex: none;
+}
+
+.reveal:hover,
+.secondary:hover {
+  background: var(--panel-raised);
+}
+
+.problem {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--critical);
+  border-radius: var(--radius);
+  font-size: 0.9375rem;
+}
+
+.actions {
+  display: flex;
+  padding-left: 42px;
+}
+
+.primary {
+  min-height: 44px;
+  padding: 0 28px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--accent-strong);
+}
+
+.primary:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+@media (max-width: 599px) {
+  .actions {
+    padding-left: 0;
+  }
+
+  .primary {
+    width: 100%;
+  }
+}
