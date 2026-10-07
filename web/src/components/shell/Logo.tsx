@@ -1,3 +1,4 @@
+import { BASE_PATH } from '@/lib/demo';
 import styles from './Logo.module.css';
 
 export function Logo({ size }: { size: number }) {
@@ -5,7 +6,7 @@ export function Logo({ size }: { size: number }) {
     <span className={styles.logo}>
       <img
         className={styles.onLight}
-        src="/logo/logo-on-light-512.png"
+        src={`${BASE_PATH}/logo/logo-on-light-512.png`}
         alt=""
         width={size}
         height={size}
@@ -13,7 +14,7 @@ export function Logo({ size }: { size: number }) {
       />
       <img
         className={styles.onDark}
-        src="/logo/logo-on-dark-512.png"
+        src={`${BASE_PATH}/logo/logo-on-dark-512.png`}
         alt=""
         width={size}
         height={size}

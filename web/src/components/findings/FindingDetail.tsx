@@ -4,7 +4,7 @@ import { describeFinding } from 'greenlight/i18n';
 import Link from 'next/link';
 import { useLang, useMessages } from '@/i18n/context';
 import { keyFindings } from '@/lib/findings';
-import { workflowHref } from '@/lib/routes';
+import { routeKey, workflowHref } from '@/lib/routes';
 import { useResult } from '@/lib/scan-context';
 import { CheckFacts } from '../ui/CheckFacts';
 import { EvidenceList } from '../ui/EvidenceList';
@@ -17,7 +17,7 @@ export function FindingDetail({ findingKey }: { findingKey: string }) {
   const t = useMessages();
   const lang = useLang();
   const result = useResult();
-  const entry = keyFindings(result.findings).find((candidate) => candidate.key === findingKey);
+  const entry = keyFindings(result.findings).find((candidate) => routeKey(candidate.key) === findingKey);
 
   if (entry === undefined) {
     return <NotInScan kind="finding" backHref="/findings" />;

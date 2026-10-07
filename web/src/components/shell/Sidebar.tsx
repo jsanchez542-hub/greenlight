@@ -1,13 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { useLang, useMessages } from '@/i18n/context';
 import { formatUtc } from '@/lib/format';
-import { connectEntry } from '@/lib/connect-entry';
+import { connectEntry, connectTexts } from '@/lib/connect-entry';
 import { SETUP_HREF, activeSection, sections, type SectionId } from '@/lib/navigation';
 import { useOptionalResult, useScanControls } from '@/lib/scan-context';
 import type { SidebarState } from '@/lib/sidebar';
+import { usePath } from '@/lib/use-path';
 import { Icon } from '../ui/Icon';
 import { ConnectHint } from './ConnectHint';
 import { LanguageSwitch } from './LanguageSwitch';
@@ -34,9 +34,10 @@ function useSectionCounts(): Partial<Record<SectionId, number>> {
 export function Sidebar({ state, onToggle, onTour, version }: SidebarProps) {
   const t = useMessages();
   const lang = useLang();
-  const pathname = usePathname();
+  const pathname = usePath();
   const { source, liveAvailable, host } = useScanControls();
   const connect = connectEntry(liveAvailable, host);
+  const connectWords = connectTexts(t, connect);
   const result = useOptionalResult();
   const counts = useSectionCounts();
   const current = activeSection(pathname);
@@ -79,16 +80,12 @@ export function Sidebar({ state, onToggle, onTour, version }: SidebarProps) {
           className={`${styles.link} ${styles.connect}`}
           aria-current={pathname === SETUP_HREF ? 'page' : undefined}
           data-emphasis={connect.emphasized}
-          title={connect.connected ? t.sidebar.connectedTitle(connect.host) : t.sidebar.connectTitle}
+          title={connectWords.title}
         >
           <Icon name="connect" />
           <span className={styles.connectText}>
-            <span>{connect.connected ? t.sidebar.connected : t.sidebar.connect}</span>
-            {connect.connected ? (
-              connect.host !== null && <span className={styles.detail}>{connect.host}</span>
-            ) : (
-              <span className={styles.detail}>{t.sidebar.notConnected}</span>
-            )}
+            <span>{connectWords.label}</span>
+            {connectWords.detail !== null && <span className={styles.detail}>{connectWords.detail}</span>}
           </span>
         </Link>
         <ConnectHint placement="sidebar" />

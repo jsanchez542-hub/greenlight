@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useMessages } from '@/i18n/context';
+import { STATIC_DEMO } from '@/lib/demo';
 import { welcomeChoices } from '@/lib/onboarding';
 import { useDialogFocus } from '@/lib/use-dialog-focus';
 import { Logo } from '../shell/Logo';
@@ -42,7 +43,7 @@ export function Welcome({ liveAvailable, onTour, onConnect, onClose, onShown }: 
         </h2>
         <p id="welcome-body" className={styles.body}>
           {t.tour.welcomeBody}
-          {choices.connect ? t.tour.welcomeWithConnect : t.tour.welcomeTourOnly}
+          {choices.connect ? (STATIC_DEMO ? t.demo.welcome : t.tour.welcomeWithConnect) : t.tour.welcomeTourOnly}
         </p>
         <div className={styles.actions}>
           {choices.tour && (
@@ -52,7 +53,7 @@ export function Welcome({ liveAvailable, onTour, onConnect, onClose, onShown }: 
           )}
           {choices.connect && (
             <button type="button" className={styles.secondary} onClick={onConnect}>
-              {t.tour.connect}
+              {STATIC_DEMO ? t.demo.welcomeInstall : t.tour.connect}
             </button>
           )}
         </div>

@@ -2,6 +2,7 @@
 
 import { useRef } from 'react';
 import { useMessages } from '@/i18n/context';
+import { STATIC_DEMO } from '@/lib/demo';
 import { placeCard, tourActions, tourSteps } from '@/lib/onboarding';
 import { useAnchorRect } from '@/lib/use-anchor-rect';
 import { useDialogFocus } from '@/lib/use-dialog-focus';
@@ -98,7 +99,7 @@ export function Tour({ step, onNext, onBack, onClose, onConnect, liveAvailable }
           )}
           {actions.primary === 'connect' && (
             <button type="button" className={styles.primary} onClick={onConnect}>
-              {t.tour.connectShort}
+              {STATIC_DEMO ? t.demo.tourInstall : t.tour.connectShort}
             </button>
           )}
         </div>

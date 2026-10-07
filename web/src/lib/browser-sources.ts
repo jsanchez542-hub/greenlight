@@ -1,3 +1,4 @@
+import { STATIC_DEMO } from './demo';
 import type { FlagSources } from './stored-flag';
 
 export function browserSources(): FlagSources {
@@ -9,9 +10,11 @@ export function browserSources(): FlagSources {
         return undefined;
       }
     },
-    readCookies: () => document.cookie,
+    readCookies: () => (STATIC_DEMO ? '' : document.cookie),
     writeCookie: (cookie) => {
-      document.cookie = cookie;
+      if (!STATIC_DEMO) {
+        document.cookie = cookie;
+      }
     },
   };
 }

@@ -249,9 +249,85 @@ to be updated, and it never installs anything.
   `rel="noopener noreferrer"`, and ignores anything else in the answer.
 - **When it fails:** no network, a refusal or a strange answer all mean there is nothing to say.
   Nothing is shown, no error appears and a failure is not asked again for a day.
-- **Public demo:** an installation shown to the public should never make this request. The
-  dashboard has no public demo mode yet, so there is no setting for it; when one exists the notice
-  must be off in it.
+- **The online demo:** it has no server, so it never makes this request and shows no notice. See
+  Online demo.
+
+## Online demo
+
+The same dashboard can be built as a set of plain files that show only the invented workflows of
+[`examples/scan-result.json`](../examples/scan-result.json), to be published on any static host,
+such as GitHub Pages. There is no server behind it, so there is nothing to attack: no settings
+file, no instance, no key and no API.
+
+```bash
+cd web
+npm ci
+npm run build:demo       # the site is written to web/out
+npm run audit:demo       # looks through web/out again, if you want to
+```
+
+The demo expects to live at `/greenlight/`, which is how GitHub Pages serves a project page
+(`https://<user>.github.io/greenlight/`). `GREENLIGHT_DEMO_BASE_PATH` changes the folder (`/other`,
+or `/` for a site at the root); it ends up in every link, so only plain folder names are accepted.
+`npm run build:demo` builds the scanner first, exactly as `npm run build` does, and needs nothing
+else. The real dashboard is not touched: its own build is put aside while the demo is built and
+put back afterwards, and `npm run build`, `npm run panel` and their tests behave as before.
+
+**What is different from the dashboard**
+
+- Only the files named `*.demo.tsx` are pages in that build (`pageExtensions`), so the real pages,
+  the routes of the API and the proxy are never part of it, and the real build never sees the demo
+  pages. Everything below them, the components, the dictionaries and the styles, is the same code.
+- The data is always the sample, labelled "Sample data". The scanner, the settings and the
+  version notice are not in the build. The Connect page becomes an explanation: the demo cannot
+  connect an n8n, and here are the three commands to install it and the link to the repository. The
+  banner, the sidebar, the welcome and the tour lead there instead of to a form.
+- The language is chosen in the browser: what the visitor chose before (`greenlight.lang.v1` in
+  the browser storage), then the language of the browser, then English. The pages are built in
+  English, and a short script in the head, which runs before anything is painted, tells the page
+  what it will be; for a Spanish reader the page stays hidden until it has switched, with a
+  timer that shows it anyway after three seconds, so that a script that fails cannot leave a
+  blank page. The title and the description follow the language and the page.
+- Nothing is stored in a cookie: what the visitor has seen, the theme and the language live in the
+  browser storage of the site and nowhere else. The shared cookie of the dashboard is not written
+  or read in the demo, because on a project page a cookie would be shared with the other
+  projects of the same user.
+- An address of a finding uses `~` where the dashboard uses `:`, because a folder name cannot
+  hold a colon on every system and the demo is a set of folders.
+
+**Security.** The host cannot send headers, so each page carries its policy as a
+`<meta http-equiv="Content-Security-Policy">` that is the first thing in its head:
+
+```text
+default-src 'none'; script-src 'self' 'sha256-…'; style-src 'self'; img-src 'self' data:;
+font-src 'self'; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none';
+object-src 'none'
+```
+
+- There is no `'unsafe-inline'` and no `'unsafe-eval'`. The inline scripts that the framework puts
+  in every page (its data and the two small scripts for the theme and the language) are named by
+  their hash, computed by `npm run build:demo` from the page it just built, so the policy cannot
+  be out of step with the page. Nothing is loaded from another site and nothing is sent to one.
+- `connect-src 'self'` and not `'none'`: moving between pages reads the files of the site
+  itself. Anything that reaches another address is refused.
+- A policy in a page cannot do what a header does. It cannot forbid framing (`frame-ancestors`),
+  and the host adds no `X-Content-Type-Options` or `Permissions-Policy`. Nothing in the demo takes
+  input or changes state, so framing it reveals and risks nothing. Links to other sites carry
+  `rel="noopener noreferrer"`, and the pages ask for `no-referrer`.
+- `npm run build:demo` ends by auditing every file in `web/out`, and fails and deletes the result
+  if it finds a path of the API, the name of the key, a socket or a beacon, a call to an absolute
+  address, an address of another site (the repository and a short list of addresses that are
+  only text, such as the namespace of SVG, are allowed), a form, a password field, a page without
+  its policy or with a policy that does not match its scripts, or a kind of file that has no place
+  in it. `tests/demo-build.test.ts` tests that audit with pages that break each rule and runs it
+  on `web/out` when it exists.
+
+**Limits.** The demo shows one invented instance and cannot be pointed at another; it does not
+refresh; the links of the sidebar are folders, so a host that does not serve `index.html` for a
+folder does not work (GitHub Pages does). The router asks for the pieces of a page by a name with
+dots in it that the framework only writes in folders, so the build writes both; a host that
+rewrites addresses does not need that and is not hurt by it. The unknown page is `404.html`, in the
+language of the visitor, with a link to the overview.
 
 ## Theme
 

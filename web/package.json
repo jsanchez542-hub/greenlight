@@ -13,6 +13,8 @@
     "dev": "next dev -H 127.0.0.1",
     "prebuild": "npm run backend",
     "build": "next build",
+    "build:demo": "npm run backend && node scripts/build-demo.mjs",
+    "audit:demo": "node scripts/audit-demo.mjs",
     "start": "next start -H 127.0.0.1",
     "lint": "eslint .",
     "pretypecheck": "npm run backend",

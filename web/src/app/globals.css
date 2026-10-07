@@ -147,3 +147,7 @@ a:hover {
     scroll-behavior: auto !important;
   }
 }
+
+html[data-pending] body {
+  visibility: hidden;
+}
