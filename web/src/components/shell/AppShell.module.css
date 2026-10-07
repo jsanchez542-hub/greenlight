@@ -18,6 +18,7 @@
 
 .main {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   align-content: start;
   gap: 32px;
   width: min(100%, 76rem);
