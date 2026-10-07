@@ -62,20 +62,40 @@ anything.
 
 ## Security
 
-The dashboard has no sign-in of its own. It is meant for localhost or for a network and proxy
-you already trust.
+### What it protects, and from whom
 
-- `npm run dev` and `npm start` listen on `127.0.0.1` only.
-- The pages and the routes `/api/scan` and `/api/setup` refuse any `Host` other than `localhost`,
-  `127.0.0.1` or `[::1]`, which blocks DNS rebinding. To reach it by another name behind your
-  own proxy, list that name in `GREENLIGHT_ALLOWED_HOSTS` (comma separated).
-- A scan can only be started from the dashboard itself; requests from other sites get 403.
-- The connection check never returns the key, only which values are present and what each step
-  found. It contacts your instance at most once every two seconds.
-- Never put `N8N_BASE_URL` and `N8N_API_KEY` on a server the public can reach. The page would
-  show your workflow names to anyone who opens it.
-- Real scan output stays out of the repository: no captures, JSON, logs or test data taken
-  from a real instance. Everything shown in documentation comes from the sample data.
+The dashboard shows what an n8n instance holds, so the assets are the **API key** and the
+**names and findings of your workflows**. It assumes one person on one machine.
+
+| Threat | Defence |
+| --- | --- |
+| Someone on the network opens the page | It listens on `127.0.0.1` only, and any `Host` other than `localhost`, `127.0.0.1` or `[::1]` is refused with 403, which also stops DNS rebinding. Other names go in `GREENLIGHT_ALLOWED_HOSTS`. |
+| A web page you visit calls the dashboard | Routes answer only requests a browser marks as made from the dashboard itself (`Sec-Fetch-Site`). Forced scans cannot be started from anywhere else. There are no cookies and no cross-origin access. |
+| An instance sends names or messages that are markup | Everything from the instance is rendered as text. There is no raw HTML anywhere, identifiers are encoded in addresses, and a strict policy blocks script even if a bug let markup through. |
+| The page is framed or its scripts replaced | `Content-Security-Policy` with a nonce per request: scripts and styles only from this origin, `frame-ancestors 'none'`, `base-uri 'none'`, `object-src 'none'`, forms only to itself. In `npm run dev` it also allows what hot reloading needs (`unsafe-eval`, inline styles); production does not. |
+| The key leaks | It stays on the server. It is not in any page, response, header, log, cookie or `localStorage`, and error messages are stripped of it before they are returned. |
+| The key is sent to the wrong place | The address comes only from the settings, never from a request. It must be http or https, carry no credentials, and be https unless the host is private or `GREENLIGHT_ALLOW_INSECURE_HTTP` is set. The scanner never follows a redirect to another host with the key. |
+| The settings file is hostile or broken | It is opened without following links, refused above 64 KiB or when it is not a regular file, and any failure shows as a short notice that names neither the path nor the contents. |
+| The instance is hammered | A manual scan joins one that is running and otherwise waits 30 seconds after the last one (429 with `Retry-After`). The stored scan serves every visitor. |
+| Browser features are abused | `Permissions-Policy` denies everything except copying to the clipboard; `Cross-Origin-Opener-Policy` and `Cross-Origin-Resource-Policy` are `same-origin`; `X-Content-Type-Options`, `Referrer-Policy: no-referrer` and `X-Frame-Options` are set; there is no `X-Powered-By`. |
+
+### What it does not protect
+
+There is **no sign-in**. Anything running on the same machine as you can read the dashboard,
+and anyone you let past the loopback address sees your workflow names. That is why it only
+listens on loopback: the safe way to share it is a proxy you control that adds authentication
+in front of it, with the proxy's name in `GREENLIGHT_ALLOWED_HOSTS`. It does not defend against
+malware or a malicious browser extension on your machine, and it trusts the settings file the
+same way the command line does.
+
+Never put `N8N_BASE_URL` and `N8N_API_KEY` on a server the public can reach. Real scan output
+stays out of the repository: no captures, JSON, logs or test data taken from a real instance.
+
+### Dependencies
+
+`npm audit --omit=dev` reports no vulnerabilities in what runs. `npm audit` also lists
+development-only advisories through `eslint-config-next`, which does not ship in the
+dashboard.
 
 ## Routes
 
