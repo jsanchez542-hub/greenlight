@@ -1,5 +1,6 @@
 import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
+import { messagesFor, type Lang } from '../i18n/index.js';
 import type { FindingTracker } from './findings.js';
 
 export const STATE_VERSION = 1;
@@ -42,6 +43,7 @@ export class FileStateStore implements StateStore {
   constructor(
     private readonly path: string,
     private readonly warn: (message: string) => void,
+    private readonly lang: Lang = 'en',
   ) {}
 
   load(): WatchState {
@@ -50,7 +52,7 @@ export class FileStateStore implements StateStore {
       raw = readFileSync(this.path, 'utf8');
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-        this.warn(`Could not read ${this.path}; starting without history.`);
+        this.warn(messagesFor(this.lang).watch.stateUnreadable(this.path));
       }
       return emptyState();
     }
@@ -63,7 +65,7 @@ export class FileStateStore implements StateStore {
     } catch {
       // falls through to the warning below
     }
-    this.warn(`${this.path} is not a GreenLight state file; starting without history.`);
+    this.warn(messagesFor(this.lang).watch.stateForeign(this.path));
     return emptyState();
   }
 

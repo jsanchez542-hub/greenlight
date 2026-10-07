@@ -1,3 +1,4 @@
+import { messagesFor, type Lang } from '../i18n/index.js';
 import { isPrivateHost } from './network.js';
 import type { Execution, ExecutionDetail, Workflow, WorkflowDetail } from './types.js';
 
@@ -10,6 +11,8 @@ export interface N8nClientOptions {
   fetch?: typeof globalThis.fetch;
   /** Lets the key travel over plain http to a public address. Off unless the user asks for it. */
   allowInsecureHttp?: boolean;
+  /** The language error messages are written in. */
+  lang?: Lang;
 }
 
 export interface ListExecutionsOptions {
@@ -17,10 +20,9 @@ export interface ListExecutionsOptions {
   limit?: number;
 }
 
-export const INSECURE_HTTP_MESSAGE =
-  'That address starts with http and can be reached from the internet, so the API key would travel unencrypted. Use the https version of the address. (Advanced: GREENLIGHT_ALLOW_INSECURE_HTTP=1 allows it anyway.)';
+export const INSECURE_HTTP_MESSAGE = messagesFor('en').client.insecureHttp;
 
-function assertSafeAddress(baseUrl: string, allowInsecureHttp: boolean): void {
+function assertSafeAddress(baseUrl: string, allowInsecureHttp: boolean, lang: Lang): void {
   let url: URL;
   try {
     url = new URL(baseUrl);
@@ -28,7 +30,7 @@ function assertSafeAddress(baseUrl: string, allowInsecureHttp: boolean): void {
     return; // reported with a clearer message by the first request
   }
   if (url.protocol === 'http:' && !isPrivateHost(url.hostname) && !allowInsecureHttp) {
-    throw new Error(INSECURE_HTTP_MESSAGE);
+    throw new Error(messagesFor(lang).client.insecureHttp);
   }
 }
 
@@ -51,10 +53,12 @@ export class N8nClient {
   private readonly baseUrl: string;
   private readonly apiKey: string;
   private readonly fetchImpl: typeof globalThis.fetch;
+  private readonly lang: Lang;
 
   constructor(options: N8nClientOptions) {
     this.baseUrl = options.baseUrl.replace(/\/+$/, '');
-    assertSafeAddress(this.baseUrl, options.allowInsecureHttp === true);
+    this.lang = options.lang ?? 'en';
+    assertSafeAddress(this.baseUrl, options.allowInsecureHttp === true, this.lang);
     this.apiKey = options.apiKey;
     this.fetchImpl = options.fetch ?? globalThis.fetch;
   }
@@ -128,10 +132,7 @@ export class N8nClient {
       }
 
       if (!response.ok) {
-        throw new N8nApiError(
-          `n8n API returned ${response.status} for ${path}. Check N8N_BASE_URL and N8N_API_KEY.`,
-          response.status,
-        );
+        throw new N8nApiError(messagesFor(this.lang).client.apiStatus(response.status, path), response.status);
       }
 
       return (await response.json()) as T;
@@ -142,27 +143,21 @@ export class N8nClient {
     const status = response.status;
     const location = response.headers.get('location');
     if (location === null || hops >= MAX_REDIRECTS) {
-      throw new N8nApiError(`n8n API sent too many redirects for ${path}. Use the final address in N8N_BASE_URL.`, status);
+      throw new N8nApiError(messagesFor(this.lang).client.tooManyRedirects(path), status);
     }
 
     let next: URL;
     try {
       next = new URL(location, current);
     } catch {
-      throw new N8nApiError(`n8n API sent an unusable redirect for ${path}. Use the final address in N8N_BASE_URL.`, status);
+      throw new N8nApiError(messagesFor(this.lang).client.unusableRedirect(path), status);
     }
 
     if (next.host !== first.host) {
-      throw new N8nApiError(
-        `n8n API redirected to a different host for ${path}, so the API key was not sent there. Use the final address in N8N_BASE_URL.`,
-        status,
-      );
+      throw new N8nApiError(messagesFor(this.lang).client.otherHost(path), status);
     }
     if (current.protocol === 'https:' && next.protocol === 'http:') {
-      throw new N8nApiError(
-        `n8n API redirected from https to http for ${path}, which would send the API key unencrypted. Check the HTTPS setup of the instance.`,
-        status,
-      );
+      throw new N8nApiError(messagesFor(this.lang).client.httpsToHttp(path), status);
     }
     return next;
   }

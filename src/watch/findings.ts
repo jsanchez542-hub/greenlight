@@ -7,6 +7,8 @@ export interface TrackedFinding {
   detector: DetectorName;
   severity: Severity;
   summary: string;
+  /** What the summary was built from, so it can be told again in another language. Absent in older state files. */
+  evidence?: Finding['evidence'];
   missedScans: number;
 }
 
@@ -56,6 +58,7 @@ export function trackFindings(
       detector: finding.detector,
       severity: finding.severity,
       summary: finding.summary,
+      evidence: finding.evidence,
       missedScans: 0,
     };
     if (previous[key] === undefined) {

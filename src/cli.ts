@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { loadConfig, loadWatchConfig } from './config.js';
+import { messagesFor, parseLang, resolveLang, type Lang } from './i18n/index.js';
 import { N8nClient } from './n8n/client.js';
 import { renderReport } from './report.js';
 import { nodeVersionProblem } from './runtime.js';
@@ -8,46 +9,19 @@ import { diagnose } from './setup/diagnose.js';
 import { runInit, renderDiagnosis } from './setup/init.js';
 import { SetupCancelled, createTerminalPrompter } from './setup/prompter.js';
 import { scan } from './scan.js';
+import { checkForUpdate, FileUpdateCache, updateChecksEnabled, type UpdateInfo } from './update/check.js';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { deliverAlert } from './watch/notify.js';
 import { FileStateStore } from './watch/state.js';
 import { defaultWatchOptions, runCycle, watch, type WatchDependencies } from './watch/watch.js';
 
-const usage = `GreenLight  checks an n8n instance for workflows that fail without saying so.
-
-  greenlight init                     guided first-time setup: connects to your n8n and saves .env
-  greenlight doctor                   checks the connection step by step and says what to fix
-  greenlight [--json]                 scan once and print the report
-  greenlight --version                print the version
-  greenlight watch [--once]           scan on a schedule and alert when something new appears
-
-Settings are read from the environment and from a .env file in the current folder.
-Running greenlight init writes that file for you.
-
-Environment:
-  N8N_BASE_URL                URL of the n8n instance
-  N8N_API_KEY                 API key with read access
-  GREENLIGHT_EXECUTION_LIMIT  executions read per workflow (default 200)
-  GREENLIGHT_DETAIL_SAMPLE    executions inspected node by node (default 5)
-  GREENLIGHT_ALLOW_INSECURE_HTTP  set to 1 to send the key over plain http to a public host (not recommended)
-
-Only for watch:
-  GREENLIGHT_WEBHOOK_URL      where alerts are posted as JSON (optional; without it changes are only printed)
-  GREENLIGHT_WEBHOOK_TOKEN    sent as "Authorization: Bearer <token>" (optional)
-  GREENLIGHT_INTERVAL_MINUTES minutes between scans (default 5)
-  GREENLIGHT_NOTIFY_MIN       "warning" (default) or "critical"
-  GREENLIGHT_STATE_FILE       remembers what was already reported (default .greenlight-state.json)
-
-Exit codes: 0 nothing found, 1 findings, 2 the scan could not run.
-With watch --once it is the same, so it can run from cron or a scheduler.
-`;
-
-function loadEnvFile(path = '.env'): void {
+function loadEnvFile(lang: Lang, path = '.env'): void {
   try {
     process.loadEnvFile(path);
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-      throw new Error(`Could not read ${path}: ${error instanceof Error ? error.message : 'unknown error'}`);
+      const t = messagesFor(lang).cli;
+      throw new Error(t.envFileUnreadable(path, error instanceof Error ? error.message : t.unknownError));
     }
   }
 }
@@ -56,12 +30,50 @@ function stamp(line: string): string {
   return `[${new Date().toISOString()}] ${line}\n`;
 }
 
-async function runInitCommand(): Promise<number> {
-  const prompter = createTerminalPrompter();
+/** Takes `--lang es` or `--lang=es` out of the arguments, so no command has to know about it. */
+function takeLangFlag(argv: string[]): { argv: string[]; lang: Lang | null } {
+  const rest: string[] = [];
+  let lang: Lang | null = null;
+  for (let index = 0; index < argv.length; index += 1) {
+    const argument = argv[index] as string;
+    if (argument === '--lang') {
+      lang = parseLang(argv[index + 1]);
+      index += 1;
+    } else if (argument.startsWith('--lang=')) {
+      lang = parseLang(argument.slice('--lang='.length));
+    } else {
+      rest.push(argument);
+    }
+  }
+  return { argv: rest, lang };
+}
+
+const updateCache = new FileUpdateCache('.greenlight-update.json');
+
+/** Only ever called when the person turned update notices on. It never throws. */
+async function newerVersion(): Promise<UpdateInfo | null> {
+  if (!updateChecksEnabled(process.env)) {
+    return null;
+  }
+  try {
+    return await checkForUpdate({ current: VERSION, cache: updateCache });
+  } catch {
+    return null;
+  }
+}
+
+async function updateNoticeLine(lang: Lang): Promise<string | null> {
+  const update = await newerVersion();
+  return update === null ? null : messagesFor(lang).cli.updateAvailable(update.current, update.latest, update.url);
+}
+
+async function runInitCommand(lang: Lang): Promise<number> {
+  const prompter = createTerminalPrompter(process.stdin, process.stdout, lang);
   try {
     return await runInit({
       prompter,
       diagnose,
+      lang,
       envPath: '.env',
       readFile: (path) => {
         try {
@@ -86,44 +98,71 @@ async function runInitCommand(): Promise<number> {
   }
 }
 
-async function runDoctor(): Promise<number> {
+async function runDoctor(lang: Lang): Promise<number> {
+  const t = messagesFor(lang).cli;
   const result = await diagnose({
     baseUrl: process.env['N8N_BASE_URL'],
     apiKey: process.env['N8N_API_KEY'],
     allowInsecureHttp: ['1', 'true'].includes((process.env['GREENLIGHT_ALLOW_INSECURE_HTTP'] ?? '').toLowerCase()),
+    lang,
   });
-  const heading = `GreenLight ${VERSION}  doctor${result.host === null ? '' : `  ${result.host}`}`;
-  process.stdout.write(`${heading}\n\n`);
-  process.stdout.write(`${renderDiagnosis(result).join('\n')}\n\n`);
+  process.stdout.write(`${t.doctorHeading(VERSION, result.host)}\n\n`);
+  process.stdout.write(`${renderDiagnosis(result, lang).join('\n')}\n\n`);
+
+  const notice = await updateNoticeLine(lang);
+  if (notice !== null) {
+    process.stdout.write(`${notice}\n\n`);
+  }
+
   if (result.ok) {
-    process.stdout.write('Everything needed is in place.\n');
+    process.stdout.write(`${t.doctorOk}\n`);
     return 0;
   }
-  process.stdout.write('Run greenlight init to fix the settings.\n');
+  process.stdout.write(`${t.doctorFix}\n`);
   return 1;
 }
 
-async function runScan(argv: string[]): Promise<number> {
-  const config = loadConfig(process.env);
-  const client = new N8nClient({ baseUrl: config.baseUrl, apiKey: config.apiKey, allowInsecureHttp: config.allowInsecureHttp });
+async function runScan(argv: string[], lang: Lang): Promise<number> {
+  const config = loadConfig(process.env, lang);
+  const client = new N8nClient({
+    baseUrl: config.baseUrl,
+    apiKey: config.apiKey,
+    allowInsecureHttp: config.allowInsecureHttp,
+    lang,
+  });
   const result = await scan(client, {
     executionLimit: config.executionLimit,
     detailSampleSize: config.detailSampleSize,
   });
 
-  if (argv.includes('--json')) {
+  const asJson = argv.includes('--json');
+  if (asJson) {
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
   } else {
-    process.stdout.write(renderReport(result, process.stdout.isTTY === true));
+    process.stdout.write(renderReport(result, process.stdout.isTTY === true, lang));
+  }
+
+  // The notice goes to stderr and never into --json, so a program reading the output is not disturbed.
+  if (!asJson) {
+    const notice = await updateNoticeLine(lang);
+    if (notice !== null) {
+      process.stderr.write(`\n${notice}\n`);
+    }
   }
 
   return result.findings.length === 0 ? 0 : 1;
 }
 
-async function runWatch(argv: string[]): Promise<number> {
-  const config = loadConfig(process.env);
-  const watchConfig = loadWatchConfig(process.env);
-  const client = new N8nClient({ baseUrl: config.baseUrl, apiKey: config.apiKey, allowInsecureHttp: config.allowInsecureHttp });
+async function runWatch(argv: string[], lang: Lang): Promise<number> {
+  const t = messagesFor(lang);
+  const config = loadConfig(process.env, lang);
+  const watchConfig = loadWatchConfig(process.env, lang);
+  const client = new N8nClient({
+    baseUrl: config.baseUrl,
+    apiKey: config.apiKey,
+    allowInsecureHttp: config.allowInsecureHttp,
+    lang,
+  });
   const warn = (line: string): void => void process.stderr.write(stamp(line));
 
   const { webhookUrl, webhookToken } = watchConfig;
@@ -133,15 +172,16 @@ async function runWatch(argv: string[]): Promise<number> {
         executionLimit: config.executionLimit,
         detailSampleSize: config.detailSampleSize,
       }),
-    store: new FileStateStore(watchConfig.stateFile, warn),
+    store: new FileStateStore(watchConfig.stateFile, warn, lang),
     deliver:
       webhookUrl === null
         ? null
-        : (payload) => deliverAlert(payload, { url: webhookUrl, token: webhookToken }),
+        : (payload) => deliverAlert(payload, { url: webhookUrl, token: webhookToken, lang }),
     instance: new URL(config.baseUrl).host,
     options: { ...defaultWatchOptions, notifyMinimum: watchConfig.notifyMinimum },
     log: (line) => void process.stdout.write(stamp(line)),
     warn,
+    lang,
   };
 
   if (argv.includes('--once')) {
@@ -156,17 +196,29 @@ async function runWatch(argv: string[]): Promise<number> {
   for (const signal of ['SIGINT', 'SIGTERM'] as const) {
     process.once(signal, () => controller.abort());
   }
-  deps.log(
-    `Watching ${deps.instance} every ${watchConfig.intervalMinutes} min. ${
-      webhookUrl === null ? 'No webhook set, changes are only printed.' : 'Alerts go to the webhook.'
-    }`,
-  );
+  deps.log(t.cli.watching(deps.instance, watchConfig.intervalMinutes, webhookUrl !== null));
+
+  // A watcher can run for weeks, so the notice is looked for again each day, and told once per version.
+  let announced: string | null = null;
+  const announceUpdate = async (): Promise<void> => {
+    const update = await newerVersion();
+    if (update !== null && update.latest !== announced) {
+      announced = update.latest;
+      deps.log(t.cli.updateAvailable(update.current, update.latest, update.url));
+    }
+  };
+  deps.beforeCycle = announceUpdate;
+
   await watch(deps, watchConfig.intervalMinutes * 60_000, controller.signal);
   return 0;
 }
 
-async function main(argv: string[]): Promise<number> {
-  const problem = nodeVersionProblem(process.versions.node);
+async function main(rawArgv: string[]): Promise<number> {
+  const { argv, lang: flagLang } = takeLangFlag(rawArgv);
+
+  // Before the .env file is read, only the environment can say which language to speak.
+  const early = flagLang ?? resolveLang(process.env);
+  const problem = nodeVersionProblem(process.versions.node, early);
   if (problem !== null) {
     process.stderr.write(`${problem}\n`);
     return 2;
@@ -178,19 +230,25 @@ async function main(argv: string[]): Promise<number> {
   }
 
   if (argv.includes('--help') || argv.includes('-h')) {
-    process.stdout.write(usage);
+    try {
+      loadEnvFile(early);
+    } catch {
+      // Help must work even when the settings file is broken.
+    }
+    process.stdout.write(messagesFor(flagLang ?? resolveLang(process.env)).cli.usage);
     return 0;
   }
 
-  loadEnvFile();
+  loadEnvFile(early);
+  const lang = flagLang ?? resolveLang(process.env);
 
   if (argv[0] === 'init') {
-    return runInitCommand();
+    return runInitCommand(lang);
   }
   if (argv[0] === 'doctor') {
-    return runDoctor();
+    return runDoctor(lang);
   }
-  return argv[0] === 'watch' ? runWatch(argv.slice(1)) : runScan(argv);
+  return argv[0] === 'watch' ? runWatch(argv.slice(1), lang) : runScan(argv, lang);
 }
 
 main(process.argv.slice(2))
@@ -198,6 +256,7 @@ main(process.argv.slice(2))
     process.exitCode = code;
   })
   .catch((error: unknown) => {
-    process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+    const lang = resolveLang(process.env);
+    process.stderr.write(`${error instanceof Error ? error.message : messagesFor(lang).cli.unknownError}\n`);
     process.exitCode = 2;
   });

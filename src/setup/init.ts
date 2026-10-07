@@ -1,3 +1,4 @@
+import { messagesFor, type Lang } from '../i18n/index.js';
 import type { diagnose as diagnoseFunction, Diagnosis } from './diagnose.js';
 import { readEnvValue, upsertEnv } from './env-file.js';
 
@@ -15,11 +16,11 @@ export interface InitDependencies {
   writeFile(path: string, text: string): void;
   envPath: string;
   maxAttempts?: number;
+  lang?: Lang;
 }
 
-const marks = { ok: '[ok]  ', failed: '[fail]', skipped: '[skip]' } as const;
-
-export function renderDiagnosis(diagnosis: Diagnosis): string[] {
+export function renderDiagnosis(diagnosis: Diagnosis, lang: Lang = 'en'): string[] {
+  const marks = messagesFor(lang).init.marks;
   const lines: string[] = [];
   for (const item of diagnosis.steps) {
     lines.push(`  ${marks[item.status]} ${item.label}`);
@@ -48,19 +49,18 @@ function isHttpUrl(value: string): boolean {
  */
 export async function runInit(deps: InitDependencies): Promise<number> {
   const { prompter, envPath } = deps;
+  const lang = deps.lang ?? 'en';
+  const t = messagesFor(lang).init;
   const maxAttempts = deps.maxAttempts ?? 3;
   const saved = deps.readFile(envPath) ?? '';
   const savedAddress = readEnvValue(saved, 'N8N_BASE_URL');
   const savedKey = readEnvValue(saved, 'N8N_API_KEY');
 
-  prompter.say('GreenLight setup');
+  prompter.say(t.title);
   prompter.say('');
-  prompter.say('This connects GreenLight to your n8n instance. It only reads: workflows and');
-  prompter.say('execution history. It never creates, changes or deletes anything.');
-  prompter.say('');
-  prompter.say('You need an API key. In n8n open Settings, then n8n API, and create one.');
-  prompter.say('Read access is enough. Copy it when it is shown: n8n displays it only once.');
-  prompter.say('');
+  for (const line of t.intro) {
+    prompter.say(line);
+  }
 
   let address = '';
   let key = '';
@@ -68,25 +68,21 @@ export async function runInit(deps: InitDependencies): Promise<number> {
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     address = (
-      await prompter.ask('n8n address, for example https://n8n.example.com', {
+      await prompter.ask(t.askAddress, {
         ...(address !== '' ? { defaultValue: address } : savedAddress !== undefined ? { defaultValue: savedAddress } : {}),
       })
     ).trim();
 
     const earlier = attempt === 1 ? savedKey : key;
     const reuse = earlier !== undefined && earlier !== '';
-    const keyQuestion = !reuse
-      ? 'API key'
-      : attempt === 1
-        ? 'API key (press Enter to keep the saved one)'
-        : 'API key (press Enter to keep the one you typed)';
+    const keyQuestion = !reuse ? t.askKey : attempt === 1 ? t.askKeySaved : t.askKeyTyped;
     const typed = (await prompter.ask(keyQuestion, { secret: true })).trim();
     key = typed === '' && reuse ? (earlier ?? '') : typed;
 
     prompter.say('');
-    prompter.say('Checking the connection...');
-    diagnosis = await deps.diagnose({ baseUrl: address, apiKey: key });
-    for (const line of renderDiagnosis(diagnosis)) {
+    prompter.say(t.checking);
+    diagnosis = await deps.diagnose({ baseUrl: address, apiKey: key, lang });
+    for (const line of renderDiagnosis(diagnosis, lang)) {
       prompter.say(line);
     }
     prompter.say('');
@@ -94,46 +90,51 @@ export async function runInit(deps: InitDependencies): Promise<number> {
     if (diagnosis.ok) {
       break;
     }
-    if (attempt === maxAttempts || !(await prompter.confirm('Try again?', true))) {
-      prompter.say('Nothing was saved. Run the setup again when you are ready.');
+    if (attempt === maxAttempts || !(await prompter.confirm(t.tryAgain, true))) {
+      prompter.say(t.notSavedRetry);
       return 1;
     }
   }
 
   const values: Record<string, string> = { N8N_BASE_URL: address, N8N_API_KEY: key };
 
-  prompter.say('Optional: GreenLight can post an alert to a webhook when something new appears');
-  prompter.say('(see "Watching" in the README). Paste its address, or press Enter to skip.');
-  let webhook = (await prompter.ask('Alert webhook address', {})).trim();
+  for (const line of t.webhookIntro) {
+    prompter.say(line);
+  }
+  let webhook = (await prompter.ask(t.askWebhook, {})).trim();
   while (webhook !== '' && !isHttpUrl(webhook)) {
-    prompter.say('That is not a valid http or https address.');
-    webhook = (await prompter.ask('Alert webhook address (Enter to skip)', {})).trim();
+    prompter.say(t.badWebhook);
+    webhook = (await prompter.ask(t.askWebhookAgain, {})).trim();
   }
   if (webhook !== '') {
     const { protocol, hostname } = new URL(webhook);
     if (protocol === 'http:' && !['localhost', '127.0.0.1', '[::1]'].includes(hostname)) {
-      prompter.say('Note: that address uses http, so alerts and the token travel unencrypted. Prefer https.');
+      prompter.say(t.webhookHttp);
     }
     values['GREENLIGHT_WEBHOOK_URL'] = webhook;
-    const token = (await prompter.ask('Webhook token (Enter if it has none)', { secret: true })).trim();
+    const token = (await prompter.ask(t.askToken, { secret: true })).trim();
     if (token !== '') {
       values['GREENLIGHT_WEBHOOK_TOKEN'] = token;
     }
   }
 
   prompter.say('');
-  if (!(await prompter.confirm(`Save these settings to ${envPath}?`, true))) {
-    prompter.say('Nothing was saved.');
+  for (const line of t.updatesIntro) {
+    prompter.say(line);
+  }
+  values['GREENLIGHT_CHECK_UPDATES'] = (await prompter.confirm(t.askUpdates, true)) ? '1' : '0';
+
+  prompter.say('');
+  if (!(await prompter.confirm(t.confirmSave(envPath), true))) {
+    prompter.say(t.notSaved);
     return 1;
   }
 
   deps.writeFile(envPath, upsertEnv(saved, values));
-  prompter.say(`Saved to ${envPath}. It holds your API key, so keep it private and do not commit it.`);
+  prompter.say(t.saved(envPath));
   prompter.say('');
-  prompter.say('What next:');
-  prompter.say('  Scan once and read the report   greenlight            (from a clone: npm run scan)');
-  prompter.say('  Keep watching and get alerts    greenlight watch      (from a clone: npm run watch)');
-  prompter.say('  Open the dashboard              npm run panel');
-  prompter.say('  Check the connection again      greenlight doctor');
+  for (const line of t.next) {
+    prompter.say(line);
+  }
   return 0;
 }

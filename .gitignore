@@ -5,3 +5,5 @@ dist/
 
 .greenlight-state.json
 .greenlight-state.json.tmp
+.greenlight-update.json
+.greenlight-update.json.tmp

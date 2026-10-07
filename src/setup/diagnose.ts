@@ -1,4 +1,5 @@
-import { INSECURE_HTTP_MESSAGE, N8nApiError, N8nClient } from '../n8n/client.js';
+import { messagesFor, type Lang, type Messages } from '../i18n/index.js';
+import { N8nApiError, N8nClient } from '../n8n/client.js';
 import { isPrivateHost } from '../n8n/network.js';
 
 export type StepId = 'address' | 'reach' | 'authenticate' | 'executions';
@@ -28,19 +29,15 @@ export interface DiagnoseInput {
   fetch?: typeof globalThis.fetch;
   timeoutMs?: number;
   allowInsecureHttp?: boolean;
+  /** The language the steps, details and hints are written in. */
+  lang?: Lang;
 }
 
-const labels: Record<StepId, string> = {
-  address: 'The address looks valid',
-  reach: 'The instance answers',
-  authenticate: 'The API key is accepted',
-  executions: 'Execution history is readable',
-};
-
-function step(id: StepId, status: StepStatus, detail: string, hint?: string): CheckStep {
-  return hint === undefined
-    ? { id, label: labels[id], status, detail }
-    : { id, label: labels[id], status, detail, hint };
+function stepper(t: Messages) {
+  return (id: StepId, status: StepStatus, detail: string, hint?: string): CheckStep =>
+    hint === undefined
+      ? { id, label: t.diagnose.labels[id], status, detail }
+      : { id, label: t.diagnose.labels[id], status, detail, hint };
 }
 
 const tlsCodes = new Set([
@@ -62,132 +59,88 @@ function codeOf(error: unknown): string | undefined {
   return cause === undefined ? undefined : codeOf(cause);
 }
 
-function explainNetworkFailure(error: unknown, timeoutMs: number): { detail: string; hint: string } {
+function explainNetworkFailure(error: unknown, timeoutMs: number, t: Messages): { detail: string; hint: string } {
+  const d = t.diagnose;
   if (error instanceof Error && error.name === 'TimeoutError') {
-    return {
-      detail: `The instance did not answer within ${Math.round(timeoutMs / 1000)} seconds.`,
-      hint: 'Check that the address is reachable from this machine and that nothing is blocking it, such as a firewall or a VPN.',
-    };
+    return { detail: d.timeout.detail(Math.round(timeoutMs / 1000)), hint: d.timeout.hint };
   }
 
   const code = codeOf(error);
   if (code === 'ENOTFOUND' || code === 'EAI_AGAIN') {
-    return {
-      detail: 'The address could not be resolved.',
-      hint: 'Check the spelling of the domain and that this machine has internet access.',
-    };
+    return d.unresolved;
   }
   if (code === 'ECONNREFUSED') {
-    return {
-      detail: 'Nothing is listening at that address and port.',
-      hint: 'Check that n8n is running and that the port is the one it serves on.',
-    };
+    return d.refused;
   }
   if (code !== undefined && tlsCodes.has(code)) {
-    return {
-      detail: 'The HTTPS certificate of the instance is not trusted.',
-      hint: "The padlock of that address is not one this computer trusts. If it is your own server, install a proper certificate (a free one from Let's Encrypt works). Advanced: for a self-signed certificate, set NODE_EXTRA_CA_CERTS to your certificate file.",
-    };
+    return d.untrustedCertificate;
   }
   return {
-    detail: 'The connection failed before any answer came back.',
-    hint: `Check the address and your network. Technical detail: ${error instanceof Error ? error.message : 'unknown error'}.`,
+    detail: d.connectionFailed.detail,
+    hint: d.connectionFailed.hint(error instanceof Error ? error.message : t.cli.unknownError),
   };
 }
 
-function explainStatus(status: number): { stage: 'authenticate' | 'reach'; detail: string; hint: string } {
+function explainStatus(status: number, t: Messages): { stage: 'authenticate' | 'reach'; detail: string; hint: string } {
+  const d = t.diagnose;
   if (status === 401) {
-    return {
-      stage: 'authenticate',
-      detail: 'The instance rejected the API key.',
-      hint: 'In n8n open Settings, then n8n API, and create a new key. Copy it when it is shown: n8n only displays it once.',
-    };
+    return { stage: 'authenticate', ...d.status401 };
   }
   if (status === 403) {
-    return {
-      stage: 'authenticate',
-      detail: 'The API key is valid but is not allowed to read workflows.',
-      hint: 'Create a key that can read workflows and executions. GreenLight never writes, so a read-only key is enough.',
-    };
+    return { stage: 'authenticate', ...d.status403 };
   }
   if (status === 404) {
-    return {
-      stage: 'reach',
-      detail: 'The address answered, but there is no n8n API there.',
-      hint: 'Use the address you open n8n with, without /api/v1 at the end. If it is right, the n8n API may be switched off on that server: turn it on and try again.',
-    };
+    return { stage: 'reach', ...d.status404 };
   }
   if (status >= 300 && status < 400) {
-    return {
-      stage: 'reach',
-      detail: 'The address redirects somewhere GreenLight will not follow.',
-      hint: 'That address sends visitors somewhere else. Use the address you end up on, usually the one that starts with https.',
-    };
+    return { stage: 'reach', ...d.redirect };
   }
-  return {
-    stage: 'reach',
-    detail: `The instance answered with an error (HTTP ${status}).`,
-    hint: 'Try again in a moment. If it persists, check the logs of the instance.',
-  };
+  return { stage: 'reach', detail: d.serverError.detail(status), hint: d.serverError.hint };
 }
 
-function checkAddress(raw: string | undefined, allowInsecureHttp: boolean): { steps: CheckStep[]; url?: URL } {
+function checkAddress(
+  raw: string | undefined,
+  allowInsecureHttp: boolean,
+  t: Messages,
+): { steps: CheckStep[]; url?: URL } {
+  const d = t.diagnose;
+  const step = stepper(t);
+  const failed = (detail: string, hint: string): { steps: CheckStep[] } => ({
+    steps: [step('address', 'failed', detail, hint)],
+  });
+
   const value = raw?.trim();
   if (value === undefined || value === '') {
-    return {
-      steps: [
-        step('address', 'failed', 'No address was given.', 'Use the address you open n8n with, for example https://n8n.example.com.'),
-      ],
-    };
+    return failed(d.noAddress.detail, d.noAddress.hint);
   }
 
   let url: URL;
   try {
     url = new URL(value);
   } catch {
-    return {
-      steps: [
-        step('address', 'failed', 'That is not a valid web address.', 'Write it in full, including https://, for example https://n8n.example.com.'),
-      ],
-    };
+    return failed(d.invalidAddress.detail, d.invalidAddress.hint);
   }
 
   if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-    return {
-      steps: [step('address', 'failed', 'The address must start with http:// or https://.', 'For example https://n8n.example.com.')],
-    };
+    return failed(d.badProtocol.detail, d.badProtocol.hint);
   }
   if (url.username !== '' || url.password !== '') {
-    return {
-      steps: [
-        step('address', 'failed', 'The address contains a user name or password.', 'Remove them. The API key is asked for separately.'),
-      ],
-    };
+    return failed(d.hasCredentials.detail, d.hasCredentials.hint);
   }
   if (/\/api\/v1\/?$/.test(url.pathname)) {
-    return {
-      steps: [
-        step('address', 'failed', 'The address ends in /api/v1.', 'Use only the address of n8n, for example https://n8n.example.com. GreenLight adds the rest.'),
-      ],
-    };
+    return failed(d.hasApiPath.detail, d.hasApiPath.hint);
   }
 
   if (url.protocol === 'http:' && !isPrivateHost(url.hostname)) {
     if (!allowInsecureHttp) {
-      return { steps: [step('address', 'failed', 'The address uses http on a public host.', INSECURE_HTTP_MESSAGE)] };
+      return failed(d.insecurePublic.detail, t.client.insecureHttp);
     }
-    return {
-      url,
-      steps: [step('address', 'ok', 'The address is valid.', 'Plain http was allowed on request: the API key travels unencrypted.')],
-    };
+    return { url, steps: [step('address', 'ok', d.addressOk, d.insecureAllowed)] };
   }
   if (url.protocol === 'http:' && !['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)) {
-    return {
-      url,
-      steps: [step('address', 'ok', 'The address is valid.', 'It uses http on a private network, so the key is not encrypted. Fine if you trust that network.')],
-    };
+    return { url, steps: [step('address', 'ok', d.addressOk, d.privateHttp)] };
   }
-  return { url, steps: [step('address', 'ok', 'The address is valid.')] };
+  return { url, steps: [step('address', 'ok', d.addressOk)] };
 }
 
 /**
@@ -196,13 +149,16 @@ function checkAddress(raw: string | undefined, allowInsecureHttp: boolean): { st
  * the result.
  */
 export async function diagnose(input: DiagnoseInput): Promise<Diagnosis> {
+  const lang = input.lang ?? 'en';
+  const t = messagesFor(lang);
+  const d = t.diagnose;
+  const step = stepper(t);
   const timeoutMs = input.timeoutMs ?? 10_000;
   const fetchImpl = input.fetch ?? globalThis.fetch;
-  const { steps, url } = checkAddress(input.baseUrl, input.allowInsecureHttp === true);
+  const { steps, url } = checkAddress(input.baseUrl, input.allowInsecureHttp === true, t);
   const host = url?.host ?? null;
 
-  const skipRest = (from: StepId[]): CheckStep[] =>
-    from.map((id) => step(id, 'skipped', 'Skipped because an earlier step failed.'));
+  const skipRest = (from: StepId[]): CheckStep[] => from.map((id) => step(id, 'skipped', d.skipped));
 
   if (url === undefined) {
     return {
@@ -219,13 +175,8 @@ export async function diagnose(input: DiagnoseInput): Promise<Diagnosis> {
       ok: false,
       steps: [
         ...steps,
-        step('reach', 'skipped', 'No API key was given, so the instance was not contacted.'),
-        step(
-          'authenticate',
-          'failed',
-          'No API key was given.',
-          'In n8n open Settings, then n8n API, and create a key. Copy it when it is shown: n8n only displays it once.',
-        ),
+        step('reach', 'skipped', d.noKeyReach),
+        step('authenticate', 'failed', d.noKey.detail, d.noKey.hint),
         ...skipRest(['executions']),
       ],
       workflowCount: null,
@@ -240,6 +191,7 @@ export async function diagnose(input: DiagnoseInput): Promise<Diagnosis> {
     apiKey,
     fetch: timedFetch,
     allowInsecureHttp: input.allowInsecureHttp === true,
+    lang,
   });
 
   let workflowCount: number;
@@ -247,8 +199,8 @@ export async function diagnose(input: DiagnoseInput): Promise<Diagnosis> {
     workflowCount = (await client.listWorkflows()).length;
   } catch (error) {
     if (error instanceof N8nApiError) {
-      const explained = explainStatus(error.status);
-      const reached = step('reach', 'ok', 'The instance answered.');
+      const explained = explainStatus(error.status, t);
+      const reached = step('reach', 'ok', d.reached);
       if (explained.stage === 'authenticate') {
         return {
           ok: false,
@@ -269,7 +221,7 @@ export async function diagnose(input: DiagnoseInput): Promise<Diagnosis> {
       };
     }
 
-    const explained = explainNetworkFailure(error, timeoutMs);
+    const explained = explainNetworkFailure(error, timeoutMs, t);
     return {
       ok: false,
       steps: [...steps, step('reach', 'failed', explained.detail, explained.hint), ...skipRest(['authenticate', 'executions'])],
@@ -278,33 +230,16 @@ export async function diagnose(input: DiagnoseInput): Promise<Diagnosis> {
     };
   }
 
-  const reach = step('reach', 'ok', 'The instance answered.');
-  const authenticate = step(
-    'authenticate',
-    'ok',
-    `The key works and ${workflowCount} ${workflowCount === 1 ? 'workflow is' : 'workflows are'} visible.`,
-  );
+  const reach = step('reach', 'ok', d.reached);
+  const authenticate = step('authenticate', 'ok', d.keyWorks(workflowCount));
 
   try {
     await client.listExecutions({ limit: 1 });
   } catch (error) {
-    const detail =
-      error instanceof N8nApiError && error.status === 403
-        ? 'The API key cannot read executions, and GreenLight needs them.'
-        : 'Execution history could not be read.';
+    const detail = error instanceof N8nApiError && error.status === 403 ? d.executionsDenied : d.executionsFailed;
     return {
       ok: false,
-      steps: [
-        ...steps,
-        reach,
-        authenticate,
-        step(
-          'executions',
-          'failed',
-          detail,
-          'Create a key that can read executions as well as workflows. Without history there is nothing to compare.',
-        ),
-      ],
+      steps: [...steps, reach, authenticate, step('executions', 'failed', detail, d.executionsHint)],
       workflowCount,
       host,
     };
@@ -312,7 +247,7 @@ export async function diagnose(input: DiagnoseInput): Promise<Diagnosis> {
 
   return {
     ok: true,
-    steps: [...steps, reach, authenticate, step('executions', 'ok', 'Execution history can be read.')],
+    steps: [...steps, reach, authenticate, step('executions', 'ok', d.executionsOk)],
     workflowCount,
     host,
   };

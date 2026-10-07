@@ -81,6 +81,7 @@ WARNING  Inventory sync
              baselineMedian   1.2s
              baselineP95      1.5s
              recentMedian     10.5s
+             slowdown         8.6x
              baselineSamples  142
              recentSamples    24
 

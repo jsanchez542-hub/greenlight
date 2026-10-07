@@ -1,4 +1,5 @@
 import type { Severity } from '../analysis/types.js';
+import { messagesFor, type Lang } from '../i18n/index.js';
 import type { ScanResult } from '../scan.js';
 import { atLeast, trackFindings } from './findings.js';
 import {
@@ -31,6 +32,10 @@ export interface WatchDependencies {
   log: (line: string) => void;
   warn: (line: string) => void;
   now?: () => Date;
+  /** The language of the log lines and of the alerts. */
+  lang?: Lang;
+  /** Runs before every scan of a long-lived watcher. It must never throw. */
+  beforeCycle?: () => Promise<void>;
 }
 
 export interface CycleOutcome {
@@ -42,8 +47,8 @@ export interface CycleOutcome {
   delivered: boolean;
 }
 
-function describe(error: unknown): string {
-  return error instanceof Error ? error.message : 'unknown error';
+function describe(error: unknown, lang: Lang): string {
+  return error instanceof Error ? error.message : messagesFor(lang).cli.unknownError;
 }
 
 async function send(
@@ -57,7 +62,8 @@ async function send(
     await deps.deliver(payload);
     return true;
   } catch (error) {
-    deps.warn(`Alert not delivered, will retry on the next scan: ${describe(error)}`);
+    const lang = deps.lang ?? 'en';
+    deps.warn(messagesFor(lang).watch.notDelivered(describe(error, lang)));
     return false;
   }
 }
@@ -69,12 +75,13 @@ async function handleFailure(
   at: string,
 ): Promise<CycleOutcome> {
   const failures = state.consecutiveFailures + 1;
-  deps.warn(`Scan failed (${failures} in a row): ${describe(error)}`);
+  const lang = deps.lang ?? 'en';
+  deps.warn(messagesFor(lang).watch.scanFailed(failures, describe(error, lang)));
 
   let degraded = state.degraded;
   let delivered = true;
   if (!degraded && failures >= deps.options.failureThreshold) {
-    delivered = await send(deps, buildFailureAlert(deps.instance, at, failures));
+    delivered = await send(deps, buildFailureAlert(deps.instance, at, failures, lang));
     degraded = delivered;
   }
 
@@ -83,6 +90,8 @@ async function handleFailure(
 }
 
 export async function runCycle(deps: WatchDependencies): Promise<CycleOutcome> {
+  const lang = deps.lang ?? 'en';
+  const t = messagesFor(lang).watch;
   const state = deps.store.load();
   const at = (deps.now?.() ?? new Date()).toISOString();
 
@@ -104,7 +113,7 @@ export async function runCycle(deps: WatchDependencies): Promise<CycleOutcome> {
   let current: WatchState = { ...state, consecutiveFailures: 0, degraded: false };
 
   if (state.degraded) {
-    if (!(await send(deps, buildRecoveryAlert(deps.instance, at)))) {
+    if (!(await send(deps, buildRecoveryAlert(deps.instance, at, lang)))) {
       return { status: 'scanned', openFindings: result.findings.length, added: 0, resolved: 0, delivered: false };
     }
     deps.store.save(current);
@@ -113,14 +122,14 @@ export async function runCycle(deps: WatchDependencies): Promise<CycleOutcome> {
   let delivered = true;
   if (added.length > 0 || resolved.length > 0) {
     for (const finding of added) {
-      deps.log(`NEW ${finding.severity.toUpperCase()} ${finding.workflowName} (${finding.detector})`);
+      deps.log(t.newFinding(messagesFor(lang).alert.severity[finding.severity], finding.workflowName, finding.detector));
     }
     for (const finding of resolved) {
-      deps.log(`RESOLVED ${finding.workflowName} (${finding.detector})`);
+      deps.log(t.resolvedFinding(finding.workflowName, finding.detector));
     }
     delivered = await send(
       deps,
-      buildFindingsAlert({ instance: deps.instance, scannedAt: result.scannedAt, added, resolved }),
+      buildFindingsAlert({ instance: deps.instance, scannedAt: result.scannedAt, added, resolved, lang }),
     );
   }
 
@@ -129,9 +138,7 @@ export async function runCycle(deps: WatchDependencies): Promise<CycleOutcome> {
   }
   deps.store.save(current);
 
-  deps.log(
-    `Scanned ${result.workflowsScanned} workflows: ${result.findings.length} open, ${added.length} new, ${resolved.length} resolved.`,
-  );
+  deps.log(t.cycle(result.workflowsScanned, result.findings.length, added.length, resolved.length));
   return {
     status: 'scanned',
     openFindings: result.findings.length,
@@ -166,6 +173,7 @@ export async function watch(
   wait: Sleep = sleep,
 ): Promise<void> {
   while (!signal.aborted) {
+    await deps.beforeCycle?.();
     await runCycle(deps);
     await wait(intervalMs, signal);
   }
