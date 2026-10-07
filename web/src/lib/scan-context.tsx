@@ -16,6 +16,7 @@ interface ScanControls {
   refreshing: boolean;
   intervalMinutes: number | null;
   host: string | null;
+  settingsProblem: string | null;
   selectLive: () => void;
   connectLive: () => void;
   selectSample: () => void;
@@ -28,11 +29,18 @@ const ResultContext = createContext<ScanResult | null>(null);
 interface ScanProviderProps {
   sample: ScanResult;
   liveAvailable: boolean;
+  settingsProblem: string | null;
   initialSnapshot: LiveSnapshot | null;
   children: ReactNode;
 }
 
-export function ScanProvider({ sample, liveAvailable, initialSnapshot, children }: ScanProviderProps) {
+export function ScanProvider({
+  sample,
+  liveAvailable,
+  settingsProblem,
+  initialSnapshot,
+  children,
+}: ScanProviderProps) {
   const [source, setSource] = useState<Source>(liveAvailable ? 'live' : 'sample');
   const [connected, setConnected] = useState(false);
   const available = liveAvailable || connected;
@@ -56,6 +64,7 @@ export function ScanProvider({ sample, liveAvailable, initialSnapshot, children 
       refreshing: live && (feed.snapshot?.refreshing ?? false),
       intervalMinutes: live ? (feed.snapshot?.intervalMinutes ?? null) : null,
       host: feed.snapshot?.host ?? null,
+      settingsProblem,
       selectLive: () => setSource('live'),
       connectLive: () => {
         setConnected(true);
@@ -64,7 +73,7 @@ export function ScanProvider({ sample, liveAvailable, initialSnapshot, children 
       selectSample: () => setSource('sample'),
       scanNow: () => void scanNow(),
     }),
-    [source, available, phase, problem, live, feed.snapshot, scanNow],
+    [source, available, phase, problem, live, feed.snapshot, scanNow, settingsProblem],
   );
 
   return (
