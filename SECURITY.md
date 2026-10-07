@@ -40,6 +40,12 @@ think the impact is. It will be answered as soon as possible.
   readable only by their owner, on systems that support it.
 - **The alert webhook does not follow redirects**, because the alert text and the token would travel
   with them.
+- **The notice of a new version is off unless you turn it on.** When it is on, GreenLight makes one
+  `GET` to `api.github.com` for the number of the latest release, at most once a day. The request
+  carries no key, no address of your instance and no data about you beyond what any web request
+  shows (your IP address and a `greenlight/<version>` user agent). It does not follow redirects, only
+  accepts a plain `x.y.z` version number, builds the link to the release notes itself instead of
+  using the one in the response, and fails silently. It never downloads or runs anything.
 - **The build is guarded.** The workflow token can only read the repository, third-party actions are
   pinned to a commit, `npm audit` runs on production dependencies at every change, and Dependabot
   proposes updates.
