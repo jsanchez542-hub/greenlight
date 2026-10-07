@@ -20,6 +20,8 @@ GreenLight lee una instancia de n8n a través de su API y busca los fallos que n
 
 ![El resumen de un análisis: hallazgos por gravedad y un mapa de todos los workflows](docs/images/overview.png)
 
+**[Prueba la demo online](https://jsanchez542-hub.github.io/greenlight/)**: el panel real con datos inventados, en español o en inglés. No hay nada que instalar y no se conecta a nada.
+
 ## Inicio rápido
 
 Necesitas dos cosas: **Node.js 22.12 o superior** (desde [nodejs.org](https://nodejs.org); el botón

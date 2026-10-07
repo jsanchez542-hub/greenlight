@@ -22,6 +22,8 @@ announce themselves.
 
 ![The overview of a scan: findings by severity and a map of every workflow](docs/images/overview.png)
 
+**[Try the live demo](https://jsanchez542-hub.github.io/greenlight/)**: the real dashboard with invented data, in English or Spanish. Nothing to install, and it connects to nothing.
+
 ## Quick start
 
 You need two things: **Node.js 22.12 or newer** (from [nodejs.org](https://nodejs.org); the button
