@@ -188,6 +188,8 @@ describe('the two dictionaries', () => {
       [/\bfindings?\b/i, 'use "hallazgo"'],
       [/\bdescubrimiento/i, 'use "hallazgo"'],
       [/\bflujos? de trabajo\b/i, 'workflow is not translated'],
+      [/report/i, 'use "señalar" or "mostrar", not the anglicism'],
+      [/deriva/i, 'the check is called "Ralentización"'],
       [/\bhistorial de ejecución\b/i, 'use "historial de ejecuciones"'],
     ];
     const allowed = new Set([
