@@ -56,6 +56,22 @@ describe('requestConnect', () => {
     expect(seen[0]?.init?.cache).toBe('no-store');
   });
 
+  it('sends the choice about version notices only when one is made', async () => {
+    const bodies: string[] = [];
+    const fetchImpl: typeof fetch = async (_url, init) => {
+      bodies.push(String(init?.body));
+      return new Response(JSON.stringify({ saved: true, diagnosis, notice: null }), { status: 200 });
+    };
+
+    await requestConnect('a', 'b', signal, fetchImpl);
+    await requestConnect('a', 'b', signal, fetchImpl, true);
+    await requestConnect('a', 'b', signal, fetchImpl, false);
+
+    expect(JSON.parse(bodies[0] ?? '')).toEqual({ action: 'connect', baseUrl: 'a', apiKey: 'b' });
+    expect(JSON.parse(bodies[1] ?? '')).toEqual({ action: 'connect', baseUrl: 'a', apiKey: 'b', checkUpdates: true });
+    expect(JSON.parse(bodies[2] ?? '')).toEqual({ action: 'connect', baseUrl: 'a', apiKey: 'b', checkUpdates: false });
+  });
+
   it('returns what the server proved', async () => {
     const result = await requestConnect('a', 'b', signal, respondWith({ saved: true, diagnosis, notice: null }));
     expect(result).toMatchObject({ saved: true, notice: null });
