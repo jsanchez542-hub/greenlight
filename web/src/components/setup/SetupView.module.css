@@ -124,3 +124,32 @@
   font-family: var(--font-mono);
   font-size: 0.875rem;
 }
+
+.updates {
+  display: grid;
+  gap: 8px;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.choice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 32px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.choice input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.choice input:disabled {
+  cursor: progress;
+}

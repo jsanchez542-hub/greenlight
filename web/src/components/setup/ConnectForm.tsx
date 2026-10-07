@@ -7,10 +7,11 @@ import styles from './ConnectForm.module.css';
 
 interface ConnectFormProps {
   busy: boolean;
-  onConnect: (address: string, key: string) => void;
+  notifyByDefault: boolean;
+  onConnect: (address: string, key: string, notify: boolean) => void;
 }
 
-export function ConnectForm({ busy, onConnect }: ConnectFormProps) {
+export function ConnectForm({ busy, notifyByDefault, onConnect }: ConnectFormProps) {
   const t = useMessages();
   const text = t.setup.form;
   const ids = useId();
@@ -18,6 +19,8 @@ export function ConnectForm({ busy, onConnect }: ConnectFormProps) {
   const [key, setKey] = useState('');
   const [revealed, setRevealed] = useState(false);
   const [missing, setMissing] = useState(false);
+  const [chosen, setChosen] = useState<boolean | null>(null);
+  const notify = chosen ?? notifyByDefault;
   const link = settingsLink(address);
   const addressProblem = address.trim() !== '' && parseAddress(address) === null;
 
@@ -31,7 +34,7 @@ export function ConnectForm({ busy, onConnect }: ConnectFormProps) {
     const sent = key;
     setKey('');
     setRevealed(false);
-    onConnect(address, sent);
+    onConnect(address, sent, notify);
   }
 
   return (
@@ -111,6 +114,22 @@ export function ConnectForm({ busy, onConnect }: ConnectFormProps) {
             {text.keyHelp}
           </p>
         </div>
+      </div>
+
+      <div className={styles.choice}>
+        <label className={styles.choiceLabel} htmlFor={`${ids}-updates`}>
+          <input
+            id={`${ids}-updates`}
+            type="checkbox"
+            checked={notify}
+            aria-describedby={`${ids}-updates-help`}
+            onChange={(event) => setChosen(event.target.checked)}
+          />
+          <span>{t.updates.settingLabel}</span>
+        </label>
+        <p id={`${ids}-updates-help`} className={styles.help}>
+          {t.updates.settingHelp}
+        </p>
       </div>
 
       {missing && (

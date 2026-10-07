@@ -40,6 +40,7 @@ real ones.
 | `GREENLIGHT_EXECUTION_LIMIT` | 200 | executions read per workflow |
 | `GREENLIGHT_DETAIL_SAMPLE` | 5 | executions inspected node by node |
 | `GREENLIGHT_ALLOWED_HOSTS` | none | extra host names allowed, see Security |
+| `GREENLIGHT_CHECK_UPDATES` | off | `1` to be told when a new version is out, see Version notices; the only thing that ever contacts anything but your n8n |
 | `GREENLIGHT_LANG` | the browser's language | `en` or `es`: the language of the dashboard when the person has not chosen one on the page, see Language |
 | `GREENLIGHT_ENV_FILE` | the `.env` at the root | another settings file, read only from the process environment; this is how tests keep the real file untouched |
 
@@ -76,6 +77,7 @@ The dashboard shows what an n8n instance holds, so the assets are the **API key*
 | Threat | Defence |
 | --- | --- |
 | Someone on the network opens the page | It listens on `127.0.0.1` only, and any `Host` other than `localhost`, `127.0.0.1` or `[::1]` is refused with 403, which also stops DNS rebinding. Other names go in `GREENLIGHT_ALLOWED_HOSTS`. |
+| The dashboard tells someone you use it | It contacts nothing but your n8n, except for the version notice, which is off until you turn it on and sends nothing but a request for the number of the latest release (see Version notices). |
 | A web page you visit tries to change the connection | Saving or removing it is the only thing the dashboard writes, and it answers only requests that prove they come from the dashboard's own page: `Sec-Fetch-Site: same-origin`, or an `Origin` exactly equal to the host when a browser does not send that. It also requires JSON, which a form on another site cannot send. A plain script with neither is refused. |
 | A web page you visit calls the dashboard | Routes answer only requests a browser marks as made from the dashboard itself (`Sec-Fetch-Site`). Forced scans cannot be started from anywhere else. The server sets no cookies, and nothing is readable from another origin. |
 | An instance sends names or messages that are markup | Everything from the instance is rendered as text. There is no raw HTML anywhere, identifiers are encoded in addresses, and a strict policy blocks script even if a bug let markup through. |
@@ -88,12 +90,14 @@ The dashboard shows what an n8n instance holds, so the assets are the **API key*
 
 ### Writing the settings
 
-The dashboard writes one file, and only the **Connect** page does. This is the part to read
-before changing anything.
+The dashboard writes one file, and only the **Connect** page and the switch for version notices
+do. This is the part to read before changing anything.
 
 - **What:** the `N8N_BASE_URL` and `N8N_API_KEY` lines of the `.env` at the root of the project,
-  or of the file named by `GREENLIGHT_ENV_FILE` in the process environment. Every other line is
-  kept exactly as it was. The two names are fixed; nothing in a request can choose another.
+  or of the file named by `GREENLIGHT_ENV_FILE` in the process environment, and the
+  `GREENLIGHT_CHECK_UPDATES` line. Every other line is kept exactly as it was. The three names
+  are fixed; nothing in a request can choose another. Disconnect removes the address and the key
+  and keeps the choice about notices, which is not part of the connection.
 - **When:** only when the person presses Connect, and only after the scanner's own connection
   check has just passed with that address and key. A failed check writes nothing. Disconnect
   removes those two lines and nothing else.
@@ -145,6 +149,7 @@ dashboard.
 | `/setup` | Connect your n8n: two fields and a button, a link to the page in n8n where keys are made, and a plain list of what passed and what failed. Once connected it offers to open the dashboard, change the key or disconnect. |
 | `/api/scan` | `GET` reads the stored scan, `POST` asks for a refresh. |
 | `/api/setup` | `GET` runs the connection check and returns it without the key. |
+| `/api/update` | `GET` says whether version notices are on and, when they are, the newest version (`{enabled, current, latest, url}`). `POST {enabled: boolean}` turns them on or off. See Version notices. |
 | `/api/connect` | `POST` saves or removes the connection: `{action: 'connect', baseUrl, apiKey}` or `{action: 'disconnect'}`. See Writing the settings. |
 
 The data source and the scan result belong to the layout, so they survive moving between
@@ -214,6 +219,39 @@ request.
 Spanish is neutral, addresses the reader as *tú*, uses sentence case and the opening `¿` and `¡`,
 and has no long dashes. Headings written in lowercase in English, like the prompt of a terminal,
 are lowercase in Spanish too. The shortcut keys stay `g` then `o`, `f`, `w` and `c` in both.
+
+## Version notices
+
+GreenLight only contacts your n8n, with one exception that is **off until you turn it on**: a
+notice that a new version is out. It exists so that the dashboard does not need to be remembered
+to be updated, and it never installs anything.
+
+- **Turning it on:** the **Connect** form has a box, ticked by default, and the connected page
+  has the same switch, off until someone chooses. Choosing writes `GREENLIGHT_CHECK_UPDATES=1`
+  (or `0`) to the settings. A person who chose no is not asked again: the form respects it when the
+  key is changed.
+- **What is asked:** while it is on, the server makes one plain `GET` to
+  `api.github.com/repos/<repository>/releases/latest` for the number of the latest release, at
+  most once a day, whatever the number of open pages, and keeps the answer in memory. The request
+  carries no body, no cookie and no setting; nothing about you, your instance or your
+  workflows is in it. It is made by the server, not by the browser, so the content security policy
+  is unchanged and the page still talks only to itself. GitHub sees the address of this computer
+  and the version of GreenLight in the `User-Agent`, as any website would, and the page says so next
+  to the switch.
+- **What is shown:** "A new version is available: 1.2.0. What changed", at the foot of the sidebar
+  (and of each page on a narrow screen) and at the top of the overview, with a link to the page
+  of the release and a Dismiss button. Dismissing is remembered in the browser storage for that
+  version only, so the next release brings the notice back.
+- **The link is not trusted:** the address arrives from the server, which got the number from
+  GitHub. The page builds the address again from the number
+  (`https://github.com/<repository>/releases/tag/vX.Y.Z`, with the repository the scanner reports),
+  shows the link only when the two are identical, opens it in a new tab with
+  `rel="noopener noreferrer"`, and ignores anything else in the answer.
+- **When it fails:** no network, a refusal or a strange answer all mean there is nothing to say.
+  Nothing is shown, no error appears and a failure is not asked again for a day.
+- **Public demo:** an installation shown to the public should never make this request. The
+  dashboard has no public demo mode yet, so there is no setting for it; when one exists the notice
+  must be off in it.
 
 ## Theme
 

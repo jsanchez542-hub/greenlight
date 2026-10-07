@@ -353,6 +353,7 @@ export const en = {
     disconnected: 'Disconnected. The dashboard shows sample data again.',
     notYet: 'Not connected yet. Fix the step marked Failed, then paste the key again and press Connect.',
     savedFails: 'The saved connection does not work at the moment.',
+    checking: 'Checking the connection…',
     terminalSummary: 'Prefer the terminal?',
     terminalBody:
       'Open a terminal in the GreenLight folder and run this. It asks for the same two things and saves them for you.',

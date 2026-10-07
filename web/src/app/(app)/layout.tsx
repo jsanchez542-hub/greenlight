@@ -2,6 +2,7 @@ import { headers } from 'next/headers';
 import { VERSION } from 'greenlight';
 import type { ReactNode } from 'react';
 import { AppShell } from '@/components/shell/AppShell';
+import { UpdatesProvider } from '@/lib/use-updates';
 import { sampleResult } from '@/lib/sample';
 import { ScanProvider } from '@/lib/scan-context';
 import type { FailureCode } from '@/lib/failure';
@@ -31,7 +32,9 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       settingsProblem={hostAllowed ? problem : null}
       initialSnapshot={liveAvailable ? liveCache(env).snapshot() : null}
     >
-      <AppShell version={VERSION}>{children}</AppShell>
+      <UpdatesProvider>
+        <AppShell version={VERSION}>{children}</AppShell>
+      </UpdatesProvider>
     </ScanProvider>
   );
 }

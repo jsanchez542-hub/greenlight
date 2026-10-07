@@ -6,6 +6,7 @@ import { useMessages } from '@/i18n/context';
 import { requestConnect, requestDisconnect, type ConnectNotice, type ConnectResult } from '@/lib/connect-client';
 import { ApiFailure, failureCodeOf, failureText, type FailureCode } from '@/lib/failure';
 import { useScanControls } from '@/lib/scan-context';
+import { useUpdates } from '@/lib/use-updates';
 import { setupPhase } from '@/lib/setup-status';
 import { useSetupStatus } from '@/lib/use-setup-status';
 import { CopyButton } from '../ui/CopyButton';
@@ -13,6 +14,7 @@ import { PageHeader } from '../ui/PageHeader';
 import { StatusIcon } from '../ui/StatusIcon';
 import { ConnectForm } from './ConnectForm';
 import { ConnectionCheck } from './ConnectionCheck';
+import { UpdateSetting } from './UpdateSetting';
 import styles from './SetupView.module.css';
 
 const TERMINAL_COMMAND = 'npm run setup';
@@ -31,6 +33,7 @@ export function SetupView() {
   const router = useRouter();
   const { connectLive, disconnectLive } = useScanControls();
   const { status, error, checkAgain } = useSetupStatus();
+  const updates = useUpdates();
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ConnectResult | null>(null);
   const [problem, setProblem] = useState<Problem | null>(null);
@@ -41,9 +44,10 @@ export function SetupView() {
   const phase = status === null ? null : setupPhase(status);
   const justSaved = result?.saved === true;
   const showConnected = justSaved || (phase === 'connected' && !editing);
+  const checking = status === null && error === null && result === null && !editing;
   const connected = justSaved ? result?.diagnosis : status?.diagnosis;
 
-  async function connect(address: string, key: string) {
+  async function connect(address: string, key: string, notify: boolean) {
     request.current?.abort();
     request.current = new AbortController();
     setBusy(true);
@@ -51,13 +55,14 @@ export function SetupView() {
     setNotice(null);
     setResult(null);
     try {
-      const answer = await requestConnect(address.trim(), key, request.current.signal);
+      const answer = await requestConnect(address.trim(), key, request.current.signal, fetch, notify);
       setResult(answer);
       if (answer.saved) {
         setEditing(false);
         setNotice(answer.notice);
         connectLive();
         void checkAgain();
+        void updates.refresh();
       }
     } catch (failure) {
       setProblem(problemOf(failure));
@@ -127,8 +132,16 @@ export function SetupView() {
                 </button>
               </div>
             </div>
+          ) : checking ? (
+            <p className={styles.notice} role="status">
+              {t.setup.checking}
+            </p>
           ) : (
-            <ConnectForm busy={busy} onConnect={connect} />
+            <ConnectForm
+              busy={busy}
+              notifyByDefault={!(updates.state?.enabled === false && updates.state.chosen)}
+              onConnect={connect}
+            />
           )}
 
           <div className={styles.outcome} role="status" aria-live="polite">
@@ -157,6 +170,8 @@ export function SetupView() {
             )}
           </div>
         </section>
+
+        {showConnected && <UpdateSetting />}
 
         <details className={styles.terminal}>
           <summary>{t.setup.terminalSummary}</summary>

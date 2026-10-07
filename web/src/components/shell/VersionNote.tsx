@@ -1,5 +1,8 @@
+'use client';
+
 import { versionLabel } from '@/lib/version';
 import styles from './VersionNote.module.css';
+import { UpdateNotice } from './UpdateNotice';
 
 interface VersionNoteProps {
   version: string;
@@ -11,10 +14,11 @@ export function VersionNote({ version, placement }: VersionNoteProps) {
   if (label === null) {
     return null;
   }
-  const Tag = placement === 'page' ? 'footer' : 'p';
+  const Wrap = placement === 'page' ? 'footer' : 'div';
   return (
-    <Tag className={styles.note} data-placement={placement}>
-      {label}
-    </Tag>
+    <Wrap className={styles.wrap} data-placement={placement}>
+      <p className={styles.note}>{label}</p>
+      <UpdateNotice variant="note" />
+    </Wrap>
   );
 }
