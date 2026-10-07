@@ -26,6 +26,7 @@ Environment:
   N8N_API_KEY                 API key with read access
   GREENLIGHT_EXECUTION_LIMIT  executions read per workflow (default 200)
   GREENLIGHT_DETAIL_SAMPLE    executions inspected node by node (default 5)
+  GREENLIGHT_ALLOW_INSECURE_HTTP  set to 1 to send the key over plain http to a public host (not recommended)
 
 Only for watch:
   GREENLIGHT_WEBHOOK_URL      where alerts are posted as JSON (optional; without it changes are only printed)
@@ -83,7 +84,11 @@ async function runInitCommand(): Promise<number> {
 }
 
 async function runDoctor(): Promise<number> {
-  const result = await diagnose({ baseUrl: process.env['N8N_BASE_URL'], apiKey: process.env['N8N_API_KEY'] });
+  const result = await diagnose({
+    baseUrl: process.env['N8N_BASE_URL'],
+    apiKey: process.env['N8N_API_KEY'],
+    allowInsecureHttp: ['1', 'true'].includes((process.env['GREENLIGHT_ALLOW_INSECURE_HTTP'] ?? '').toLowerCase()),
+  });
   const heading = result.host === null ? 'GreenLight doctor' : `GreenLight doctor  ${result.host}`;
   process.stdout.write(`${heading}\n\n`);
   process.stdout.write(`${renderDiagnosis(result).join('\n')}\n\n`);
@@ -97,7 +102,7 @@ async function runDoctor(): Promise<number> {
 
 async function runScan(argv: string[]): Promise<number> {
   const config = loadConfig(process.env);
-  const client = new N8nClient({ baseUrl: config.baseUrl, apiKey: config.apiKey });
+  const client = new N8nClient({ baseUrl: config.baseUrl, apiKey: config.apiKey, allowInsecureHttp: config.allowInsecureHttp });
   const result = await scan(client, {
     executionLimit: config.executionLimit,
     detailSampleSize: config.detailSampleSize,
@@ -115,7 +120,7 @@ async function runScan(argv: string[]): Promise<number> {
 async function runWatch(argv: string[]): Promise<number> {
   const config = loadConfig(process.env);
   const watchConfig = loadWatchConfig(process.env);
-  const client = new N8nClient({ baseUrl: config.baseUrl, apiKey: config.apiKey });
+  const client = new N8nClient({ baseUrl: config.baseUrl, apiKey: config.apiKey, allowInsecureHttp: config.allowInsecureHttp });
   const warn = (line: string): void => void process.stderr.write(stamp(line));
 
   const { webhookUrl, webhookToken } = watchConfig;

@@ -1,4 +1,5 @@
-import { N8nApiError, N8nClient } from '../n8n/client.js';
+import { INSECURE_HTTP_MESSAGE, N8nApiError, N8nClient } from '../n8n/client.js';
+import { isPrivateHost } from '../n8n/network.js';
 
 export type StepId = 'address' | 'reach' | 'authenticate' | 'executions';
 export type StepStatus = 'ok' | 'failed' | 'skipped';
@@ -26,6 +27,7 @@ export interface DiagnoseInput {
   apiKey: string | undefined;
   fetch?: typeof globalThis.fetch;
   timeoutMs?: number;
+  allowInsecureHttp?: boolean;
 }
 
 const labels: Record<StepId, string> = {
@@ -115,6 +117,13 @@ function explainStatus(status: number): { stage: 'authenticate' | 'reach'; detai
       hint: 'Use the address of n8n itself, without /api/v1 at the end. If the public API was turned off on the instance, enable it first.',
     };
   }
+  if (status >= 300 && status < 400) {
+    return {
+      stage: 'reach',
+      detail: 'The address redirects somewhere GreenLight will not follow.',
+      hint: 'Use the address n8n is finally served from, often the https one. A redirect is followed only on the same host and never from https down to http, so the key cannot be sent elsewhere.',
+    };
+  }
   return {
     stage: 'reach',
     detail: `The instance answered with an error (HTTP ${status}).`,
@@ -122,7 +131,7 @@ function explainStatus(status: number): { stage: 'authenticate' | 'reach'; detai
   };
 }
 
-function checkAddress(raw: string | undefined): { steps: CheckStep[]; url?: URL } {
+function checkAddress(raw: string | undefined, allowInsecureHttp: boolean): { steps: CheckStep[]; url?: URL } {
   const value = raw?.trim();
   if (value === undefined || value === '') {
     return {
@@ -163,18 +172,19 @@ function checkAddress(raw: string | undefined): { steps: CheckStep[]; url?: URL 
     };
   }
 
-  const local = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
-  if (url.protocol === 'http:' && !local) {
+  if (url.protocol === 'http:' && !isPrivateHost(url.hostname)) {
+    if (!allowInsecureHttp) {
+      return { steps: [step('address', 'failed', 'The address uses http on a public host.', INSECURE_HTTP_MESSAGE)] };
+    }
     return {
       url,
-      steps: [
-        step(
-          'address',
-          'ok',
-          'The address is valid.',
-          'It uses http, so the API key travels unencrypted. Prefer https unless this is a private network you trust.',
-        ),
-      ],
+      steps: [step('address', 'ok', 'The address is valid.', 'Plain http was allowed on request: the API key travels unencrypted.')],
+    };
+  }
+  if (url.protocol === 'http:' && !['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)) {
+    return {
+      url,
+      steps: [step('address', 'ok', 'The address is valid.', 'It uses http on a private network, so the key is not encrypted. Fine if you trust that network.')],
     };
   }
   return { url, steps: [step('address', 'ok', 'The address is valid.')] };
@@ -188,7 +198,7 @@ function checkAddress(raw: string | undefined): { steps: CheckStep[]; url?: URL 
 export async function diagnose(input: DiagnoseInput): Promise<Diagnosis> {
   const timeoutMs = input.timeoutMs ?? 10_000;
   const fetchImpl = input.fetch ?? globalThis.fetch;
-  const { steps, url } = checkAddress(input.baseUrl);
+  const { steps, url } = checkAddress(input.baseUrl, input.allowInsecureHttp === true);
   const host = url?.host ?? null;
 
   const skipRest = (from: StepId[]): CheckStep[] =>
@@ -225,7 +235,12 @@ export async function diagnose(input: DiagnoseInput): Promise<Diagnosis> {
 
   const timedFetch = ((target: string | URL | Request, init?: RequestInit) =>
     fetchImpl(target, { ...init, signal: AbortSignal.timeout(timeoutMs) })) as typeof globalThis.fetch;
-  const client = new N8nClient({ baseUrl: url.toString(), apiKey, fetch: timedFetch });
+  const client = new N8nClient({
+    baseUrl: url.toString(),
+    apiKey,
+    fetch: timedFetch,
+    allowInsecureHttp: input.allowInsecureHttp === true,
+  });
 
   let workflowCount: number;
   try {

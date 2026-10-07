@@ -194,6 +194,7 @@ scan, so it can run from cron or a scheduler instead of staying alive.
 | `N8N_API_KEY` | required | API key with read access |
 | `GREENLIGHT_EXECUTION_LIMIT` | 200 | executions read per workflow |
 | `GREENLIGHT_DETAIL_SAMPLE` | 5 | executions inspected node by node |
+| `GREENLIGHT_ALLOW_INSECURE_HTTP` | off | `1` lets the key travel over plain http to a public host; not recommended |
 | `GREENLIGHT_WEBHOOK_URL` | none | where `watch` posts alerts |
 | `GREENLIGHT_WEBHOOK_TOKEN` | none | sent as `Authorization: Bearer <token>` |
 | `GREENLIGHT_INTERVAL_MINUTES` | 5 | time between scans in `watch` |

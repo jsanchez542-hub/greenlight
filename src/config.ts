@@ -5,6 +5,7 @@ export interface Config {
   apiKey: string;
   executionLimit: number;
   detailSampleSize: number;
+  allowInsecureHttp: boolean;
 }
 
 const defaults = {
@@ -33,9 +34,12 @@ export function loadConfig(env: Record<string, string | undefined>): Config {
     );
   }
 
+  const insecure = env['GREENLIGHT_ALLOW_INSECURE_HTTP']?.trim().toLowerCase();
+
   return {
     baseUrl,
     apiKey,
+    allowInsecureHttp: insecure === '1' || insecure === 'true',
     executionLimit: readPositiveInteger(
       env['GREENLIGHT_EXECUTION_LIMIT'],
       defaults.executionLimit,

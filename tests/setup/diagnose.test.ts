@@ -83,15 +83,40 @@ describe('diagnose', () => {
       expect(status(result, 'address')).toBe('failed');
     });
 
-    it('accepts plain http but warns that the key travels unencrypted', async () => {
+    it('refuses plain http to a public host, since the first request would carry the key in the clear', async () => {
+      const calls: string[] = [];
       const result = await diagnose({
         baseUrl: 'http://n8n.example.com',
         apiKey: KEY,
+        fetch: instance({ workflows: {} }, calls),
+      });
+
+      expect(status(result, 'address')).toBe('failed');
+      expect(result.steps[0]?.hint).toContain('GREENLIGHT_ALLOW_INSECURE_HTTP');
+      expect(calls).toEqual([]);
+    });
+
+    it('lets the user accept that risk explicitly, and still says so', async () => {
+      const result = await diagnose({
+        baseUrl: 'http://n8n.example.com',
+        apiKey: KEY,
+        allowInsecureHttp: true,
         fetch: instance({ workflows: {} }),
       });
 
       expect(result.ok).toBe(true);
       expect(result.steps[0]?.hint).toContain('unencrypted');
+    });
+
+    it('accepts http on a private network with a note that the key is not encrypted', async () => {
+      const result = await diagnose({
+        baseUrl: 'http://192.168.1.20:5678',
+        apiKey: KEY,
+        fetch: instance({ workflows: {} }),
+      });
+
+      expect(result.ok).toBe(true);
+      expect(result.steps[0]?.hint).toContain('private network');
     });
 
     it('does not warn about http on the same machine', async () => {
@@ -134,6 +159,20 @@ describe('diagnose', () => {
 
       expect(status(result, 'reach')).toBe('failed');
       expect(result.steps.find((item) => item.id === 'reach')?.hint).toContain('without /api/v1');
+    });
+
+    it('explains a redirect without sending the key anywhere', async () => {
+      const calls: string[] = [];
+      const redirecting = (async (input: string | URL | Request) => {
+        calls.push(new URL(String(input)).hostname);
+        return new Response(null, { status: 302, headers: { location: 'https://elsewhere.example.net/' } });
+      }) as typeof globalThis.fetch;
+
+      const result = await diagnose({ ...good, fetch: redirecting });
+
+      expect(status(result, 'reach')).toBe('failed');
+      expect(result.steps.find((item) => item.id === 'reach')?.detail).toContain('redirects');
+      expect(calls).toEqual(['n8n.example.com']);
     });
 
     it('reports a server error as a problem with the instance', async () => {

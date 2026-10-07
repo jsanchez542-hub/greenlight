@@ -1,16 +1,35 @@
+import { isPrivateHost } from './network.js';
 import type { Execution, ExecutionDetail, Workflow, WorkflowDetail } from './types.js';
 
 const PAGE_SIZE = 250;
+const MAX_REDIRECTS = 3;
 
 export interface N8nClientOptions {
   baseUrl: string;
   apiKey: string;
   fetch?: typeof globalThis.fetch;
+  /** Lets the key travel over plain http to a public address. Off unless the user asks for it. */
+  allowInsecureHttp?: boolean;
 }
 
 export interface ListExecutionsOptions {
   workflowId?: string;
   limit?: number;
+}
+
+export const INSECURE_HTTP_MESSAGE =
+  'The address uses http on a public host, so the API key would travel unencrypted. Use https, or set GREENLIGHT_ALLOW_INSECURE_HTTP=1 if you accept that risk.';
+
+function assertSafeAddress(baseUrl: string, allowInsecureHttp: boolean): void {
+  let url: URL;
+  try {
+    url = new URL(baseUrl);
+  } catch {
+    return; // reported with a clearer message by the first request
+  }
+  if (url.protocol === 'http:' && !isPrivateHost(url.hostname) && !allowInsecureHttp) {
+    throw new Error(INSECURE_HTTP_MESSAGE);
+  }
 }
 
 export class N8nApiError extends Error {
@@ -35,6 +54,7 @@ export class N8nClient {
 
   constructor(options: N8nClientOptions) {
     this.baseUrl = options.baseUrl.replace(/\/+$/, '');
+    assertSafeAddress(this.baseUrl, options.allowInsecureHttp === true);
     this.apiKey = options.apiKey;
     this.fetchImpl = options.fetch ?? globalThis.fetch;
   }
@@ -84,23 +104,66 @@ export class N8nClient {
     return limit === undefined ? items : items.slice(0, limit);
   }
 
+  /**
+   * Redirects are followed here and not by the runtime, because the API key travels in a header
+   * and the runtime would send it wherever the redirect points. A redirect is only followed when
+   * it stays on the same host and does not drop from https to http.
+   */
   private async request<T>(path: string, query: Record<string, string>): Promise<T> {
-    const url = new URL(this.baseUrl + path);
+    const first = new URL(this.baseUrl + path);
     for (const [key, value] of Object.entries(query)) {
-      url.searchParams.set(key, value);
+      first.searchParams.set(key, value);
     }
 
-    const response = await this.fetchImpl(url, {
-      headers: { 'X-N8N-API-KEY': this.apiKey, accept: 'application/json' },
-    });
+    let target = first;
+    for (let hops = 0; ; hops += 1) {
+      const response = await this.fetchImpl(target, {
+        headers: { 'X-N8N-API-KEY': this.apiKey, accept: 'application/json' },
+        redirect: 'manual',
+      });
 
-    if (!response.ok) {
+      if (response.status >= 300 && response.status < 400) {
+        target = this.followable(first, target, response, path, hops);
+        continue;
+      }
+
+      if (!response.ok) {
+        throw new N8nApiError(
+          `n8n API returned ${response.status} for ${path}. Check N8N_BASE_URL and N8N_API_KEY.`,
+          response.status,
+        );
+      }
+
+      return (await response.json()) as T;
+    }
+  }
+
+  private followable(first: URL, current: URL, response: Response, path: string, hops: number): URL {
+    const status = response.status;
+    const location = response.headers.get('location');
+    if (location === null || hops >= MAX_REDIRECTS) {
+      throw new N8nApiError(`n8n API sent too many redirects for ${path}. Use the final address in N8N_BASE_URL.`, status);
+    }
+
+    let next: URL;
+    try {
+      next = new URL(location, current);
+    } catch {
+      throw new N8nApiError(`n8n API sent an unusable redirect for ${path}. Use the final address in N8N_BASE_URL.`, status);
+    }
+
+    if (next.host !== first.host) {
       throw new N8nApiError(
-        `n8n API returned ${response.status} for ${path}. Check N8N_BASE_URL and N8N_API_KEY.`,
-        response.status,
+        `n8n API redirected to a different host for ${path}, so the API key was not sent there. Use the final address in N8N_BASE_URL.`,
+        status,
       );
     }
-
-    return (await response.json()) as T;
+    if (current.protocol === 'https:' && next.protocol === 'http:') {
+      throw new N8nApiError(
+        `n8n API redirected from https to http for ${path}, which would send the API key unencrypted. Check the HTTPS setup of the instance.`,
+        status,
+      );
+    }
+    return next;
   }
 }
