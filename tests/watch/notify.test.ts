@@ -83,6 +83,17 @@ describe('deliverAlert', () => {
     expect(JSON.parse(String(calls[0]?.init.body))).toMatchObject({ source: 'greenlight', type: 'scan-failing' });
   });
 
+  it('refuses to follow a redirect, which would carry the alert and the token elsewhere', async () => {
+    const calls: { url: string; init: RequestInit }[] = [];
+    await deliverAlert(payload, {
+      url: 'https://hooks.example.com/abc',
+      token: 'secret',
+      fetch: recordingFetch(200, calls),
+    });
+
+    expect(calls[0]?.init.redirect).toBe('error');
+  });
+
   it('sends no authorization header when there is no token', async () => {
     const calls: { url: string; init: RequestInit }[] = [];
     await deliverAlert(payload, {

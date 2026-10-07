@@ -135,6 +135,8 @@ export async function deliverAlert(payload: AlertPayload, options: DeliverOption
       method: 'POST',
       headers,
       body: JSON.stringify(payload),
+      // A redirect would carry the alert text and the token to wherever it points.
+      redirect: 'error',
       signal: AbortSignal.timeout(options.timeoutMs ?? 10_000),
     });
   } catch (error) {
