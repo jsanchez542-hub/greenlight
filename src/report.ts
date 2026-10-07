@@ -1,4 +1,5 @@
 import type { Finding, Severity } from './analysis/types.js';
+import { describeFinding, evidenceLabel, evidenceValue, messagesFor, type Lang } from './i18n/index.js';
 import type { ScanResult } from './scan.js';
 
 const palette = {
@@ -37,32 +38,39 @@ function wrap(text: string, width: number, indent: string): string[] {
   return lines;
 }
 
-function renderFinding(finding: Finding, paint: Paint): string[] {
-  const label = paint(finding.severity.toUpperCase().padEnd(8), severityColour[finding.severity]);
-  const lines = [`${label} ${finding.workflowName}`, ...wrap(finding.summary, 72, '         ')];
+function renderFinding(finding: Finding, paint: Paint, lang: Lang): string[] {
+  const names = messagesFor(lang).report.severity;
+  const labelWidth = Math.max(names.critical.length, names.warning.length) + 1;
+  const label = paint(names[finding.severity].padEnd(labelWidth - 1), severityColour[finding.severity]);
+  const lines = [`${label} ${finding.workflowName}`, ...wrap(describeFinding(finding, lang), 72, ' '.repeat(labelWidth))];
 
-  const width = Math.max(...Object.keys(finding.evidence).map((key) => key.length));
-  for (const [key, value] of Object.entries(finding.evidence)) {
-    lines.push(paint(`             ${key.padEnd(width)}  ${value}`, 'dim'));
+  // English keeps the keys as the scan result names them; Spanish reads as words.
+  const shown = Object.entries(finding.evidence).map(([key, value]) => ({
+    name: lang === 'en' ? key : evidenceLabel(key, lang),
+    value: evidenceValue(key, value, lang),
+  }));
+  const width = Math.max(...shown.map(({ name }) => name.length));
+  for (const { name, value } of shown) {
+    lines.push(paint(`${' '.repeat(labelWidth + 4)}${name.padEnd(width)}  ${value}`, 'dim'));
   }
 
   return lines;
 }
 
-export function renderReport(result: ScanResult, useColour: boolean): string {
+export function renderReport(result: ScanResult, useColour: boolean, lang: Lang = 'en'): string {
   const paint = useColour ? coloured : plain;
   const { findings, workflowsScanned } = result;
+  const t = messagesFor(lang).report;
 
   if (findings.length === 0) {
-    return `GreenLight  scanned ${workflowsScanned} workflows  ${paint('nothing to report', 'green')}\n`;
+    return `GreenLight  ${t.scanned(workflowsScanned)}  ${paint(t.nothing, 'green')}\n`;
   }
 
   const critical = findings.filter((finding) => finding.severity === 'critical').length;
-  const summary = `${findings.length} finding${findings.length === 1 ? '' : 's'}, ${critical} critical`;
 
   return [
-    `GreenLight  scanned ${workflowsScanned} workflows  ${summary}`,
+    `GreenLight  ${t.scanned(workflowsScanned)}  ${t.summary(findings.length, critical)}`,
     '',
-    ...findings.flatMap((finding) => [...renderFinding(finding, paint), '']),
+    ...findings.flatMap((finding) => [...renderFinding(finding, paint, lang), '']),
   ].join('\n');
 }

@@ -42,6 +42,7 @@ export const detectDurationDrift: Detector = ({
         baselineMedian: seconds(before.medianMs),
         baselineP95: seconds(before.p95Ms),
         recentMedian: seconds(after.medianMs),
+        slowdown: `${ratio.toFixed(1)}x`,
         baselineSamples: before.count,
         recentSamples: after.count,
       },

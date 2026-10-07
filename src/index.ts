@@ -38,3 +38,26 @@ export {
   removeEnvKeys,
   upsertEnv,
 } from './setup/env-file.js';
+export {
+  FileUpdateCache,
+  MemoryUpdateCache,
+  REPOSITORY,
+  checkForUpdate,
+  isNewer,
+  releaseUrl,
+  updateChecksEnabled,
+  type UpdateCache,
+  type UpdateInfo,
+} from './update/check.js';
+export {
+  DEFAULT_LANG,
+  describeFinding,
+  evidenceLabel,
+  evidenceValue,
+  languages,
+  messagesFor,
+  parseLang,
+  resolveLang,
+  type Lang,
+  type Messages,
+} from './i18n/index.js';

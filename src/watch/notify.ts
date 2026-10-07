@@ -1,3 +1,4 @@
+import { describeFinding, messagesFor, type Lang } from '../i18n/index.js';
 import type { TrackedFinding } from './findings.js';
 
 export type AlertType = 'findings' | 'scan-failing' | 'scan-recovered';
@@ -12,11 +13,13 @@ export interface AlertFinding {
 
 /**
  * What GreenLight posts to the webhook. `subject` and `text` are ready to drop into an
- * email or a chat message; the arrays carry the same information as data.
+ * email or a chat message; the arrays carry the same information as data. `lang` says which
+ * language those sentences are written in.
  */
 export interface AlertPayload {
   source: 'greenlight';
   type: AlertType;
+  lang: Lang;
   subject: string;
   text: string;
   instance: string;
@@ -32,18 +35,14 @@ export class WebhookError extends Error {
   }
 }
 
-function toAlertFinding(finding: TrackedFinding): AlertFinding {
+function toAlertFinding(finding: TrackedFinding, lang: Lang): AlertFinding {
   return {
     workflowId: finding.workflowId,
     workflowName: finding.workflowName,
     detector: finding.detector,
     severity: finding.severity,
-    summary: finding.summary,
+    summary: describeFinding({ ...finding, evidence: finding.evidence ?? {} }, lang),
   };
-}
-
-function plural(count: number, word: string): string {
-  return `${count} ${word}${count === 1 ? '' : 's'}`;
 }
 
 export interface FindingsAlertInput {
@@ -51,47 +50,51 @@ export interface FindingsAlertInput {
   scannedAt: string;
   added: TrackedFinding[];
   resolved: TrackedFinding[];
+  lang?: Lang;
 }
 
 export function buildFindingsAlert(input: FindingsAlertInput): AlertPayload {
   const { instance, scannedAt, added, resolved } = input;
+  const lang = input.lang ?? 'en';
+  const t = messagesFor(lang).alert;
   const critical = added.filter((finding) => finding.severity === 'critical').length;
 
-  let subject: string;
-  if (added.length > 0) {
-    const kind = critical === added.length ? 'new critical finding' : 'new finding';
-    subject = `GreenLight: ${plural(added.length, kind)} on ${instance}`;
-  } else {
-    subject = `GreenLight: ${plural(resolved.length, 'finding')} resolved on ${instance}`;
-  }
+  const subject =
+    added.length > 0
+      ? t.newFindings(added.length, critical, instance)
+      : t.resolvedFindings(resolved.length, instance);
 
-  const lines = added.flatMap((finding) => [
-    `${finding.severity.toUpperCase()} ${finding.workflowName} (${finding.detector})`,
-    finding.summary,
+  const newFindings = added.map((finding) => toAlertFinding(finding, lang));
+  const lines = added.flatMap((finding, index) => [
+    `${t.severity[finding.severity]} ${finding.workflowName} (${finding.detector})`,
+    newFindings[index]?.summary ?? finding.summary,
     '',
   ]);
   if (resolved.length > 0) {
-    lines.push('Resolved:', ...resolved.map((finding) => `- ${finding.workflowName} (${finding.detector})`));
+    lines.push(t.resolvedHeading, ...resolved.map((finding) => `- ${finding.workflowName} (${finding.detector})`));
   }
 
   return {
     source: 'greenlight',
     type: 'findings',
+    lang,
     subject,
     text: lines.join('\n').trim(),
     instance,
     scannedAt,
-    newFindings: added.map(toAlertFinding),
-    resolvedFindings: resolved.map(toAlertFinding),
+    newFindings,
+    resolvedFindings: resolved.map((finding) => toAlertFinding(finding, lang)),
   };
 }
 
-export function buildFailureAlert(instance: string, at: string, failures: number): AlertPayload {
+export function buildFailureAlert(instance: string, at: string, failures: number, lang: Lang = 'en'): AlertPayload {
+  const t = messagesFor(lang).alert;
   return {
     source: 'greenlight',
     type: 'scan-failing',
-    subject: `GreenLight cannot scan ${instance}`,
-    text: `The last ${plural(failures, 'scan')} failed, so nothing is being checked. Verify that the instance is reachable and that the API key is still valid.`,
+    lang,
+    subject: t.failingSubject(instance),
+    text: t.failingText(failures),
     instance,
     scannedAt: at,
     newFindings: [],
@@ -99,12 +102,14 @@ export function buildFailureAlert(instance: string, at: string, failures: number
   };
 }
 
-export function buildRecoveryAlert(instance: string, at: string): AlertPayload {
+export function buildRecoveryAlert(instance: string, at: string, lang: Lang = 'en'): AlertPayload {
+  const t = messagesFor(lang).alert;
   return {
     source: 'greenlight',
     type: 'scan-recovered',
-    subject: `GreenLight is scanning ${instance} again`,
-    text: 'The instance answered and scanning has resumed.',
+    lang,
+    subject: t.recoveredSubject(instance),
+    text: t.recoveredText,
     instance,
     scannedAt: at,
     newFindings: [],
@@ -117,12 +122,14 @@ export interface DeliverOptions {
   token: string | null;
   fetch?: typeof globalThis.fetch;
   timeoutMs?: number;
+  lang?: Lang;
 }
 
 /**
  * Errors never include the URL: for chat and email services the URL is itself the secret.
  */
 export async function deliverAlert(payload: AlertPayload, options: DeliverOptions): Promise<void> {
+  const t = messagesFor(options.lang ?? 'en');
   const fetchImpl = options.fetch ?? globalThis.fetch;
   const headers: Record<string, string> = { 'content-type': 'application/json' };
   if (options.token !== null) {
@@ -140,11 +147,11 @@ export async function deliverAlert(payload: AlertPayload, options: DeliverOption
       signal: AbortSignal.timeout(options.timeoutMs ?? 10_000),
     });
   } catch (error) {
-    const reason = error instanceof Error ? error.message : 'unknown error';
-    throw new WebhookError(`Could not reach the webhook: ${reason}`);
+    const reason = error instanceof Error ? error.message : t.cli.unknownError;
+    throw new WebhookError(t.alert.webhookUnreachable(reason));
   }
 
   if (!response.ok) {
-    throw new WebhookError(`The webhook answered HTTP ${response.status}.`);
+    throw new WebhookError(t.alert.webhookStatus(response.status));
   }
 }

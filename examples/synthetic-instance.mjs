@@ -4,6 +4,7 @@
 //   npm run build
 //   node examples/synthetic-instance.mjs          # text report
 //   node examples/synthetic-instance.mjs --json   # the file in examples/scan-result.json
+//   node examples/synthetic-instance.mjs --lang es   # the same report in Spanish
 
 import { N8nClient, renderReport, scan } from '../dist/index.js';
 
@@ -173,6 +174,9 @@ const client = new N8nClient({
 });
 const result = await scan(client, { executionLimit: 200, detailSampleSize: 5, now: NOW });
 
+// `--lang es` prints the same report in Spanish.
+const lang = process.argv.includes('--lang') ? process.argv[process.argv.indexOf('--lang') + 1] : 'en';
+
 process.stdout.write(
-  process.argv.includes('--json') ? `${JSON.stringify(result, null, 2)}\n` : renderReport(result, false),
+  process.argv.includes('--json') ? `${JSON.stringify(result, null, 2)}\n` : renderReport(result, false, lang === 'es' ? 'es' : 'en'),
 );

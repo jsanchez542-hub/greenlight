@@ -72,7 +72,9 @@ describe('runInit', () => {
 
     expect(code).toBe(0);
     expect(written).toHaveLength(1);
-    expect(written[0]?.text).toBe(`N8N_BASE_URL=https://n8n.example.com\nN8N_API_KEY=${KEY}\n`);
+    expect(written[0]?.text).toBe(
+      `N8N_BASE_URL=https://n8n.example.com\nN8N_API_KEY=${KEY}\nGREENLIGHT_CHECK_UPDATES=1\n`,
+    );
     expect(said.join('\n')).toContain('greenlight watch');
   });
 
@@ -194,7 +196,7 @@ describe('runInit', () => {
   });
 
   it('writes nothing if the user declines at the end', async () => {
-    const { deps, written } = session({ answers: ['https://n8n.example.com', KEY, ''], confirms: [false] });
+    const { deps, written } = session({ answers: ['https://n8n.example.com', KEY, ''], confirms: [true, false] });
 
     expect(await runInit(deps)).toBe(1);
     expect(written).toEqual([]);
@@ -219,5 +221,21 @@ describe('renderDiagnosis', () => {
     expect(lines.join('\n')).toContain('-> Make a new key.');
     expect(lines.join('\n')).toContain('[skip] Execution history is readable');
     expect(lines.join('\n')).not.toContain('Skipped.');
+  });
+  it('records the choice about version notices, which is on only when the person says so', async () => {
+    const { deps, written } = session({ answers: ['https://n8n.example.com', KEY, ''], confirms: [false, true] });
+
+    expect(await runInit(deps)).toBe(0);
+    expect(written[0]?.text).toContain('GREENLIGHT_CHECK_UPDATES=0');
+  });
+
+  it('speaks Spanish when asked to, and says the same things', async () => {
+    const { deps, said, asked } = session({ answers: ['https://n8n.example.com', KEY, ''] });
+
+    expect(await runInit({ ...deps, lang: 'es' })).toBe(0);
+    expect(said.join('\n')).toContain('Configuración de GreenLight');
+    expect(said.join('\n')).toContain('greenlight watch');
+    expect(asked[0]?.question).toBe('Dirección de n8n, por ejemplo https://n8n.ejemplo.com');
+    expect(said.join('\n')).not.toContain(KEY);
   });
 });

@@ -1,10 +1,11 @@
 import { createInterface } from 'node:readline/promises';
 import { Writable } from 'node:stream';
+import { messagesFor, type Lang } from '../i18n/index.js';
 import type { Prompter } from './init.js';
 
 export class SetupCancelled extends Error {
-  constructor() {
-    super('Setup cancelled.');
+  constructor(lang: Lang = 'en') {
+    super(messagesFor(lang).init.cancelled);
     this.name = 'SetupCancelled';
   }
 }
@@ -21,7 +22,9 @@ export interface TerminalPrompter extends Prompter {
 export function createTerminalPrompter(
   input: NodeJS.ReadableStream = process.stdin,
   output: NodeJS.WritableStream & { isTTY?: boolean } = process.stdout,
+  lang: Lang = 'en',
 ): TerminalPrompter {
+  const t = messagesFor(lang).init;
   let muted = false;
   const gate = new Writable({
     write(chunk, encoding, callback) {
@@ -54,7 +57,7 @@ export function createTerminalPrompter(
     if (waiting !== null) {
       const { reject } = waiting;
       waiting = null;
-      reject(new SetupCancelled());
+      reject(new SetupCancelled(lang));
     }
   });
   rl.on('SIGINT', () => rl.close());
@@ -65,7 +68,7 @@ export function createTerminalPrompter(
       return Promise.resolve(queued);
     }
     if (ended) {
-      return Promise.reject(new SetupCancelled());
+      return Promise.reject(new SetupCancelled(lang));
     }
     return new Promise<string>((resolve, reject) => {
       waiting = { resolve, reject };
@@ -89,12 +92,13 @@ export function createTerminalPrompter(
     },
 
     async confirm(question, defaultYes) {
-      output.write(`${question} ${defaultYes ? '[Y/n]' : '[y/N]'} `);
+      output.write(`${question} ${defaultYes ? t.yesNo.yes : t.yesNo.no} `);
       const answer = (await read()).trim().toLowerCase();
       if (answer === '') {
         return defaultYes;
       }
-      return answer === 'y' || answer === 'yes';
+      // Either language's "yes" is accepted: someone typing "y" into the Spanish prompt means yes.
+      return ['y', 'yes', 's', 'si', 'sí'].includes(answer);
     },
 
     say(line) {
