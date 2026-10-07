@@ -70,7 +70,7 @@ export class FileStateStore implements StateStore {
   save(state: WatchState): void {
     mkdirSync(dirname(this.path), { recursive: true });
     const temporary = `${this.path}.tmp`;
-    writeFileSync(temporary, `${JSON.stringify(state, null, 2)}\n`, 'utf8');
+    writeFileSync(temporary, `${JSON.stringify(state, null, 2)}\n`, { encoding: 'utf8', mode: 0o600 });
     renameSync(temporary, this.path);
   }
 }
