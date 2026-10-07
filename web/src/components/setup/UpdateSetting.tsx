@@ -3,7 +3,7 @@
 import { useId, useState } from 'react';
 import { useMessages } from '@/i18n/context';
 import { failureText } from '@/lib/failure';
-import { useUpdates } from '@/lib/use-updates';
+import { useUpdates } from '@/lib/updates-context';
 import styles from './SetupView.module.css';
 
 export function UpdateSetting() {

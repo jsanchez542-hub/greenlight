@@ -1,51 +1,10 @@
 'use client';
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type ReactNode,
-} from 'react';
-import { ApiFailure, failureCodeOf, type FailureCode } from './failure';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { ApiFailure, failureCodeOf } from './failure';
 import { fetchUpdateState, requestUpdateChoice } from './update-client';
-import {
-  readDismissedUpdate,
-  updateNotice,
-  writeDismissedUpdate,
-  type UpdateNotice,
-  type UpdateState,
-} from './update-notice';
-
-export type ChoicePhase = 'idle' | 'saving' | 'saved' | 'failed';
-
-export interface UpdatesApi {
-  state: UpdateState | null;
-  notice: UpdateNotice | null;
-  dismiss: () => void;
-  choose: (enabled: boolean) => Promise<void>;
-  refresh: () => Promise<void>;
-  phase: ChoicePhase;
-  problem: { code: FailureCode; seconds: number | null } | null;
-  overridden: boolean;
-}
-
-const INACTIVE: UpdatesApi = {
-  state: null,
-  notice: null,
-  dismiss: () => undefined,
-  choose: async () => undefined,
-  refresh: async () => undefined,
-  phase: 'idle',
-  problem: null,
-  overridden: false,
-};
-
-const UpdatesContext = createContext<UpdatesApi>(INACTIVE);
+import { readDismissedUpdate, updateNotice, writeDismissedUpdate, type UpdateState } from './update-notice';
+import { UpdatesContext, type ChoicePhase, type UpdatesApi } from './updates-context';
 
 const dismissals = new Set<() => void>();
 
@@ -146,8 +105,4 @@ export function UpdatesProvider({ children }: { children: ReactNode }) {
   );
 
   return <UpdatesContext value={value}>{children}</UpdatesContext>;
-}
-
-export function useUpdates(): UpdatesApi {
-  return useContext(UpdatesContext);
 }

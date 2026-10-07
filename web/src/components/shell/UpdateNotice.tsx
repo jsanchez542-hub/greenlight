@@ -1,7 +1,7 @@
 'use client';
 
 import { useMessages } from '@/i18n/context';
-import { useUpdates } from '@/lib/use-updates';
+import { useUpdates } from '@/lib/updates-context';
 import styles from './UpdateNotice.module.css';
 
 export function UpdateNotice({ variant }: { variant: 'note' | 'banner' }) {
