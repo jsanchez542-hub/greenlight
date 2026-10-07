@@ -1,11 +1,7 @@
 .logo {
   display: inline-flex;
   flex: none;
-}
-
-.logo img {
-  width: 100%;
-  height: auto;
+  line-height: 0;
 }
 
 .onDark {
