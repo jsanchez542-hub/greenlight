@@ -11,7 +11,10 @@ export type IconName =
   | 'search'
   | 'chevron'
   | 'help'
-  | 'connect';
+  | 'connect'
+  | 'sun'
+  | 'moon'
+  | 'monitor';
 
 const paths: Record<IconName, ReactNode> = {
   overview: (
@@ -61,6 +64,19 @@ const paths: Record<IconName, ReactNode> = {
       <path d="M9 3v5M15 3v5" />
       <path d="M6.5 8h11v3.5a5.5 5.5 0 0 1-11 0V8Z" />
       <path d="M12 17v4" />
+    </>
+  ),
+  sun: (
+    <>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4" />
+    </>
+  ),
+  moon: <path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z" />,
+  monitor: (
+    <>
+      <rect x="3" y="4" width="18" height="12" rx="1.5" />
+      <path d="M9 20h6M12 16v4" />
     </>
   ),
   help: (

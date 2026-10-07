@@ -10,6 +10,7 @@ import type { SidebarState } from '@/lib/sidebar';
 import { Icon } from '../ui/Icon';
 import { ConnectHint } from './ConnectHint';
 import { Logo } from './Logo';
+import { ThemeToggle } from './ThemeToggle';
 import styles from './Sidebar.module.css';
 
 interface SidebarProps {
@@ -106,6 +107,7 @@ export function Sidebar({ state, onToggle, onTour }: SidebarProps) {
             <kbd>/</kbd> search workflows
           </span>
         </p>
+        <ThemeToggle placement="sidebar" />
         <button type="button" className={styles.toggle} onClick={onTour} title="Take the tour (?)">
           <Icon name="help" />
           <span className={styles.label}>Take the tour</span>
