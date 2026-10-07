@@ -113,8 +113,8 @@ example can show every check at once. `npm run example` reproduces it from
 | Each finding shows the evidence it rests on and what to review. | Every workflow that was checked, with its state, trigger and last run. |
 | ![The first-run tour pointing at the four states](docs/images/tour.png) | ![The page that connects your n8n, with its three steps](docs/images/setup.png) |
 | A short tour the first time you open it. | **Connect your n8n**: three steps and a live connection check. |
-
-<img src="docs/images/mobile.png" alt="The overview on a phone-sized screen" width="280">
+| ![The light theme](docs/images/light.png) | <img src="docs/images/mobile.png" alt="The overview on a phone-sized screen" width="240"> |
+| A light and a dark theme, with a switch. | It works on a phone-sized screen too. |
 
 - **Overview, Findings, Workflows and Checks.** The last page explains what each check looks for
   and the exact defaults it uses.
@@ -122,7 +122,10 @@ example can show every check at once. `npm run example` reproduces it from
   Without one it shows sample data, labelled as such.
 - **A first-run guide.** The first time you open it there is a short tour, and a **Connect your
   n8n** page that runs the same step-by-step check as `npm run doctor`.
-- **It works on a phone-sized screen** and follows your light or dark setting.
+- **Light and dark.** A switch in the sidebar, and in the top bar on a phone, cycles System, Light
+  and Dark and remembers the choice. System follows your operating system.
+- **It works on a phone-sized screen.** It needs a current browser: Chrome or Edge 123, Firefox 120
+  or Safari 17.5 and newer.
 - **Keyboard first.** `g` then `o`, `f`, `w` or `c` moves between pages, and `/` searches workflows.
 
 The dashboard has no login of its own. It listens on `127.0.0.1` and refuses other host names, so
