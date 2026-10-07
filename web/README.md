@@ -110,6 +110,19 @@ After you connect, Overview shows one dismissible card about alerts: `npm run wa
 when something new appears. The Watching section of the root `README.md` explains where the
 alerts can go.
 
+## Theme
+
+Light, dark or follow the system. The switch is at the foot of the sidebar, above "Take the
+tour", and in the top bar on a narrow screen. It cycles System, Light, Dark, and its label
+says which one is active and which comes next. System is the default and keeps following the
+operating system while the page is open; Light and Dark override it in both directions.
+
+The choice is stored in the browser under a versioned key and applied by a short script in the
+page head before anything is painted, so a forced theme never flashes the other one. If the
+browser blocks storage the page falls back to following the system. All colours come from
+variables defined with `light-dark()` in `src/app/globals.css`, so the browser's own controls
+and scrollbars follow the theme too, and the logo changes variant with it.
+
 ## Tour and keyboard
 
 The welcome dialog appears the first time the dashboard is opened in a browser. It offers the
