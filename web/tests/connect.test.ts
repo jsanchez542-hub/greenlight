@@ -369,6 +369,7 @@ describe('how often', () => {
 
     expect(refused.status).toBe(429);
     expect(refused.headers.get('retry-after')).toBe('1');
+    expect((await refused.json()).error).toBe('Too many attempts. Try again in 1 second.');
     expect(diagnoseCalls).toHaveLength(1);
 
     now += 1_000;

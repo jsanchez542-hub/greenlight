@@ -138,7 +138,7 @@ export async function handleConnect(request: Request, context: ConnectContext): 
 
   const turn = context.limiter.check();
   if (!turn.allowed) {
-    return refuse(`Too many attempts. Try again in ${turn.retryAfterSeconds} seconds.`, 429, {
+    return refuse(`Too many attempts. Try again in ${turn.retryAfterSeconds} ${turn.retryAfterSeconds === 1 ? 'second' : 'seconds'}.`, 429, {
       'Retry-After': String(turn.retryAfterSeconds),
     });
   }

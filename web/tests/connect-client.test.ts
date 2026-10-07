@@ -77,7 +77,10 @@ describe('requestConnect', () => {
     const offline: typeof fetch = async () => {
       throw new TypeError('Failed to fetch');
     };
-    const error = await requestConnect('https://n8n.example.com', 'SENTINEL-KEY', signal, offline).catch((failure) => failure as Error);
+    const error = await requestConnect('https://n8n.example.com', 'SENTINEL-KEY', signal, offline).then(
+      () => new Error('it should have failed'),
+      (failure: unknown) => failure as Error,
+    );
     expect(error.message).toContain('did not answer');
     expect(error.message).not.toContain('SENTINEL-KEY');
   });
