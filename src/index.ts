@@ -1,6 +1,7 @@
 export { loadConfig, loadWatchConfig, type Config, type WatchConfig } from './config.js';
 export { INSECURE_HTTP_MESSAGE, N8nApiError, N8nClient, type N8nClientOptions } from './n8n/client.js';
 export { isPrivateHost } from './n8n/network.js';
+export { VERSION } from './version.js';
 export { renderReport } from './report.js';
 export {
   SCAN_RESULT_VERSION,

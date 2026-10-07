@@ -48,6 +48,16 @@ The dashboard has its own project in `web/` with its own `lint`, `typecheck`, `t
 4. Document it in the README table and in "How it decides", and describe it for the dashboard in
    `web/src/lib/detectors.ts`.
 
+## Releasing
+
+1. Move the entries under "Unreleased" in `CHANGELOG.md` to a heading with the new version and the date.
+2. Set the version with `npm version <x.y.z> --no-git-tag-version` in the root and in `web/`, and commit.
+3. Tag it `vX.Y.Z`, push the tag and create the release from the same text:
+   `gh release create vX.Y.Z --title "vX.Y.Z" --notes-file <the changelog text>`.
+
+Fixes are patch versions, anything new that keeps working setups working is a minor version, and a
+major version is only for a change that breaks something the README promises to keep stable.
+
 ## Commits and pull requests
 
 - Commit messages are in English with a prefix (`feat:`, `fix:`, `docs:`, `test:`, `chore:`), and
