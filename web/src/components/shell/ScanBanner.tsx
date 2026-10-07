@@ -10,9 +10,20 @@ import { useDataAge } from './Freshness';
 import styles from './ScanBanner.module.css';
 
 export function ScanBanner() {
-  const { source, liveAvailable, problem, intervalMinutes } = useScanControls();
+  const { source, liveAvailable, problem, intervalMinutes, settingsProblem } = useScanControls();
   const age = useDataAge();
   const pathname = usePathname();
+
+  if (settingsProblem !== null) {
+    return (
+      <div className={styles.banner} data-state="critical" role="alert">
+        <StatusIcon state="critical" />
+        <p>
+          <strong>The settings file cannot be used.</strong> {settingsProblem} Fix it and reload the page.
+        </p>
+      </div>
+    );
+  }
 
   if (source === 'sample') {
     return (

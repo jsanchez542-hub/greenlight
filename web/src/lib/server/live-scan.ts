@@ -1,5 +1,6 @@
 import { N8nClient, loadConfig, scan, type ScanResult } from 'greenlight';
 import { currentEnvironment, type Environment } from './environment';
+import { checkInstanceUrl } from './instance-url';
 import { ScanCache } from './scan-cache';
 
 const REDACTED = '[redacted]';
@@ -20,7 +21,7 @@ interface CacheHolder {
 const holder = globalThis as typeof globalThis & CacheHolder;
 
 export function isLiveScanConfigured(env: Environment = currentEnvironment()): boolean {
-  return Boolean(env['N8N_BASE_URL']?.trim() && env['N8N_API_KEY']?.trim());
+  return Boolean(env['N8N_API_KEY']?.trim()) && checkInstanceUrl(env['N8N_BASE_URL']).ok;
 }
 
 export function scanIntervalMinutes(env: Environment = currentEnvironment()): number {

@@ -84,3 +84,23 @@ describe('hostOf', () => {
     expect(hostOf({ N8N_BASE_URL: 'not a url' })).toBeNull();
   });
 });
+
+describe('isLiveScanConfigured with unsafe addresses', () => {
+  const key = 'a-key';
+
+  it('refuses an address that would send the key somewhere it should not go', () => {
+    for (const address of [
+      'file:///etc/passwd',
+      'javascript:alert(1)',
+      'ftp://n8n.example.com',
+      'https://user:pass@n8n.example.com',
+      'not a url',
+    ]) {
+      expect(isLiveScanConfigured({ N8N_BASE_URL: address, N8N_API_KEY: key })).toBe(false);
+    }
+  });
+
+  it('accepts a plain address', () => {
+    expect(isLiveScanConfigured({ N8N_BASE_URL: 'https://n8n.example.com', N8N_API_KEY: key })).toBe(true);
+  });
+});
