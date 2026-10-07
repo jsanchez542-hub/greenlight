@@ -3,6 +3,13 @@
 // dashboard itself lives in web/ and this only prepares it, starts it and shows where it is.
 import { spawn, spawnSync } from 'node:child_process';
 import { browserOpeningDisabled, findFreePort, findLocalUrl, openCommand } from '../dist/panel/launcher.js';
+import { nodeVersionProblem } from '../dist/runtime.js';
+
+const problem = nodeVersionProblem(process.versions.node);
+if (problem !== null) {
+  process.stderr.write(`${problem}\n`);
+  process.exit(2);
+}
 
 const web = ['--prefix', 'web'];
 const shell = process.platform === 'win32';
