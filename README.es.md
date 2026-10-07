@@ -36,7 +36,7 @@ npm run panel
 minutos. Empieza con datos de ejemplo, así que puedes explorarlo enseguida. Si otro programa usa el
 puerto 3000, elige el siguiente libre y te dice cuál.
 
-Para ver tu propio n8n, pulsa **Conectar tu n8n**, escribe su dirección y una clave de API, y pulsa
+Para ver tu propio n8n, pulsa **Conecta tu n8n**, escribe su dirección y una clave de API, y pulsa
 **Conectar**. En n8n la clave está en Settings, luego n8n API, y basta con permiso de lectura. La clave
 se queda en este equipo, en un archivo `.env` que git ignora. Si algo falla, la página dice qué y cómo
 corregirlo, y **Desconectar** lo deshace.
@@ -113,7 +113,7 @@ los nodos son datos de esa instancia y no se traducen.
 | ![Un hallazgo con los números en los que se apoya](docs/images/finding.png) | ![Todos los workflows, ordenables y filtrables](docs/images/workflows.png) |
 | Cada hallazgo muestra la evidencia en la que se apoya y qué revisar. | Todos los workflows comprobados, con su estado, su disparador y su última ejecución. |
 | ![El recorrido de primer uso señalando los cuatro estados](docs/images/tour.png) | ![La página que conecta tu n8n: dos campos y un botón](docs/images/setup.png) |
-| Un recorrido breve la primera vez que lo abres. | **Conectar tu n8n**: una dirección, una clave y un botón. |
+| Un recorrido breve la primera vez que lo abres. | **Conecta tu n8n**: una dirección, una clave y un botón. |
 | ![El tema claro](docs/images/light.png) | <img src="docs/images/mobile.png" alt="El resumen en una pantalla del tamaño de un móvil" width="240"> |
 | Un tema claro y uno oscuro, con un selector. | También funciona en una pantalla del tamaño de un móvil. |
 
@@ -122,7 +122,7 @@ los nodos son datos de esa instancia y no se traducen.
 - **En vivo o de ejemplo.** Con una instancia configurada, analiza por su cuenta y muestra la antigüedad
   de los datos. Sin ella, muestra datos de ejemplo, indicados como tales.
 - **Una guía de primer uso.** La primera vez que lo abres hay un recorrido breve, una sola vez.
-  **Conectar tu n8n** es un formulario de dos campos: ejecuta la misma comprobación paso a paso que
+  **Conecta tu n8n** es un formulario de dos campos: ejecuta la misma comprobación paso a paso que
   `npm run doctor` y guarda la conexión por ti, sin terminal.
 - **Claro y oscuro.** Un selector en la barra lateral, y en la barra superior en el móvil, alterna entre
   Sistema, Claro y Oscuro y recuerda la elección. Sistema sigue el de tu sistema operativo.
@@ -356,11 +356,12 @@ un correo.
 ## Idioma
 
 El panel, la línea de comandos, la comprobación de la conexión y las alertas están disponibles en inglés
-y en español. El idioma se elige en este orden: el selector de idioma del panel (recuerda tu elección),
-`--lang es` o `--lang en` en la línea de comandos, `GREENLIGHT_LANG`, el idioma de tu equipo y, si
-ninguno indica español, inglés. La salida `--json` y las claves de las alertas no cambian con el idioma,
-de modo que un programa que las lea nunca se ve afectado; solo se traducen las frases pensadas para una
-persona.
+y en español. En la línea de comandos y en las alertas, el idioma se elige en este orden: `--lang es` o
+`--lang en`, `GREENLIGHT_LANG`, el idioma de tu equipo y, si ninguno indica español, inglés. En el panel,
+el orden es: el selector ES | EN de la barra lateral (recuerda tu elección), `GREENLIGHT_LANG`, el
+idioma de tu navegador y, si ninguno indica español, inglés. La salida `--json` y las claves de las
+alertas no cambian con el idioma, de modo que un programa que las lea nunca se ve afectado; solo se
+traducen las frases pensadas para una persona.
 
 Este README también está disponible en [inglés](README.md). [CHANGELOG.md](CHANGELOG.md),
 [CONTRIBUTING.md](CONTRIBUTING.md) y [SECURITY.md](SECURITY.md) están en inglés.

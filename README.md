@@ -341,11 +341,12 @@ Without it, use **Watch, then Custom, then Releases** on this repository on GitH
 ## Language
 
 The dashboard, the command line, the connection check and the alerts are available in English and
-Spanish. The language is chosen in this order: the language switch in the dashboard (it remembers
-your choice), `--lang es` or `--lang en` on the command line, `GREENLIGHT_LANG`, the language of
-your computer, and English if none of those says Spanish. The `--json` output and the keys of the
-alert payload do not change with the language, so a program reading them is never affected; only
-sentences meant for a person are translated. The sentence of a finding in `--json` stays in English
+Spanish. On the command line and in the alerts the language is chosen in this order: `--lang es` or
+`--lang en`, `GREENLIGHT_LANG`, the language of your computer, and English if none of those says
+Spanish. In the dashboard the order is: the ES | EN switch in the sidebar (it remembers your
+choice), `GREENLIGHT_LANG`, the language of your browser, and English if none of those says Spanish.
+The `--json` output and the keys of the alert payload do not change with the language, so a program
+reading them is never affected; only sentences meant for a person are translated. The sentence of a finding in `--json` stays in English
 and the evidence beside it carries the same numbers.
 
 This README, [CHANGELOG.md](CHANGELOG.md), [CONTRIBUTING.md](CONTRIBUTING.md) and
