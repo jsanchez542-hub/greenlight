@@ -1,4 +1,5 @@
 import { headers } from 'next/headers';
+import { VERSION } from 'greenlight';
 import type { ReactNode } from 'react';
 import { AppShell } from '@/components/shell/AppShell';
 import { sampleResult } from '@/lib/sample';
@@ -29,7 +30,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       settingsProblem={hostAllowed ? problem : null}
       initialSnapshot={liveAvailable ? liveCache(env).snapshot() : null}
     >
-      <AppShell>{children}</AppShell>
+      <AppShell version={VERSION}>{children}</AppShell>
     </ScanProvider>
   );
 }
