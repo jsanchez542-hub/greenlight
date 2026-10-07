@@ -91,8 +91,16 @@ export function tourActions(step: number, liveAvailable: boolean, total: number 
   return { skip: false, back, primary: liveAvailable ? 'done' : 'connect', secondaryDone: !liveAvailable };
 }
 
-export function visibleState(state: OnboardingState, welcomeSeen: boolean): OnboardingState {
-  return state.phase === 'closed' && !welcomeSeen ? { phase: 'welcome' } : state;
+/**
+ * The welcome shows to someone who has not seen it, and stays up until it is dismissed even
+ * though showing it is what marks it as seen.
+ */
+export function visibleState(
+  state: OnboardingState,
+  welcomeSeen: boolean,
+  shownThisVisit = false,
+): OnboardingState {
+  return state.phase === 'closed' && (!welcomeSeen || shownThisVisit) ? { phase: 'welcome' } : state;
 }
 
 export function welcomeChoices(liveAvailable: boolean): { tour: boolean; connect: boolean } {

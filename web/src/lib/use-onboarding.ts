@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { useCallback, useReducer } from 'react';
+import { useCallback, useReducer, useState } from 'react';
 import { onboardingReducer, visibleState, type OnboardingState } from './onboarding';
 import { WELCOME_FLAG, WELCOME_SKIPPED_FLAG } from './stored-flag';
 import { useStoredFlag } from './use-stored-flag';
@@ -11,10 +11,17 @@ export function useOnboarding() {
   const pathname = usePathname();
   const [welcomeSeen, markWelcomeSeen] = useStoredFlag(WELCOME_FLAG);
   const [, markWelcomeSkipped] = useStoredFlag(WELCOME_SKIPPED_FLAG);
+  const [shownThisVisit, setShownThisVisit] = useState(false);
   const [state, dispatch] = useReducer(onboardingReducer, { phase: 'closed' } satisfies OnboardingState);
+
+  const welcomeShown = useCallback(() => {
+    markWelcomeSeen();
+    setShownThisVisit(true);
+  }, [markWelcomeSeen]);
 
   const startTour = useCallback(() => {
     markWelcomeSeen();
+    setShownThisVisit(false);
     if (pathname !== '/') {
       router.push('/');
     }
@@ -23,6 +30,7 @@ export function useOnboarding() {
 
   const close = useCallback(() => {
     markWelcomeSeen();
+    setShownThisVisit(false);
     dispatch({ type: 'close' });
   }, [markWelcomeSeen]);
 
@@ -34,5 +42,13 @@ export function useOnboarding() {
   const next = useCallback(() => dispatch({ type: 'next' }), []);
   const back = useCallback(() => dispatch({ type: 'back' }), []);
 
-  return { state: visibleState(state, welcomeSeen), startTour, close, skipWelcome, next, back };
+  return {
+    state: visibleState(state, welcomeSeen, shownThisVisit),
+    welcomeShown,
+    startTour,
+    close,
+    skipWelcome,
+    next,
+    back,
+  };
 }
