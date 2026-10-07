@@ -35,6 +35,7 @@ vi.mock('@/lib/server/live-scan', async (importOriginal) => {
 
 const scan = await import('@/app/api/scan/route');
 const setup = await import('@/app/api/setup/route');
+const connect = await import('@/app/api/connect/route');
 
 const configured = { N8N_BASE_URL: 'https://n8n.example.com', N8N_API_KEY: 'sentinel-key-123' };
 
@@ -176,6 +177,22 @@ describe('methods', () => {
     const response = scan.OPTIONS();
     expect(response.status).toBe(204);
     expect(response.headers.get('allow')).toBe('GET, POST, OPTIONS');
+    expect(response.headers.get('access-control-allow-origin')).toBeNull();
+  });
+});
+
+describe('/api/connect methods', () => {
+  it('only answers POST, and says so for every other method', () => {
+    for (const handler of [connect.GET, connect.HEAD, connect.PUT, connect.PATCH, connect.DELETE]) {
+      const response = handler();
+      expect(response.status).toBe(405);
+      expect(response.headers.get('allow')).toBe('POST, OPTIONS');
+    }
+  });
+
+  it('answers OPTIONS without any cross-origin permission', () => {
+    const response = connect.OPTIONS();
+    expect(response.status).toBe(204);
     expect(response.headers.get('access-control-allow-origin')).toBeNull();
   });
 });
