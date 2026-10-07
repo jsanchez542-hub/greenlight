@@ -22,33 +22,27 @@ announce themselves.
 
 ## Quick start
 
-You need Node.js 22.12 or newer, and an n8n instance where you can create an API key.
+You need two things: **Node.js 22.12 or newer** (from [nodejs.org](https://nodejs.org); the button
+marked LTS is the right one) and **Git**, or the **Code, then Download ZIP** button on this page.
 
 ```bash
 git clone https://github.com/jsanchez542-hub/greenlight.git
 cd greenlight
 npm install
-npm run setup
+npm run panel
 ```
 
-`npm run setup` walks you through it. It tells you where to create the key (in n8n, Settings,
-then n8n API; read access is enough), asks for the address of your instance and the key, checks
-the connection step by step and saves the result to a `.env` file that git ignores. If something
-is wrong it says what, and what to do about it.
+`npm run panel` prepares the dashboard, starts it and opens it in your browser. The first time takes a
+minute or two. It starts with sample data, so you can look around straight away. If something else
+is using port 3000 it picks the next free one and says which.
 
-Then pick how you want to look:
+To see your own n8n, press **Connect your n8n**, type its address and an API key, and press
+**Connect**. In n8n the key is under Settings, then n8n API, and read access is enough. The key
+stays on this computer, in a `.env` file that git ignores. If something is wrong the page says what
+and how to fix it, and **Disconnect** undoes it.
 
-```bash
-npm run scan     # a report in the terminal
-npm run panel    # the dashboard, at http://127.0.0.1:3000
-npm run watch    # keep watching and get alerted when something new appears
-```
-
-If anything does not work, `npm run doctor` repeats the connection check and points at the step
-that fails.
-
-No instance at hand? `npm run example` prints a report for an invented one, and the dashboard
-shows the same sample data, clearly labelled, until you connect your own.
+Prefer the terminal? `npm run setup` asks the same two questions, `npm run scan` prints a report,
+and `npm run doctor` checks the connection step by step if something does not work.
 
 ## What it looks for
 
@@ -111,8 +105,8 @@ example can show every check at once. `npm run example` reproduces it from
 | --- | --- |
 | ![A finding with the numbers it rests on](docs/images/finding.png) | ![Every workflow, sortable and filterable](docs/images/workflows.png) |
 | Each finding shows the evidence it rests on and what to review. | Every workflow that was checked, with its state, trigger and last run. |
-| ![The first-run tour pointing at the four states](docs/images/tour.png) | ![The page that connects your n8n, with its three steps](docs/images/setup.png) |
-| A short tour the first time you open it. | **Connect your n8n**: three steps and a live connection check. |
+| ![The first-run tour pointing at the four states](docs/images/tour.png) | ![The page that connects your n8n: two fields and a button](docs/images/setup.png) |
+| A short tour the first time you open it. | **Connect your n8n**: an address, a key and one button. |
 | ![The light theme](docs/images/light.png) | <img src="docs/images/mobile.png" alt="The overview on a phone-sized screen" width="240"> |
 | A light and a dark theme, with a switch. | It works on a phone-sized screen too. |
 
@@ -120,8 +114,9 @@ example can show every check at once. `npm run example` reproduces it from
   and the exact defaults it uses.
 - **Live or sample.** With a configured instance it scans on its own and shows how old the data is.
   Without one it shows sample data, labelled as such.
-- **A first-run guide.** The first time you open it there is a short tour, and a **Connect your
-  n8n** page that runs the same step-by-step check as `npm run doctor`.
+- **A first-run guide.** The first time you open it there is a short tour, once. **Connect your n8n**
+  is a form with two fields: it runs the same step-by-step check as `npm run doctor` and saves the
+  connection for you, with no terminal.
 - **Light and dark.** A switch in the sidebar, and in the top bar on a phone, cycles System, Light
   and Dark and remembers the choice. System follows your operating system.
 - **It works on a phone-sized screen.** It needs a current browser: Chrome or Edge 123, Firefox 120
@@ -212,7 +207,7 @@ anywhere is the alert that `watch` posts to the webhook you configure.
 | `npm run doctor` | checks the connection step by step |
 | `npm run scan` | scans once and prints the report; add `-- --json` for structured output |
 | `npm run watch` | scans on a schedule and alerts on changes |
-| `npm run panel` | installs and starts the dashboard |
+| `npm run panel` | prepares and starts the dashboard, and opens it in the browser |
 | `npm run example` | prints the report for a synthetic instance |
 
 `scan` and `watch --once` exit with 0 when nothing is found, 1 when something is, and 2 when the

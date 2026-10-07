@@ -31,6 +31,11 @@ think the impact is. It will be answered as soon as possible.
   that for people who accept the risk, and the connection check says so when it is on.
 - **It is never shown.** Reports, errors, the dashboard and its server log do not contain the key,
   and the tests look for it in every output.
+- **The dashboard can save the connection for you.** The connection form writes the address and the key
+  to `.env`, nothing else, and only when the check passes. The request has to come from the page itself
+  on this machine, is limited in size and in frequency, and a value that contains a line break is
+  refused so it cannot add settings of its own. The form never keeps the key, and it is not in the
+  browser, in the address bar or in any response.
 - **Files stay private.** `.env` and the file that remembers what `watch` reported are created
   readable only by their owner, on systems that support it.
 - **The alert webhook does not follow redirects**, because the alert text and the token would travel
