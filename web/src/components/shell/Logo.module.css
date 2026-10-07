@@ -12,12 +12,20 @@
   display: none;
 }
 
+:global(:root[data-theme='dark']) .onLight {
+  display: none;
+}
+
+:global(:root[data-theme='dark']) .onDark {
+  display: block;
+}
+
 @media (prefers-color-scheme: dark) {
-  .onLight {
+  :global(:root:not([data-theme='light'])) .onLight {
     display: none;
   }
 
-  .onDark {
+  :global(:root:not([data-theme='light'])) .onDark {
     display: block;
   }
 }

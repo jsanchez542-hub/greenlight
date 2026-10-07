@@ -7,6 +7,7 @@ import { useScanControls } from '@/lib/scan-context';
 import { Freshness } from './Freshness';
 import { Logo } from './Logo';
 import { SourceControl } from './SourceControl';
+import { ThemeToggle } from './ThemeToggle';
 import styles from './TopBar.module.css';
 
 function locationOf(pathname: string, source: string): string[] {
@@ -40,6 +41,7 @@ export function TopBar() {
       <div className={styles.right}>
         <Freshness />
         <SourceControl />
+        <ThemeToggle placement="top" />
       </div>
     </header>
   );
