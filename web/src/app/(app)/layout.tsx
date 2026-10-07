@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { AppShell } from '@/components/shell/AppShell';
 import { UpdatesProvider } from '@/lib/use-updates';
 import { sampleResult } from '@/lib/sample';
-import { ScanProvider } from '@/lib/scan-context';
+import { ScanProvider } from '@/lib/live-scan-provider';
 import type { FailureCode } from '@/lib/failure';
 import { currentEnvironment, environmentProblem, type Environment } from '@/lib/server/environment';
 import { isAllowedHost } from '@/lib/server/host';

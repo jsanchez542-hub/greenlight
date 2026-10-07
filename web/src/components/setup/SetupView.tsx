@@ -6,7 +6,7 @@ import { useMessages } from '@/i18n/context';
 import { requestConnect, requestDisconnect, type ConnectNotice, type ConnectResult } from '@/lib/connect-client';
 import { ApiFailure, failureCodeOf, failureText, type FailureCode } from '@/lib/failure';
 import { useScanControls } from '@/lib/scan-context';
-import { useUpdates } from '@/lib/use-updates';
+import { useUpdates } from '@/lib/updates-context';
 import { setupPhase } from '@/lib/setup-status';
 import { useSetupStatus } from '@/lib/use-setup-status';
 import { CopyButton } from '../ui/CopyButton';
