@@ -1,6 +1,6 @@
 {
   "name": "greenlight",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Detects n8n workflow failures that report success",
   "license": "MIT",
   "author": "Miguel Sanchez Torres",

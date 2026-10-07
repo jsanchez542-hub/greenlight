@@ -305,6 +305,22 @@ limits what can be compared. Workflows that have never run are skipped rather th
 Detail inspection is sampled, not exhaustive, because that endpoint is expensive. The scan reads
 workflows one after another, so on a large instance it takes as long as the API takes to answer.
 
+## Versions and updates
+
+GreenLight follows [semantic versioning](https://semver.org). Throughout 1.x the following does not
+change in a way that breaks a setup that works: the commands and their flags, the environment
+variables, the exit codes, the `--json` output (`version: 1`) and the alert payload. New checks and
+settings arrive in minor versions, fixes in patch versions, and anything that would break that list
+waits for 2.0.0. The look and the internals of the dashboard may change in any minor version.
+
+`greenlight --version` tells you which version you have, and `greenlight doctor` prints it too, so it
+is in every bug report. To update a clone, run `git pull` and then `npm install`. What changed is in
+[CHANGELOG.md](CHANGELOG.md).
+
+To hear about new versions, use **Watch, then Custom, then Releases** on this repository on GitHub.
+GreenLight itself never checks for updates: it contacts nothing but your n8n and, if you set one,
+your alert webhook.
+
 ## Project layout
 
 | Folder | What is in it |

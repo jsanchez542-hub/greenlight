@@ -3,6 +3,7 @@ import { loadConfig, loadWatchConfig } from './config.js';
 import { N8nClient } from './n8n/client.js';
 import { renderReport } from './report.js';
 import { nodeVersionProblem } from './runtime.js';
+import { VERSION } from './version.js';
 import { diagnose } from './setup/diagnose.js';
 import { runInit, renderDiagnosis } from './setup/init.js';
 import { SetupCancelled, createTerminalPrompter } from './setup/prompter.js';
@@ -17,6 +18,7 @@ const usage = `GreenLight  checks an n8n instance for workflows that fail withou
   greenlight init                     guided first-time setup: connects to your n8n and saves .env
   greenlight doctor                   checks the connection step by step and says what to fix
   greenlight [--json]                 scan once and print the report
+  greenlight --version                print the version
   greenlight watch [--once]           scan on a schedule and alert when something new appears
 
 Settings are read from the environment and from a .env file in the current folder.
@@ -90,7 +92,7 @@ async function runDoctor(): Promise<number> {
     apiKey: process.env['N8N_API_KEY'],
     allowInsecureHttp: ['1', 'true'].includes((process.env['GREENLIGHT_ALLOW_INSECURE_HTTP'] ?? '').toLowerCase()),
   });
-  const heading = result.host === null ? 'GreenLight doctor' : `GreenLight doctor  ${result.host}`;
+  const heading = `GreenLight ${VERSION}  doctor${result.host === null ? '' : `  ${result.host}`}`;
   process.stdout.write(`${heading}\n\n`);
   process.stdout.write(`${renderDiagnosis(result).join('\n')}\n\n`);
   if (result.ok) {
@@ -168,6 +170,11 @@ async function main(argv: string[]): Promise<number> {
   if (problem !== null) {
     process.stderr.write(`${problem}\n`);
     return 2;
+  }
+
+  if (argv.includes('--version') || argv.includes('-v')) {
+    process.stdout.write(`${VERSION}\n`);
+    return 0;
   }
 
   if (argv.includes('--help') || argv.includes('-h')) {
