@@ -49,6 +49,15 @@ With watch --once it is the same, so it can run from cron or a scheduler.
       `A new version is available: ${latest} (you have ${current}). What changed: ${url}`,
   },
 
+  panel: {
+    preparing: 'Getting the dashboard ready (the first time takes a minute or two)...',
+    building: 'Building it...',
+    failed: 'The dashboard could not be prepared. The messages above say why.',
+    portBusy: (port: number) => `Port 3000 is in use by another program, so GreenLight will use ${port}.`,
+    ready: (url: string) => `GreenLight is ready: ${url}\nPress Ctrl+C here to stop it.`,
+    noFreePort: (from: number, to: number) => `No free port was found from ${from} to ${to}.`,
+  },
+
   runtime: {
     nodeTooOld: (needed: string, found: string) =>
       `GreenLight needs Node.js ${needed} or newer and this computer has ${found}. Install the current LTS version from https://nodejs.org and run the command again.`,

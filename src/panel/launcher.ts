@@ -1,4 +1,5 @@
 import { createServer } from 'node:net';
+import { messagesFor, type Lang } from '../i18n/index.js';
 
 /** Finds the address the dashboard announces when it starts, such as http://127.0.0.1:3000. */
 export function findLocalUrl(output: string): string | null {
@@ -46,11 +47,12 @@ export async function findFreePort(
   start: number,
   isFree: (port: number) => Promise<boolean> = isPortFree,
   attempts = 50,
+  lang: Lang = 'en',
 ): Promise<number> {
   for (let port = start; port < start + attempts; port += 1) {
     if (await isFree(port)) {
       return port;
     }
   }
-  throw new Error(`No free port was found from ${start} to ${start + attempts - 1}.`);
+  throw new Error(messagesFor(lang).panel.noFreePort(start, start + attempts - 1));
 }

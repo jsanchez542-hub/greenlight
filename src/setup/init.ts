@@ -22,13 +22,15 @@ export interface InitDependencies {
 export function renderDiagnosis(diagnosis: Diagnosis, lang: Lang = 'en'): string[] {
   const marks = messagesFor(lang).init.marks;
   const lines: string[] = [];
+  // The details line up under the label whatever the width of the mark in this language.
+  const indent = ' '.repeat(3 + marks.ok.length);
   for (const item of diagnosis.steps) {
     lines.push(`  ${marks[item.status]} ${item.label}`);
     if (item.status !== 'skipped') {
-      lines.push(`         ${item.detail}`);
+      lines.push(`${indent}${item.detail}`);
     }
     if (item.hint !== undefined) {
-      lines.push(`         -> ${item.hint}`);
+      lines.push(`${indent}-> ${item.hint}`);
     }
   }
   return lines;

@@ -3,9 +3,15 @@
 // dashboard itself lives in web/ and this only prepares it, starts it and shows where it is.
 import { spawn, spawnSync } from 'node:child_process';
 import { browserOpeningDisabled, findFreePort, findLocalUrl, openCommand } from '../dist/panel/launcher.js';
+import { messagesFor, resolveLang } from '../dist/i18n/index.js';
 import { nodeVersionProblem } from '../dist/runtime.js';
 
-const problem = nodeVersionProblem(process.versions.node);
+// The language of this window is the one the person set, or the one of the computer. The .env file is
+// not read here: the dashboard reads it itself, and this script only prepares and starts it.
+const lang = resolveLang(process.env);
+const t = messagesFor(lang).panel;
+
+const problem = nodeVersionProblem(process.versions.node, lang);
 if (problem !== null) {
   process.stderr.write(`${problem}\n`);
   process.exit(2);
@@ -18,25 +24,25 @@ function step(message, args) {
   process.stdout.write(`\n${message}\n`);
   const result = spawnSync('npm', args, { stdio: 'inherit', shell });
   if (result.status !== 0) {
-    process.stderr.write('\nThe dashboard could not be prepared. The messages above say why.\n');
+    process.stderr.write(`\n${t.failed}\n`);
     process.exit(result.status ?? 1);
   }
 }
 
 // The audit summary is left out here: it reports advisories in development tools that never run
 // for the person using the dashboard, and would only alarm them. `npm audit` still works on its own.
-step('Getting the dashboard ready (the first time takes a minute or two)...', [
+step(t.preparing, [
   'install',
   ...web,
   '--no-audit',
   '--no-fund',
   '--loglevel=error',
 ]);
-step('Building it...', ['run', 'build', ...web]);
+step(t.building, ['run', 'build', ...web]);
 
-const port = process.env.PORT === undefined ? await findFreePort(3000) : Number(process.env.PORT);
+const port = process.env.PORT === undefined ? await findFreePort(3000, undefined, 50, lang) : Number(process.env.PORT);
 if (port !== 3000 && process.env.PORT === undefined) {
-  process.stdout.write(`\nPort 3000 is in use by another program, so GreenLight will use ${port}.\n`);
+  process.stdout.write(`\n${t.portBusy(port)}\n`);
 }
 
 const server = spawn('npm', ['start', ...web], {
@@ -54,7 +60,7 @@ server.stdout.on('data', (chunk) => {
     return;
   }
   announced = true;
-  process.stdout.write(`\nGreenLight is ready: ${url}\nPress Ctrl+C here to stop it.\n`);
+  process.stdout.write(`\n${t.ready(url)}\n`);
   if (!browserOpeningDisabled(process.argv.slice(2), process.env)) {
     const { command, args } = openCommand(process.platform, url);
     spawn(command, args, { stdio: 'ignore', detached: true, shell }).on('error', () => undefined).unref();
