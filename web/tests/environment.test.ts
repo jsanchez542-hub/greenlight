@@ -6,7 +6,7 @@ import {
   EnvFileError,
   MAX_ENV_FILE_BYTES,
   currentEnvironment,
-  describeEnvironmentProblem,
+  environmentProblem,
   readEnvFile,
   rootEnvPath,
 } from '@/lib/server/environment';
@@ -140,14 +140,14 @@ describe('rootEnvPath', () => {
   });
 });
 
-describe('describeEnvironmentProblem', () => {
-  it('shows the safe message of an environment error', () => {
-    const error = new EnvFileError('The .env file cannot be read (EACCES).');
-    expect(describeEnvironmentProblem(error)).toBe('The .env file cannot be read (EACCES).');
+describe('environmentProblem', () => {
+  it('names the kind of problem of an environment error, never its text', () => {
+    const error = new EnvFileError('envUnreadable', 'The .env file cannot be read (EACCES).');
+    expect(environmentProblem(error)).toBe('envUnreadable');
   });
 
-  it('hides the message of anything else, which could carry a path', () => {
+  it('hides anything else, which could carry a path', () => {
     const error = new Error("EACCES: permission denied, open '/home/someone/project/.env'");
-    expect(describeEnvironmentProblem(error)).toBe('The settings could not be read.');
+    expect(environmentProblem(error)).toBe('settingsUnreadable');
   });
 });

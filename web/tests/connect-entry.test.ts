@@ -4,25 +4,19 @@ import { CONNECT_HINT_FLAG, WELCOME_SKIPPED_FLAG, WATCH_TIP_FLAG, WELCOME_FLAG }
 
 describe('connectEntry', () => {
   it('stands out and says so while no instance is connected', () => {
-    expect(connectEntry(false, null)).toEqual({
-      connected: false,
-      label: 'Connect',
-      detail: 'not connected',
-      emphasized: true,
-    });
+    expect(connectEntry(false, null)).toEqual({ connected: false, host: null, emphasized: true });
   });
 
-  it('reads Connected with the host once an instance is connected', () => {
+  it('reports the host once an instance is connected', () => {
     expect(connectEntry(true, 'n8n.example.com')).toEqual({
       connected: true,
-      label: 'Connected',
-      detail: 'n8n.example.com',
+      host: 'n8n.example.com',
       emphasized: false,
     });
   });
 
   it('does not invent a host that the server has not sent yet', () => {
-    expect(connectEntry(true, null).detail).toBeNull();
+    expect(connectEntry(true, null).host).toBeNull();
   });
 });
 

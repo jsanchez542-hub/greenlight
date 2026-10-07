@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { en } from '@/i18n/en';
+import { es } from '@/i18n/es';
 import { ageMs, formatAge, isStale } from '@/lib/freshness';
 import { parseLiveSnapshot } from '@/lib/live-snapshot';
 import { sampleResult } from '@/lib/sample';
@@ -17,13 +19,20 @@ describe('ageMs', () => {
 
 describe('formatAge', () => {
   it('says just now under a minute', () => {
-    expect(formatAge(59_000)).toBe('just now');
+    expect(formatAge(59_000, en)).toBe('just now');
   });
 
   it('uses whole minutes, hours and days', () => {
-    expect(formatAge(3 * MINUTE + 40_000)).toBe('3 min ago');
-    expect(formatAge(2 * 60 * MINUTE + 5 * MINUTE)).toBe('2 h ago');
-    expect(formatAge(3 * 24 * 60 * MINUTE)).toBe('3 days ago');
+    expect(formatAge(3 * MINUTE + 40_000, en)).toBe('3 min ago');
+    expect(formatAge(2 * 60 * MINUTE + 5 * MINUTE, en)).toBe('2 h ago');
+    expect(formatAge(3 * 24 * 60 * MINUTE, en)).toBe('3 days ago');
+  });
+
+  it('says it in Spanish with the right plural', () => {
+    expect(formatAge(59_000, es)).toBe('ahora mismo');
+    expect(formatAge(3 * MINUTE, es)).toBe('hace 3 min');
+    expect(formatAge(24 * 60 * MINUTE, es)).toBe('hace 1 día');
+    expect(formatAge(3 * 24 * 60 * MINUTE, es)).toBe('hace 3 días');
   });
 });
 
@@ -58,12 +67,23 @@ describe('parseLiveSnapshot', () => {
   it('reads a snapshot with no result yet', () => {
     const snapshot = parseLiveSnapshot({
       result: null,
-      error: 'The scan could not finish: unreachable',
+      error: 'scanRefused',
       refreshing: true,
       intervalMinutes: 5,
       host: 'n8n.test',
     });
-    expect(snapshot).toMatchObject({ result: null, refreshing: true });
+    expect(snapshot).toMatchObject({ result: null, refreshing: true, error: 'scanRefused' });
+  });
+
+  it('never lets text from the server through as an error', () => {
+    const snapshot = parseLiveSnapshot({
+      result: null,
+      error: 'The scan could not finish: unreachable',
+      refreshing: false,
+      intervalMinutes: 5,
+      host: null,
+    });
+    expect(snapshot.error).toBe('scanFailed');
   });
 
   it('rejects a snapshot missing a field', () => {

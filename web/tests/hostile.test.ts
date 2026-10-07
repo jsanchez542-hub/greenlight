@@ -5,7 +5,6 @@ import { describe, expect, it } from 'vitest';
 import { FindingRow } from '@/components/findings/FindingRow';
 import { ConnectionCheck } from '@/components/setup/ConnectionCheck';
 import { EvidenceList } from '@/components/ui/EvidenceList';
-import { NotInScan } from '@/components/ui/Notice';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { WorkflowTable } from '@/components/workflows/WorkflowTable';
 import { sampleResult } from '@/lib/sample';
@@ -109,13 +108,6 @@ describe('text from an instance is never rendered as markup', () => {
               },
             }),
           ),
-        payload,
-      );
-    });
-
-    it(`${label} cannot break out of the text of a notice`, () => {
-      expectPayloadToChangeNoStructure(
-        (text) => html(createElement(NotInScan, { what: text, backHref: '/findings', backLabel: 'Back' })),
         payload,
       );
     });

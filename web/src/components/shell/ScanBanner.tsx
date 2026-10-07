@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useMessages } from '@/i18n/context';
+import { failureText } from '@/lib/failure';
 import { SETUP_HREF } from '@/lib/navigation';
 import { useScanControls } from '@/lib/scan-context';
 import { ConnectLink } from '../ui/ConnectLink';
@@ -10,6 +12,7 @@ import { useDataAge } from './Freshness';
 import styles from './ScanBanner.module.css';
 
 export function ScanBanner() {
+  const t = useMessages();
   const { source, liveAvailable, problem, intervalMinutes, settingsProblem } = useScanControls();
   const age = useDataAge();
   const pathname = usePathname();
@@ -19,7 +22,7 @@ export function ScanBanner() {
       <div className={styles.banner} data-state="critical" role="alert">
         <StatusIcon state="critical" />
         <p>
-          <strong>The settings file cannot be used.</strong> {settingsProblem} Fix it and reload the page.
+          <strong>{t.scan.settingsBroken}</strong> {failureText(settingsProblem, t)} {t.scan.settingsFix}
         </p>
       </div>
     );
@@ -28,19 +31,19 @@ export function ScanBanner() {
   if (source === 'sample') {
     return (
       <p className={styles.banner} role="note">
-        <strong>These are invented workflows.</strong>
-        {liveAvailable && ' Choose Live instance to see your own.'}
+        <strong>{t.scan.invented}</strong>
+        {liveAvailable && t.scan.chooseLive}
         {!liveAvailable && pathname === '/' && (
           <>
             {' '}
-            Connect your n8n to see your own.
+            {t.scan.connectToSee}
             <ConnectLink />
           </>
         )}
         {!liveAvailable && pathname !== '/' && (
           <>
             {' '}
-            <Link href={SETUP_HREF}>Connect your n8n to see your own.</Link>
+            <Link href={SETUP_HREF}>{t.scan.connectToSee}</Link>
           </>
         )}
       </p>
@@ -52,11 +55,8 @@ export function ScanBanner() {
       <div className={styles.banner} data-state="warning" role="alert">
         <StatusIcon state="warning" />
         <p>
-          <strong>
-            Showing the last successful scan{age === null ? '' : `, ${age.label}`}.
-          </strong>{' '}
-          The latest attempt failed: {problem}{' '}
-          <Link href={SETUP_HREF}>Run the connection check</Link>
+          <strong>{t.scan.lastGood(age === null ? null : age.label)}</strong> {t.scan.attemptFailed}{' '}
+          {failureText(problem, t)} <Link href={SETUP_HREF}>{t.scan.runCheck}</Link>
         </p>
       </div>
     );
@@ -67,8 +67,7 @@ export function ScanBanner() {
       <div className={styles.banner} data-state="warning" role="status">
         <StatusIcon state="warning" />
         <p>
-          <strong>This scan is out of date, {age.label}.</strong> It should refresh every{' '}
-          {intervalMinutes} min and has not.
+          <strong>{t.scan.outOfDate(age.label)}</strong> {t.scan.shouldRefresh(intervalMinutes ?? 0)}
         </p>
       </div>
     );

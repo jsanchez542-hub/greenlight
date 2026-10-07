@@ -1,5 +1,7 @@
+'use client';
+
 import type { DetectorName } from 'greenlight';
-import { detectorInfo } from '@/lib/detectors';
+import { useMessages } from '@/i18n/context';
 import styles from './CheckFacts.module.css';
 
 interface CheckFactsProps {
@@ -8,16 +10,17 @@ interface CheckFactsProps {
 }
 
 export function CheckFacts({ detector, columns = false }: CheckFactsProps) {
-  const info = detectorInfo[detector];
+  const t = useMessages();
+  const info = t.checks.detectors[detector];
 
   return (
     <div className={columns ? `${styles.facts} ${styles.columns}` : styles.facts}>
       <section>
-        <h3>Question</h3>
+        <h3>{t.checks.question}</h3>
         <p>{info.question}</p>
       </section>
       <section>
-        <h3>How it decides</h3>
+        <h3>{t.checks.howItDecides}</h3>
         <p>{info.method}</p>
         <dl className={styles.thresholds}>
           {info.thresholds.map((threshold) => (
@@ -29,7 +32,7 @@ export function CheckFacts({ detector, columns = false }: CheckFactsProps) {
         </dl>
       </section>
       <section>
-        <h3>What to review</h3>
+        <h3>{t.checks.whatToReview}</h3>
         <p>{info.review}</p>
       </section>
     </div>

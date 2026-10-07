@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { failureCodeOf, type FailureCode } from './failure';
 import type { LiveSnapshot } from './live-snapshot';
 import { RefreshRefusedError, fetchSnapshot, requestScan } from './snapshot-client';
 
@@ -9,11 +10,7 @@ const BUSY_POLL_MS = 2_000;
 
 export interface LiveFeed {
   snapshot: LiveSnapshot | null;
-  transportError: string | null;
-}
-
-function messageOf(error: unknown): string {
-  return error instanceof Error ? error.message : 'The dashboard server did not answer.';
+  transportError: FailureCode | null;
 }
 
 export function useLiveFeed(enabled: boolean, initial: LiveSnapshot | null) {
@@ -38,7 +35,7 @@ export function useLiveFeed(enabled: boolean, initial: LiveSnapshot | null) {
         timer = setTimeout(poll, snapshot.refreshing ? BUSY_POLL_MS : IDLE_POLL_MS);
       } catch (error) {
         if (!abort.signal.aborted) {
-          setFeed((previous) => ({ ...previous, transportError: messageOf(error) }));
+          setFeed((previous) => ({ ...previous, transportError: failureCodeOf(error) }));
           timer = setTimeout(poll, IDLE_POLL_MS);
         }
       }
@@ -66,7 +63,7 @@ export function useLiveFeed(enabled: boolean, initial: LiveSnapshot | null) {
       setFeed({ snapshot, transportError: null });
     } catch (error) {
       if (!(error instanceof RefreshRefusedError)) {
-        setFeed((previous) => ({ ...previous, transportError: messageOf(error) }));
+        setFeed((previous) => ({ ...previous, transportError: failureCodeOf(error) }));
       }
     }
     restart.current();

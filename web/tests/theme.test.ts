@@ -1,3 +1,5 @@
+import { en } from '@/i18n/en';
+import { es } from '@/i18n/es';
 import { describe, expect, it } from 'vitest';
 import {
   THEME_INIT_SCRIPT,
@@ -91,17 +93,22 @@ describe('theme storage', () => {
 
 describe('themeButtonLabel', () => {
   it('names the current state and the next one', () => {
-    expect(themeButtonLabel('light', false)).toBe('Theme: Light. Switch to Dark.');
-    expect(themeButtonLabel('dark', true)).toBe('Theme: Dark. Switch to System.');
+    expect(themeButtonLabel('light', false, en)).toBe('Theme: Light. Switch to Dark.');
+    expect(themeButtonLabel('dark', true, en)).toBe('Theme: Dark. Switch to System.');
   });
 
   it('says what the system currently is when following it', () => {
-    expect(themeButtonLabel('system', true)).toBe('Theme: System, currently dark. Switch to Light.');
-    expect(themeButtonLabel('system', false)).toBe('Theme: System, currently light. Switch to Light.');
+    expect(themeButtonLabel('system', true, en)).toBe('Theme: System, currently dark. Switch to Light.');
+    expect(themeButtonLabel('system', false, en)).toBe('Theme: System, currently light. Switch to Light.');
   });
 
   it('does not guess the system theme before it is known', () => {
-    expect(themeButtonLabel('system', null)).toBe('Theme: System. Switch to Light.');
+    expect(themeButtonLabel('system', null, en)).toBe('Theme: System. Switch to Light.');
+  });
+
+  it('says it in Spanish', () => {
+    expect(themeButtonLabel('light', false, es)).toBe('Tema: Claro. Cambiar a oscuro.');
+    expect(themeButtonLabel('system', true, es)).toBe('Tema: Sistema, ahora oscuro. Cambiar a claro.');
   });
 });
 

@@ -14,8 +14,10 @@
 
 .brand {
   display: none;
+  flex-shrink: 0;
   align-items: center;
   gap: 8px;
+  white-space: nowrap;
   font-family: var(--font-mono);
   font-size: 1rem;
   font-weight: 700;
@@ -29,8 +31,35 @@
 }
 
 @media (max-width: 899px) {
+  .top {
+    align-items: flex-start;
+  }
+
+  .brand {
+    min-height: 34px;
+  }
+
   .right {
+    flex: 1 1 0;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    min-width: 0;
     gap: 8px;
+  }
+}
+
+@media (max-width: 479px) {
+  .right {
+    gap: 6px;
+  }
+
+  .brandName {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
   }
 }
 

@@ -1,14 +1,20 @@
 import { closeSync, fstatSync, lstatSync, openSync, readSync } from 'node:fs';
 import path from 'node:path';
 import { parseEnv } from 'node:util';
+import type { FailureCode } from '../failure';
 
 export type Environment = Record<string, string | undefined>;
 
 export const MAX_ENV_FILE_BYTES = 64 * 1024;
 export const ENV_FILE_VARIABLE = 'GREENLIGHT_ENV_FILE';
 
+export type EnvFileProblem = Extract<FailureCode, 'envSymlink' | 'envNotFile' | 'envTooLarge' | 'envUnreadable'>;
+
 export class EnvFileError extends Error {
-  constructor(message: string) {
+  constructor(
+    readonly problem: EnvFileProblem,
+    message: string,
+  ) {
     super(message);
     this.name = 'EnvFileError';
   }
@@ -34,7 +40,7 @@ function codeOf(error: unknown): string {
 }
 
 function tooLarge(): EnvFileError {
-  return new EnvFileError(`The .env file is larger than ${MAX_ENV_FILE_BYTES / 1024} KiB, which is not a settings file.`);
+  return new EnvFileError('envTooLarge', `The .env file is larger than ${MAX_ENV_FILE_BYTES / 1024} KiB, which is not a settings file.`);
 }
 
 function readLimited(filePath: string): string {
@@ -42,7 +48,7 @@ function readLimited(filePath: string): string {
   try {
     const stats = fstatSync(descriptor);
     if (!stats.isFile()) {
-      throw new EnvFileError('The .env entry is not a regular file.');
+      throw new EnvFileError('envNotFile', 'The .env entry is not a regular file.');
     }
     if (stats.size > MAX_ENV_FILE_BYTES) {
       throw tooLarge();
@@ -66,7 +72,7 @@ function readLimited(filePath: string): string {
 export function readEnvText(filePath: string): string | null {
   try {
     if (lstatSync(filePath).isSymbolicLink()) {
-      throw new EnvFileError('The .env file is a symbolic link, which GreenLight does not follow. Use a regular file.');
+      throw new EnvFileError('envSymlink', 'The .env file is a symbolic link, which GreenLight does not follow.');
     }
     return readLimited(filePath);
   } catch (error) {
@@ -77,7 +83,7 @@ export function readEnvText(filePath: string): string | null {
     if (code === 'ENOENT') {
       return null;
     }
-    throw new EnvFileError(`The .env file cannot be read (${code}).`);
+    throw new EnvFileError('envUnreadable', `The .env file cannot be read (${code}).`);
   }
 }
 
@@ -107,6 +113,6 @@ export function currentEnvironment(
   return { ...readEnvFile(filePath), ...definedValues(processEnv) };
 }
 
-export function describeEnvironmentProblem(error: unknown): string {
-  return error instanceof EnvFileError ? error.message : 'The settings could not be read.';
+export function environmentProblem(error: unknown): FailureCode {
+  return error instanceof EnvFileError ? error.problem : 'settingsUnreadable';
 }

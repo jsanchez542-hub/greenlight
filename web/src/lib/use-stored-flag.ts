@@ -1,27 +1,12 @@
 'use client';
 
 import { useCallback, useSyncExternalStore } from 'react';
-import { copyStoredFlagsToCookie, isFlagSet, setFlag, type FlagSources } from './stored-flag';
+import { browserSources } from './browser-sources';
+import { copyStoredFlagsToCookie, isFlagSet, setFlag } from './stored-flag';
 
 const values = new Map<string, boolean>();
 const listeners = new Set<() => void>();
 let copied = false;
-
-function browserSources(): FlagSources {
-  return {
-    get storage() {
-      try {
-        return window.localStorage;
-      } catch {
-        return undefined;
-      }
-    },
-    readCookies: () => document.cookie,
-    writeCookie: (cookie) => {
-      document.cookie = cookie;
-    },
-  };
-}
 
 function subscribe(listener: () => void): () => void {
   if (!copied) {

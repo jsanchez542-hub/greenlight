@@ -1,10 +1,11 @@
 'use client';
 
-import { CONNECT_HINT_TEXT } from '@/lib/connect-entry';
+import { useMessages } from '@/i18n/context';
 import { useConnectHint } from '@/lib/use-connect-hint';
 import styles from './ConnectHint.module.css';
 
 export function ConnectHint({ placement }: { placement: 'sidebar' | 'tabs' }) {
+  const t = useMessages();
   const { visible, dismiss } = useConnectHint();
 
   if (!visible) {
@@ -12,9 +13,9 @@ export function ConnectHint({ placement }: { placement: 'sidebar' | 'tabs' }) {
   }
   return (
     <div className={styles.hint} data-placement={placement} role="note">
-      <p>{CONNECT_HINT_TEXT}</p>
+      <p>{t.sidebar.connectHint}</p>
       <button type="button" onClick={dismiss}>
-        Got it
+        {t.sidebar.connectHintDismiss}
       </button>
     </div>
   );

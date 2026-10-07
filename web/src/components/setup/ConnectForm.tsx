@@ -1,6 +1,7 @@
 'use client';
 
 import { useId, useState, type FormEvent } from 'react';
+import { useMessages } from '@/i18n/context';
 import { parseAddress, settingsLink } from '@/lib/address';
 import styles from './ConnectForm.module.css';
 
@@ -10,21 +11,23 @@ interface ConnectFormProps {
 }
 
 export function ConnectForm({ busy, onConnect }: ConnectFormProps) {
+  const t = useMessages();
+  const text = t.setup.form;
   const ids = useId();
   const [address, setAddress] = useState('');
   const [key, setKey] = useState('');
   const [revealed, setRevealed] = useState(false);
-  const [missing, setMissing] = useState<string | null>(null);
+  const [missing, setMissing] = useState(false);
   const link = settingsLink(address);
   const addressProblem = address.trim() !== '' && parseAddress(address) === null;
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (address.trim() === '' || key.trim() === '') {
-      setMissing('Fill in the address and the key.');
+      setMissing(true);
       return;
     }
-    setMissing(null);
+    setMissing(false);
     const sent = key;
     setKey('');
     setRevealed(false);
@@ -39,7 +42,7 @@ export function ConnectForm({ busy, onConnect }: ConnectFormProps) {
         </p>
         <div className={styles.body}>
           <label htmlFor={`${ids}-address`} className={styles.label}>
-            Your n8n address
+            {text.addressLabel}
           </label>
           <input
             id={`${ids}-address`}
@@ -47,7 +50,7 @@ export function ConnectForm({ busy, onConnect }: ConnectFormProps) {
             type="text"
             inputMode="url"
             value={address}
-            placeholder="https://n8n.yourcompany.com"
+            placeholder={text.addressPlaceholder}
             autoComplete="off"
             autoCapitalize="off"
             autoCorrect="off"
@@ -57,20 +60,15 @@ export function ConnectForm({ busy, onConnect }: ConnectFormProps) {
             onChange={(event) => setAddress(event.target.value)}
           />
           <p id={`${ids}-address-help`} className={styles.help}>
-            {addressProblem
-              ? 'That does not look like a web address. Start it with https://'
-              : 'The address you type in your browser to open n8n.'}
+            {addressProblem ? text.addressInvalid : text.addressHelp}
           </p>
           {link !== null && (
             <div className={styles.keyHelp}>
               <a className={styles.secondary} href={link} target="_blank" rel="noopener noreferrer">
-                Open n8n settings
-                <span className="visually-hidden"> (opens in a new tab)</span>
+                {text.openSettings}
+                <span className="visually-hidden">{text.newTab}</span>
               </a>
-              <p className={styles.help}>
-                In n8n choose Settings, then n8n API, then Create an API key. Copy it: n8n shows it only once. A key
-                that can only read is enough.
-              </p>
+              <p className={styles.help}>{text.keyHelpLink}</p>
             </div>
           )}
         </div>
@@ -82,7 +80,7 @@ export function ConnectForm({ busy, onConnect }: ConnectFormProps) {
         </p>
         <div className={styles.body}>
           <label htmlFor={`${ids}-key`} className={styles.label}>
-            API key
+            {text.keyLabel}
           </label>
           <div className={styles.keyRow}>
             <input
@@ -90,7 +88,7 @@ export function ConnectForm({ busy, onConnect }: ConnectFormProps) {
               className={styles.input}
               type={revealed ? 'text' : 'password'}
               value={key}
-              placeholder="Paste the key here"
+              placeholder={text.keyPlaceholder}
               autoComplete="off"
               autoCapitalize="off"
               autoCorrect="off"
@@ -105,25 +103,25 @@ export function ConnectForm({ busy, onConnect }: ConnectFormProps) {
               aria-controls={`${ids}-key`}
               onClick={() => setRevealed((shown) => !shown)}
             >
-              {revealed ? 'Hide' : 'Show'}
-              <span className="visually-hidden"> the key</span>
+              {revealed ? text.hide : text.show}
+              <span className="visually-hidden">{text.theKey}</span>
             </button>
           </div>
           <p id={`${ids}-key-help`} className={styles.help}>
-            GreenLight only reads. The key is kept on this computer and is cleared from this form once sent.
+            {text.keyHelp}
           </p>
         </div>
       </div>
 
-      {missing !== null && (
+      {missing && (
         <p className={styles.problem} role="alert">
-          {missing}
+          {text.missing}
         </p>
       )}
 
       <div className={styles.actions}>
         <button type="submit" className={styles.primary} disabled={busy} aria-busy={busy}>
-          {busy ? 'Connecting…' : 'Connect'}
+          {busy ? text.connecting : text.connect}
         </button>
       </div>
     </form>

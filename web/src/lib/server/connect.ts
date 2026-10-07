@@ -1,6 +1,8 @@
 import { diagnose as runDiagnosis, hasControlCharacters, type Diagnosis, type DiagnoseInput } from 'greenlight';
+import type { Lang } from '@/i18n';
 import { readLimitedText } from './body';
-import { EnvFileError, describeEnvironmentProblem, type Environment } from './environment';
+import type { FailureCode } from '../failure';
+import { EnvFileError, environmentProblem, type Environment } from './environment';
 import { guardWrite } from './guard';
 import { checkInstanceUrl } from './instance-url';
 import { RateLimiter } from './rate-limit';
@@ -10,10 +12,11 @@ export const MAX_BODY_BYTES = 8 * 1024;
 export const MAX_FIELD_LENGTH = 2048;
 
 const NO_STORE = { 'Cache-Control': 'no-store' };
-const OVERRIDDEN = 'It is also set in the environment of this program, which takes precedence. Remove it there.';
+const OVERRIDDEN = 'processEnv';
 
 export interface ConnectContext {
   host: string | null;
+  lang: Lang;
   env: Environment;
   processEnv: Environment;
   filePath: string;
@@ -31,8 +34,8 @@ function json(body: unknown, status = 200, extra: Record<string, string> = {}): 
   return Response.json(body, { status, headers: { ...NO_STORE, ...extra } });
 }
 
-function refuse(message: string, status: number, extra: Record<string, string> = {}): Response {
-  return json({ error: message }, status, extra);
+function refuse(code: FailureCode, status: number, extra: Record<string, string> = {}, retryAfterSeconds?: number): Response {
+  return json(retryAfterSeconds === undefined ? { error: code } : { error: code, retryAfterSeconds }, status, extra);
 }
 
 function redact(diagnosis: Diagnosis, secrets: string[]): Diagnosis {
@@ -68,17 +71,17 @@ function readFields(value: unknown): Fields | null {
   return { action: text('action'), baseUrl: text('baseUrl'), apiKey: text('apiKey') };
 }
 
-function validateConnect(fields: Fields): string | null {
+function validateConnect(fields: Fields): FailureCode | null {
   const baseUrl = fields.baseUrl.trim();
   const apiKey = fields.apiKey.trim();
   if (baseUrl === '' || apiKey === '') {
-    return 'Enter the address of your n8n and the key.';
+    return 'fieldsMissing';
   }
   if (baseUrl.length > MAX_FIELD_LENGTH || apiKey.length > MAX_FIELD_LENGTH) {
-    return 'The address or the key is too long.';
+    return 'fieldsTooLong';
   }
   if (hasControlCharacters(baseUrl) || hasControlCharacters(apiKey)) {
-    return 'The address or the key contains a line break or another character that cannot be saved.';
+    return 'fieldsControl';
   }
   return null;
 }
@@ -97,7 +100,7 @@ async function connect(fields: Fields, context: ConnectContext): Promise<Respons
   const allowInsecureHttp = allowsInsecureHttp(context.env);
 
   const diagnosis = redact(
-    await (context.diagnose ?? runDiagnosis)({ baseUrl, apiKey, allowInsecureHttp }),
+    await (context.diagnose ?? runDiagnosis)({ baseUrl, apiKey, allowInsecureHttp, lang: context.lang }),
     [apiKey],
   );
   if (!diagnosis.ok || !checkInstanceUrl(baseUrl, allowInsecureHttp).ok) {
@@ -130,22 +133,20 @@ export async function handleConnect(request: Request, context: ConnectContext): 
     context.env,
   );
   if (!verdict.allowed) {
-    return refuse(verdict.message, verdict.status);
+    return refuse(verdict.code, verdict.status);
   }
   if (!(request.headers.get('content-type') ?? '').toLowerCase().startsWith('application/json')) {
-    return refuse('Send the request as JSON.', 415);
+    return refuse('notJson', 415);
   }
 
   const turn = context.limiter.check();
   if (!turn.allowed) {
-    return refuse(`Too many attempts. Try again in ${turn.retryAfterSeconds} ${turn.retryAfterSeconds === 1 ? 'second' : 'seconds'}.`, 429, {
-      'Retry-After': String(turn.retryAfterSeconds),
-    });
+    return refuse('rateLimited', 429, { 'Retry-After': String(turn.retryAfterSeconds) }, turn.retryAfterSeconds);
   }
 
   const body = await readLimitedText(request, MAX_BODY_BYTES);
   if (!body.ok) {
-    return refuse('The request is too large.', 413);
+    return refuse('tooLarge', 413);
   }
 
   let fields: Fields | null;
@@ -155,7 +156,7 @@ export async function handleConnect(request: Request, context: ConnectContext): 
     fields = null;
   }
   if (fields === null) {
-    return refuse('The request was not understood.', 400);
+    return refuse('notUnderstood', 400);
   }
 
   try {
@@ -165,11 +166,8 @@ export async function handleConnect(request: Request, context: ConnectContext): 
     if (fields.action === 'disconnect') {
       return await disconnect(context);
     }
-    return refuse('The request was not understood.', 400);
+    return refuse('notUnderstood', 400);
   } catch (error) {
-    return refuse(
-      error instanceof EnvFileError ? describeEnvironmentProblem(error) : 'The settings could not be saved.',
-      error instanceof EnvFileError ? 409 : 500,
-    );
+    return error instanceof EnvFileError ? refuse(environmentProblem(error), 409) : refuse('saveFailed', 500);
   }
 }
