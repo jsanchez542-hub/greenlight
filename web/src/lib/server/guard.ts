@@ -30,3 +30,37 @@ export function guardRequest(facts: RequestFacts, env: Environment): GuardVerdic
   }
   return { allowed: false, status: 403, message: 'This route only answers requests made from the dashboard itself.' };
 }
+
+export interface WriteFacts extends RequestFacts {
+  origin: string | null;
+}
+
+function sameHost(origin: string, host: string): boolean {
+  try {
+    const parsed = new URL(origin);
+    return (parsed.protocol === 'http:' || parsed.protocol === 'https:') && parsed.host.toLowerCase() === host.toLowerCase();
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The stricter check for a request that changes something. It must be addressed to this
+ * machine by name and come from the dashboard's own page: a browser says so with
+ * Sec-Fetch-Site, and a browser too old to send it still sends an Origin that must be exactly
+ * this host. A request that proves neither, such as one from a script, is refused.
+ */
+export function guardWrite(facts: WriteFacts, env: Environment): GuardVerdict {
+  if (!isAllowedHost(facts.host, env)) {
+    return { allowed: false, status: 403, message: 'This host is not allowed. Open the dashboard through localhost.' };
+  }
+  const refusal: GuardVerdict = {
+    allowed: false,
+    status: 403,
+    message: 'Settings can only be changed from the dashboard itself.',
+  };
+  if (facts.fetchSite !== null) {
+    return facts.fetchSite === 'same-origin' ? { allowed: true } : refusal;
+  }
+  return facts.origin !== null && facts.host !== null && sameHost(facts.origin, facts.host) ? { allowed: true } : refusal;
+}
