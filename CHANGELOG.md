@@ -23,6 +23,11 @@ First public release. The date is added when the version is tagged.
   and dark, usable on a phone-sized screen, with a first-run tour and a form to connect your n8n.
 - A guided setup (`npm run setup` or the form) that checks the connection step by step and explains
   each failure in plain words.
+- English and Spanish: the dashboard, the command line, the connection check and the alerts. The
+  language is `--lang`, `GREENLIGHT_LANG`, the language switch of the dashboard or the language of
+  the computer. The `--json` output does not depend on it. There is a Spanish README.
+- An optional notice of new versions, off unless you turn it on: one request a day to GitHub for the
+  number of the latest release, nothing about you or your n8n sent, silent if it fails.
 
 ### Security
 

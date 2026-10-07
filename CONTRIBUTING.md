@@ -58,6 +58,24 @@ The dashboard has its own project in `web/` with its own `lint`, `typecheck`, `t
 Fixes are patch versions, anything new that keeps working setups working is a minor version, and a
 major version is only for a change that breaks something the README promises to keep stable.
 
+## Words that people read
+
+Every sentence a person reads is written in English and in Spanish, and the two must say the same
+thing.
+
+- Command line sentences live in `src/i18n/en.ts` and `src/i18n/es.ts`. The Spanish file is typed
+  against the English one, so a missing sentence does not compile, and `tests/i18n` checks that both
+  use the same arguments and keep the typography rules.
+- Dashboard sentences live in the dictionaries under `web/`, with the same kind of checks.
+- A new finding must carry in its `evidence` the numbers its sentence needs, and `describeFinding`
+  in `src/i18n/findings.ts` must tell it in Spanish from them. The `summary` stays in English and is
+  part of the scan result, so it does not depend on the language.
+- Both READMEs change together; `tests/readme.test.ts` compares them.
+- Terms are the same everywhere: workflow, hallazgo (finding), análisis (scan), comprobación
+  (check), panel (dashboard), crítico and advertencia (critical and warning), clave de API.
+- No long or medium dashes in text a person reads, and Spanish questions and exclamations open with
+  `¿` and `¡`.
+
 ## Commits and pull requests
 
 - Commit messages are in English with a prefix (`feat:`, `fix:`, `docs:`, `test:`, `chore:`), and

@@ -6,6 +6,8 @@
 
 **Finds the n8n workflows that fail while reporting success.**
 
+English · [Español](README.es.md)
+
 A production workflow reported success for three weeks while it sent nothing at all.
 
 The step that failed had "continue on fail" enabled, so its error travelled downstream
@@ -43,6 +45,8 @@ and how to fix it, and **Disconnect** undoes it.
 
 Prefer the terminal? `npm run setup` asks the same two questions, `npm run scan` prints a report,
 and `npm run doctor` checks the connection step by step if something does not work.
+
+The dashboard and the command line speak English and Spanish; see [Language](#language).
 
 ## What it looks for
 
@@ -148,6 +152,7 @@ Without a webhook, changes are only printed. With one, each change is posted as 
 {
   "source": "greenlight",
   "type": "findings",
+  "lang": "en",
   "subject": "GreenLight: 1 new critical finding on n8n.example.com",
   "text": "CRITICAL Order confirmations (silent-error)\n\"Send receipt\" emitted an error in 5 of the last 5 successful executions. ...",
   "instance": "n8n.example.com",
@@ -166,7 +171,8 @@ Without a webhook, changes are only printed. With one, each change is posted as 
 ```
 
 `type` is `findings`, `scan-failing` or `scan-recovered`. `subject` and `text` are written to be
-used as they are in an email or a chat message; the arrays carry the same information as data.
+used as they are in an email or a chat message, in the language named by `lang`; the arrays carry
+the same information as data.
 If a delivery fails, the alert is kept and tried again on the next scan.
 
 GreenLight does not know what is behind the URL, so it works with anything that accepts a JSON
@@ -191,14 +197,17 @@ scan, so it can run from cron or a scheduler instead of staying alive.
 | `GREENLIGHT_EXECUTION_LIMIT` | 200 | executions read per workflow |
 | `GREENLIGHT_DETAIL_SAMPLE` | 5 | executions inspected node by node |
 | `GREENLIGHT_ALLOW_INSECURE_HTTP` | off | `1` lets the key travel over plain http to a public host; not recommended |
+| `GREENLIGHT_LANG` | language of the computer | `en` or `es`, for the command line, the alerts and the dashboard |
+| `GREENLIGHT_CHECK_UPDATES` | off | `1` tells you when a new version is out; see [Versions and updates](#versions-and-updates) |
 | `GREENLIGHT_WEBHOOK_URL` | none | where `watch` posts alerts |
 | `GREENLIGHT_WEBHOOK_TOKEN` | none | sent as `Authorization: Bearer <token>` |
 | `GREENLIGHT_INTERVAL_MINUTES` | 5 | time between scans in `watch` |
 | `GREENLIGHT_NOTIFY_MIN` | `warning` | `critical` to alert only on critical findings |
 | `GREENLIGHT_STATE_FILE` | `.greenlight-state.json` | what `watch` has already reported |
 
-Only read endpoints are used. GreenLight never writes to the instance; the only thing it sends
-anywhere is the alert that `watch` posts to the webhook you configure.
+Only read endpoints are used. GreenLight never writes to the instance. It talks to your n8n and,
+if you set one, to the alert webhook; and, only if you turn it on, once a day to GitHub to ask for
+the number of the latest version (see [Versions and updates](#versions-and-updates)).
 
 ## Commands
 
@@ -318,9 +327,29 @@ waits for 2.0.0. The look and the internals of the dashboard may change in any m
 is in every bug report. To update a clone, run `git pull` and then `npm install`. What changed is in
 [CHANGELOG.md](CHANGELOG.md).
 
-To hear about new versions, use **Watch, then Custom, then Releases** on this repository on GitHub.
-GreenLight itself never checks for updates: it contacts nothing but your n8n and, if you set one,
-your alert webhook.
+**Being told about a new version is optional and off by default**, because GreenLight otherwise
+contacts nothing but your n8n and your alert webhook. If you turn it on (a checkbox in the
+dashboard's connection form, the question in `greenlight init`, or `GREENLIGHT_CHECK_UPDATES=1`),
+it makes one request, at most once a day: a plain `GET` to GitHub's public API for the number of
+the latest release. No key, no address of your n8n and nothing about you is sent, although GitHub,
+like any website, sees your IP address. If it cannot be reached, nothing is shown and nothing breaks.
+The notice appears in the dashboard, at the end of `scan` and `doctor`, and in the `watch` log. It
+never installs anything: it links to the release notes, and you update with `git pull`.
+
+Without it, use **Watch, then Custom, then Releases** on this repository on GitHub to be emailed.
+
+## Language
+
+The dashboard, the command line, the connection check and the alerts are available in English and
+Spanish. The language is chosen in this order: the language switch in the dashboard (it remembers
+your choice), `--lang es` or `--lang en` on the command line, `GREENLIGHT_LANG`, the language of
+your computer, and English if none of those says Spanish. The `--json` output and the keys of the
+alert payload do not change with the language, so a program reading them is never affected; only
+sentences meant for a person are translated. The sentence of a finding in `--json` stays in English
+and the evidence beside it carries the same numbers.
+
+This README, [CHANGELOG.md](CHANGELOG.md), [CONTRIBUTING.md](CONTRIBUTING.md) and
+[SECURITY.md](SECURITY.md) are in English; the README is also in [Spanish](README.es.md).
 
 ## Project layout
 
