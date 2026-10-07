@@ -11,12 +11,14 @@ import { Icon } from '../ui/Icon';
 import { ConnectHint } from './ConnectHint';
 import { Logo } from './Logo';
 import { ThemeToggle } from './ThemeToggle';
+import { VersionNote } from './VersionNote';
 import styles from './Sidebar.module.css';
 
 interface SidebarProps {
   state: SidebarState;
   onToggle: () => void;
   onTour: () => void;
+  version: string;
 }
 
 function useSectionCounts(): Partial<Record<SectionId, number>> {
@@ -27,7 +29,7 @@ function useSectionCounts(): Partial<Record<SectionId, number>> {
   return { findings: result.findings.length, workflows: result.workflows.length };
 }
 
-export function Sidebar({ state, onToggle, onTour }: SidebarProps) {
+export function Sidebar({ state, onToggle, onTour, version }: SidebarProps) {
   const pathname = usePathname();
   const { source, liveAvailable, host } = useScanControls();
   const connect = connectEntry(liveAvailable, host);
@@ -123,6 +125,7 @@ export function Sidebar({ state, onToggle, onTour }: SidebarProps) {
           <Icon name="collapse" />
           <span className={styles.label}>Collapse</span>
         </button>
+        <VersionNote version={version} placement="sidebar" />
       </div>
     </aside>
   );

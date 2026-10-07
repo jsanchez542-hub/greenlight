@@ -14,6 +14,7 @@ import { BottomNav } from './BottomNav';
 import { ScanBanner } from './ScanBanner';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
+import { VersionNote } from './VersionNote';
 
 function Content({ children }: { children: ReactNode }) {
   const { phase, problem, liveAvailable, selectSample, scanNow } = useScanControls();
@@ -38,7 +39,7 @@ function Content({ children }: { children: ReactNode }) {
   }
 }
 
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({ children, version }: { children: ReactNode; version: string }) {
   const sidebar = useSidebar();
   const { liveAvailable } = useScanControls();
   const onboarding = useOnboarding();
@@ -49,12 +50,13 @@ export function AppShell({ children }: { children: ReactNode }) {
       <a href="#content" className={styles.skip}>
         Skip to content
       </a>
-      <Sidebar state={sidebar.state} onToggle={sidebar.toggle} onTour={onboarding.startTour} />
+      <Sidebar state={sidebar.state} onToggle={sidebar.toggle} onTour={onboarding.startTour} version={version} />
       <div className={styles.column}>
         <TopBar />
         <main id="content" className={styles.main} tabIndex={-1}>
           <Content>{children}</Content>
         </main>
+        <VersionNote version={version} placement="page" />
       </div>
       <BottomNav />
       <Onboarding
