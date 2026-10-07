@@ -80,6 +80,7 @@ body {
   font-family: var(--font-sans);
   font-size: 0.9375rem;
   line-height: 1.5;
+  overflow-wrap: anywhere;
   -webkit-font-smoothing: antialiased;
 }
 
