@@ -110,6 +110,10 @@ export async function runInit(deps: InitDependencies): Promise<number> {
     webhook = (await prompter.ask('Alert webhook address (Enter to skip)', {})).trim();
   }
   if (webhook !== '') {
+    const { protocol, hostname } = new URL(webhook);
+    if (protocol === 'http:' && !['localhost', '127.0.0.1', '[::1]'].includes(hostname)) {
+      prompter.say('Note: that address uses http, so alerts and the token travel unencrypted. Prefer https.');
+    }
     values['GREENLIGHT_WEBHOOK_URL'] = webhook;
     const token = (await prompter.ask('Webhook token (Enter if it has none)', { secret: true })).trim();
     if (token !== '') {

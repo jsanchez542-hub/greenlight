@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -43,6 +43,13 @@ describe('FileStateStore', () => {
 
     expect(JSON.parse(readFileSync(path, 'utf8')).consecutiveFailures).toBe(1);
     expect(() => readFileSync(`${path}.tmp`)).toThrow();
+  });
+
+  it.skipIf(process.platform === 'win32')('creates the state file readable only by its owner', () => {
+    const path = join(directory, 'state.json');
+    new FileStateStore(path, (line) => warnings.push(line)).save(emptyState());
+
+    expect(statSync(path).mode & 0o077).toBe(0);
   });
 
   it('warns and starts empty when the file is not a state file', () => {

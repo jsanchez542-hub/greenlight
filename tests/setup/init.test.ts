@@ -174,6 +174,16 @@ describe('runInit', () => {
     expect(written[0]?.text).toContain('GREENLIGHT_WEBHOOK_TOKEN=tok');
   });
 
+  it('warns when the webhook is plain http on another machine, but not on this one', async () => {
+    const remote = session({ answers: ['https://n8n.example.com', KEY, 'http://hooks.example.com/abc', ''] });
+    await runInit(remote.deps);
+    const local = session({ answers: ['https://n8n.example.com', KEY, 'http://localhost:5678/webhook/x', ''] });
+    await runInit(local.deps);
+
+    expect(remote.said.join('\n')).toContain('travel unencrypted');
+    expect(local.said.join('\n')).not.toContain('travel unencrypted');
+  });
+
   it('asks again when the webhook is not an address', async () => {
     const { deps, said, written } = session({ answers: ['https://n8n.example.com', KEY, 'not a url', ''] });
 
