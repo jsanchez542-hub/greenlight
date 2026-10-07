@@ -1,3 +1,5 @@
+import { INSECURE_HTTP_MESSAGE, isPrivateHost } from 'greenlight';
+
 const MAX_URL_LENGTH = 2048;
 
 export type InstanceUrlCheck = { ok: true; url: URL } | { ok: false; reason: string };
@@ -6,7 +8,7 @@ export type InstanceUrlCheck = { ok: true; url: URL } | { ok: false; reason: str
  * The address of n8n is the one place the server is told to contact, and the API key travels
  * with every request. It must be a plain http or https address with no credentials in it.
  */
-export function checkInstanceUrl(raw: string | undefined): InstanceUrlCheck {
+export function checkInstanceUrl(raw: string | undefined, allowInsecureHttp = false): InstanceUrlCheck {
   const value = raw?.trim() ?? '';
   if (value === '') {
     return { ok: false, reason: 'No address was given.' };
@@ -25,6 +27,9 @@ export function checkInstanceUrl(raw: string | undefined): InstanceUrlCheck {
   }
   if (url.username !== '' || url.password !== '') {
     return { ok: false, reason: 'The address contains a user name or password.' };
+  }
+  if (url.protocol === 'http:' && !isPrivateHost(url.hostname) && !allowInsecureHttp) {
+    return { ok: false, reason: INSECURE_HTTP_MESSAGE };
   }
   return { ok: true, url };
 }

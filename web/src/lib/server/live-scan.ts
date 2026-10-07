@@ -12,6 +12,7 @@ const SETTING_NAMES = [
   'GREENLIGHT_EXECUTION_LIMIT',
   'GREENLIGHT_DETAIL_SAMPLE',
   'GREENLIGHT_SCAN_INTERVAL_MINUTES',
+  'GREENLIGHT_ALLOW_INSECURE_HTTP',
 ] as const;
 
 interface CacheHolder {
@@ -21,7 +22,11 @@ interface CacheHolder {
 const holder = globalThis as typeof globalThis & CacheHolder;
 
 export function isLiveScanConfigured(env: Environment = currentEnvironment()): boolean {
-  return Boolean(env['N8N_API_KEY']?.trim()) && checkInstanceUrl(env['N8N_BASE_URL']).ok;
+  return Boolean(env['N8N_API_KEY']?.trim()) && checkInstanceUrl(env['N8N_BASE_URL'], allowsInsecureHttp(env)).ok;
+}
+
+function allowsInsecureHttp(env: Environment): boolean {
+  return ['1', 'true'].includes((env['GREENLIGHT_ALLOW_INSECURE_HTTP'] ?? '').trim().toLowerCase());
 }
 
 export function scanIntervalMinutes(env: Environment = currentEnvironment()): number {
@@ -39,7 +44,11 @@ export function hostOf(env: Environment): string | null {
 
 async function executeScan(env: Environment): Promise<ScanResult> {
   const config = loadConfig(env);
-  const client = new N8nClient({ baseUrl: config.baseUrl, apiKey: config.apiKey });
+  const client = new N8nClient({
+    baseUrl: config.baseUrl,
+    apiKey: config.apiKey,
+    allowInsecureHttp: config.allowInsecureHttp,
+  });
   return scan(client, {
     executionLimit: config.executionLimit,
     detailSampleSize: config.detailSampleSize,
