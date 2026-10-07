@@ -59,3 +59,24 @@ describe('requestScan', () => {
     expect(result.refreshing).toBe(true);
   });
 });
+
+describe('a refresh the server refuses', () => {
+  it('is reported as a refusal with the wait, not as a failure of the scan', async () => {
+    const fetchImpl: typeof fetch = async () =>
+      new Response(JSON.stringify({ error: 'A scan ran moments ago.' }), {
+        status: 429,
+        headers: { 'Retry-After': '17' },
+      });
+
+    await expect(requestScan(signal, fetchImpl)).rejects.toMatchObject({
+      name: 'RefreshRefusedError',
+      retryAfterSeconds: 17,
+    });
+  });
+
+  it('falls back to a sensible wait when the header is missing or hostile', async () => {
+    const fetchImpl: typeof fetch = async () => new Response('{}', { status: 429, headers: { 'Retry-After': 'soon' } });
+
+    await expect(requestScan(signal, fetchImpl)).rejects.toMatchObject({ retryAfterSeconds: 30 });
+  });
+});

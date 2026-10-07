@@ -130,3 +130,54 @@ describe('ScanCache', () => {
     expect(cache.snapshot().intervalMinutes).toBe(12);
   });
 });
+
+describe('ScanCache forced refresh', () => {
+  it('starts a scan the first time it is asked', () => {
+    const { cache, calls } = build([sampleResult]);
+
+    expect(cache.forceRefresh()).toEqual({ accepted: true, retryAfterSeconds: 0 });
+    expect(calls.count).toBe(1);
+  });
+
+  it('refuses to scan again during the cooldown and says how long to wait', async () => {
+    const { cache, clock, calls } = build([sampleResult]);
+    cache.forceRefresh();
+    await cache.refresh();
+
+    clock.now += 10_000;
+    const outcome = cache.forceRefresh();
+
+    expect(outcome).toEqual({ accepted: false, retryAfterSeconds: 20 });
+    expect(calls.count).toBe(1);
+  });
+
+  it('accepts again once the cooldown has passed', async () => {
+    const { cache, clock, calls } = build([sampleResult]);
+    cache.forceRefresh();
+    await cache.refresh();
+
+    clock.now += 30_000;
+
+    expect(cache.forceRefresh().accepted).toBe(true);
+    expect(calls.count).toBe(2);
+  });
+
+  it('joins a scan that is already running instead of refusing or starting another', () => {
+    const { cache, calls } = build([sampleResult]);
+    cache.forceRefresh();
+
+    expect(cache.forceRefresh()).toEqual({ accepted: true, retryAfterSeconds: 0 });
+    expect(calls.count).toBe(1);
+  });
+
+  it('cannot be used to hammer a failing instance', async () => {
+    const { cache, calls } = build([new Error('down')]);
+    cache.forceRefresh();
+    await cache.refresh();
+
+    const outcomes = Array.from({ length: 20 }, () => cache.forceRefresh());
+
+    expect(outcomes.every((outcome) => !outcome.accepted)).toBe(true);
+    expect(calls.count).toBe(1);
+  });
+});

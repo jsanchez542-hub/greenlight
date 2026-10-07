@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { LiveSnapshot } from './live-snapshot';
-import { fetchSnapshot, requestScan } from './snapshot-client';
+import { RefreshRefusedError, fetchSnapshot, requestScan } from './snapshot-client';
 
 const IDLE_POLL_MS = 10_000;
 const BUSY_POLL_MS = 2_000;
@@ -65,7 +65,9 @@ export function useLiveFeed(enabled: boolean, initial: LiveSnapshot | null) {
       const snapshot = await requestScan(new AbortController().signal);
       setFeed({ snapshot, transportError: null });
     } catch (error) {
-      setFeed((previous) => ({ ...previous, transportError: messageOf(error) }));
+      if (!(error instanceof RefreshRefusedError)) {
+        setFeed((previous) => ({ ...previous, transportError: messageOf(error) }));
+      }
     }
     restart.current();
   }, []);

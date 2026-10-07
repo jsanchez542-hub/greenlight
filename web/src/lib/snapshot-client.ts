@@ -2,6 +2,13 @@ import { parseLiveSnapshot, type LiveSnapshot } from './live-snapshot';
 
 export const SCAN_ENDPOINT = '/api/scan';
 
+export class RefreshRefusedError extends Error {
+  constructor(readonly retryAfterSeconds: number) {
+    super(`A scan ran moments ago. Try again in ${retryAfterSeconds} seconds.`);
+    this.name = 'RefreshRefusedError';
+  }
+}
+
 function errorMessageIn(body: unknown): string | undefined {
   if (typeof body === 'object' && body !== null && 'error' in body && typeof body.error === 'string') {
     return body.error;
@@ -25,6 +32,10 @@ async function call(
   }
 
   const body: unknown = await response.json().catch(() => null);
+  if (response.status === 429) {
+    const retryAfter = Number(response.headers.get('retry-after'));
+    throw new RefreshRefusedError(Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : 30);
+  }
   if (!response.ok) {
     throw new Error(errorMessageIn(body) ?? `The server answered with status ${response.status}.`);
   }
