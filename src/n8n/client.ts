@@ -18,7 +18,7 @@ export interface ListExecutionsOptions {
 }
 
 export const INSECURE_HTTP_MESSAGE =
-  'The address uses http on a public host, so the API key would travel unencrypted. Use https, or set GREENLIGHT_ALLOW_INSECURE_HTTP=1 if you accept that risk.';
+  'That address starts with http and can be reached from the internet, so the API key would travel unencrypted. Use the https version of the address. (Advanced: GREENLIGHT_ALLOW_INSECURE_HTTP=1 allows it anyway.)';
 
 function assertSafeAddress(baseUrl: string, allowInsecureHttp: boolean): void {
   let url: URL;
