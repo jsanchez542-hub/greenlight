@@ -27,15 +27,22 @@ export function pageOf(pathname: string): Page | 'notFound' {
   return second === undefined ? entry[0] : entry[1];
 }
 
+export function documentTexts(pathname: string, t: Messages): { title: string; description: string } {
+  const page = pageOf(pathname);
+  if (page === 'notFound') {
+    return { title: `${t.notFound.title} · ${t.meta.title}`, description: t.meta.description };
+  }
+  const { title, description } = page === 'setup' ? { title: t.demo.pageTitle, description: t.demo.pageDescription } : t.meta.pages[page];
+  return { title: `${title} · ${t.meta.title}`, description };
+}
+
 /** The pages are built in English; this gives the title and the description of the page in the language of the visitor. */
 export function DemoDocument() {
   const t = useMessages();
   const pathname = usePath();
 
   useEffect(() => {
-    const page = pageOf(pathname);
-    const title = `${page === 'notFound' ? t.notFound.title : t.meta.pages[page].title} · ${t.meta.title}`;
-    const description = page === 'notFound' ? t.meta.description : t.meta.pages[page].description;
+    const { title, description } = documentTexts(pathname, t);
 
     function apply() {
       if (document.title !== title) {

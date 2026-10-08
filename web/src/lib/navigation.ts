@@ -1,4 +1,5 @@
 import type { Messages } from '@/i18n';
+import { STATIC_DEMO } from './demo';
 
 export type SectionId = 'overview' | 'findings' | 'workflows' | 'checks';
 
@@ -26,10 +27,10 @@ export function normalizePath(pathname: string): string {
   return pathname.slice(0, end);
 }
 
-export function pageLabel(rawPath: string, t: Messages): string {
+export function pageLabel(rawPath: string, t: Messages, demo: boolean = STATIC_DEMO): string {
   const pathname = normalizePath(rawPath);
   if (pathname === SETUP_HREF) {
-    return t.nav.pages.setup;
+    return demo ? t.demo.title : t.nav.pages.setup;
   }
   const section = activeSection(pathname);
   return section === undefined ? t.nav.pages.notFound : t.nav.pages[section.id];
