@@ -12,7 +12,10 @@ import { INSTALL_COMMANDS, REPOSITORY_URL } from '@/lib/demo';
 import { DEMO_LANGUAGE_KEY, LANGUAGE_INIT_SCRIPT, chooseLanguage } from '@/lib/demo-language';
 import { routeKey } from '@/lib/routes';
 import { normalizePath } from '@/lib/navigation';
-import { pageOf } from '@/components/demo/DemoDocument';
+import { documentTexts, pageOf } from '@/components/demo/DemoDocument';
+import { en } from '@/i18n/en';
+import { es } from '@/i18n/es';
+import { pageLabel } from '@/lib/navigation';
 import { keyFindings } from '@/lib/findings';
 import { sampleResult } from '@/lib/sample';
 
@@ -295,5 +298,27 @@ describe('the pieces of the pages of the demo', () => {
     expect(pageOf('/nowhere/')).toBe('notFound');
     expect(pageOf('/constructor/')).toBe('notFound');
     expect(pageOf('/__proto__/')).toBe('notFound');
+  });
+});
+
+describe('what the install page of the demo is called', () => {
+  it('has one name in its title, its breadcrumb and its heading, in each language', () => {
+    for (const messages of [en, es]) {
+      expect(documentTexts('/setup/', messages).title).toBe(`${messages.demo.pageTitle} · GreenLight`);
+      expect(pageLabel('/setup/', messages, true)).toBe(messages.demo.title);
+      expect(messages.demo.title.toLowerCase()).toBe(messages.demo.pageTitle.toLowerCase());
+    }
+  });
+
+  it('keeps the name of the connection in the real dashboard', () => {
+    expect(pageLabel('/setup', en, false)).toBe('setup');
+    expect(pageLabel('/setup', es, false)).toBe('conexión');
+    expect(en.meta.pages.setup.title).toBe('Connect your n8n');
+  });
+
+  it('keeps the other pages as they are in the demo', () => {
+    expect(documentTexts('/checks/', es).title).toBe('Comprobaciones · GreenLight');
+    expect(documentTexts('/nowhere/', en).title).toBe('Page not found · GreenLight');
+    expect(pageLabel('/checks/', es, true)).toBe('comprobaciones');
   });
 });
