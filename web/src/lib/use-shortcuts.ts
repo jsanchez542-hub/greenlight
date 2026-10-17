@@ -1,13 +1,20 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useEffectEvent } from 'react';
 import { SEARCH_INPUT_ID, isTypingTarget, nextShortcutStep } from './shortcuts';
 
 const SEQUENCE_TIMEOUT_MS = 1500;
 
+/**
+ * The listener is bound once for the life of the shell. A sequence such as g then w has to
+ * survive a navigation that lands between the two keys, so nothing the listener holds may be
+ * thrown away when the page changes; it reaches the latest help and router through effect events.
+ */
 export function useShortcuts(onHelp: () => void): void {
   const router = useRouter();
+  const help = useEffectEvent(() => onHelp());
+  const go = useEffectEvent((href: string) => router.push(href));
 
   useEffect(() => {
     let awaitingTarget = false;
@@ -20,7 +27,7 @@ export function useShortcuts(onHelp: () => void): void {
       }
       if (event.key === '?') {
         event.preventDefault();
-        onHelp();
+        help();
         return;
       }
       if (event.key === '/') {
@@ -41,7 +48,7 @@ export function useShortcuts(onHelp: () => void): void {
         }, SEQUENCE_TIMEOUT_MS);
       }
       if (step.href !== undefined) {
-        router.push(step.href);
+        go(step.href);
       }
     }
 
@@ -50,5 +57,5 @@ export function useShortcuts(onHelp: () => void): void {
       window.removeEventListener('keydown', onKeyDown);
       clearTimeout(timer);
     };
-  }, [router, onHelp]);
+  }, []);
 }
