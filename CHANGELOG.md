@@ -5,6 +5,11 @@ and the project follows [semantic versioning](https://semver.org); the README sa
 
 ## [Unreleased]
 
+### Added
+
+- A live demo of the dashboard with invented data, built as a static site, published on GitHub
+  Pages and linked from both READMEs.
+
 ## [1.0.0] - 2026-10-08
 
 First public release.
