@@ -120,7 +120,7 @@ With watch --once it is the same, so it can run from cron or a scheduler.
       hint: 'Use only the address of n8n, for example https://n8n.example.com. GreenLight adds the rest.',
     },
     insecurePublic: { detail: 'The address uses http on a public host.' },
-    addressOk: 'The address is valid.',
+    addressOk: 'It is complete and has no user name, password or /api/v1 in it.',
     insecureAllowed: 'Plain http was allowed on request: the API key travels unencrypted.',
     privateHttp: 'It uses http on a private network, so the key is not encrypted. Fine if you trust that network.',
     noKeyReach: 'No API key was given, so the instance was not contacted.',

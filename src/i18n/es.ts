@@ -121,7 +121,7 @@ Con watch --once son los mismos, así que sirve para cron o cualquier programado
       hint: 'Usa solo la dirección de n8n, por ejemplo https://n8n.ejemplo.com. GreenLight añade el resto.',
     },
     insecurePublic: { detail: 'La dirección usa http en un servidor público.' },
-    addressOk: 'La dirección es válida.',
+    addressOk: 'Está completa y no lleva usuario, contraseña ni /api/v1.',
     insecureAllowed: 'Se permitió http sin cifrar a petición tuya: la clave de API viaja sin cifrar.',
     privateHttp: 'Usa http en una red privada, así que la clave no va cifrada. Es aceptable si confías en esa red.',
     noKeyReach: 'No se indicó la clave de API, así que no se contactó con la instancia.',
