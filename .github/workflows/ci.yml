@@ -23,7 +23,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm audit --omit=dev --audit-level=high
+      # Any advisory in what runs stops the build. Development tools are covered in SECURITY.md.
+      - run: npm audit --omit=dev
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
@@ -44,11 +45,15 @@ jobs:
       - run: npm ci
       - run: npm ci
         working-directory: web
-      - run: npm audit --omit=dev --audit-level=high
+      - run: npm audit --omit=dev
         working-directory: web
       - run: npm run lint
         working-directory: web
       - run: npm run typecheck
+        working-directory: web
+      # The demo is built and audited on every change, not only when main is published, and the
+      # tests then check that audit against the real build.
+      - run: npm run build:demo
         working-directory: web
       - run: npm test
         working-directory: web
