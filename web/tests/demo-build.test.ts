@@ -7,12 +7,13 @@ import { REPOSITORY } from 'greenlight';
 import { auditDemo } from '../scripts/demo-audit.mjs';
 import { contentSecurityPolicy, inlineScriptHashes, inlineScripts, policyOf, withPolicy } from '../scripts/demo-policy.mjs';
 import { addFlatSegmentNames } from '../scripts/demo-segments.mjs';
-import { DEFAULT_DEMO_BASE_PATH, demoBasePath } from '@/lib/demo-base-path';
+import { DEFAULT_DEMO_BASE_PATH, DEFAULT_DEMO_ORIGIN, demoBasePath, demoOrigin } from '@/lib/demo-site';
 import { INSTALL_COMMANDS, REPOSITORY_URL } from '@/lib/demo';
 import { DEMO_LANGUAGE_KEY, LANGUAGE_INIT_SCRIPT, chooseLanguage } from '@/lib/demo-language';
 import { routeKey } from '@/lib/routes';
 import { normalizePath } from '@/lib/navigation';
 import { demoDocument, fullTitle, pageOf } from '@/lib/demo-titles';
+import { SOCIAL_IMAGE, demoPageMetadata } from '@/lib/demo-metadata';
 import { en } from '@/i18n/en';
 import { es } from '@/i18n/es';
 import { pageLabel } from '@/lib/navigation';
@@ -163,14 +164,35 @@ describe('the demo that was built, when there is one', () => {
   });
 
   const html = (page: string) => readFileSync(path.join(built, page), 'utf8');
+  const meta = (text: string, attribute: string, name: string) =>
+    new RegExp(`<meta ${attribute}="${name.replace(/[.:]/g, (c) => `\\${c}`)}" content="([^"]*)"`).exec(text)?.[1] ?? null;
+
   it.skipIf(!exists)('names each workflow and each finding in the title of its page', () => {
     expect(html('workflows/orders/index.html')).toContain('<title>Order confirmations · GreenLight</title>');
     expect(html('findings/orders~silent-error~0/index.html')).toContain('<title>Order confirmations, silent error · GreenLight</title>');
     expect(html('setup/index.html')).toContain('<title>Install GreenLight</title>');
     expect(html('404.html')).toContain('<title>Page not found · GreenLight</title>');
   });
-});
 
+  it.skipIf(!exists)('gives every page a preview for the sites a link is shared on, and keeps the page that is not there out of it', () => {
+    const pages = ['index.html', 'findings/index.html', 'workflows/orders/index.html', 'checks/index.html', 'setup/index.html'];
+    for (const page of pages) {
+      const text = html(page);
+      const url = meta(text, 'property', 'og:url');
+      expect(url, page).toMatch(/^https:\/\/[^/]+\/greenlight\/(?:[a-z~-]+\/)*$/);
+      expect(text, page).toContain(`<link rel="canonical" href="${url}"/>`);
+      expect(meta(text, 'property', 'og:title'), page).not.toBeNull();
+      expect(meta(text, 'property', 'og:description'), page).not.toBeNull();
+      expect(meta(text, 'property', 'og:type'), page).toBe('website');
+      expect(meta(text, 'property', 'og:image'), page).toMatch(/^https:\/\/[^/]+\/greenlight\/og\/overview\.png$/);
+      expect(meta(text, 'property', 'og:image:width'), page).toBe('1200');
+      expect(meta(text, 'property', 'og:image:height'), page).toBe('630');
+      expect(meta(text, 'name', 'twitter:card'), page).toBe('summary_large_image');
+    }
+    expect(html('404.html')).not.toContain('og:url');
+    expect(html('404.html')).toContain('<meta name="robots" content="noindex"/>');
+  });
+});
 
 describe('the pieces a host without rewrites needs', () => {
   it('writes the dotted name of each segment file beside its folder', () => {
@@ -357,5 +379,51 @@ describe('what the pages of the demo are called', () => {
   it('keeps the other pages as they were', () => {
     expect(title('/checks/', es, 'es')).toBe('Comprobaciones · GreenLight');
     expect(pageLabel('/checks/', es, true)).toBe('comprobaciones');
+  });
+});
+
+describe('what a shared link of the demo shows', () => {
+  const origin = 'https://example.github.io';
+
+  it('builds every address from the published origin and folder', () => {
+    expect(demoOrigin(undefined)).toBe(DEFAULT_DEMO_ORIGIN);
+    expect(DEFAULT_DEMO_ORIGIN).toBe('https://jsanchez542-hub.github.io');
+    expect(demoOrigin(origin)).toBe(origin);
+    expect(demoOrigin(`${origin}/`)).toBe(origin);
+  });
+
+  it('accepts only a bare https origin', () => {
+    for (const bad of ['http://example.github.io', 'https://example.github.io/greenlight', 'https://user:pw@example.github.io', 'https://example.github.io?x=1', 'https://example.github.io#x', 'javascript:alert(1)', 'example.github.io', '']) {
+      expect(() => demoOrigin(bad), bad).toThrow();
+    }
+  });
+
+  it('gives a page its title, its description, its canonical address and a large preview', () => {
+    const metadata = demoPageMetadata('/workflows/orders/');
+    expect(metadata.title).toBe('Order confirmations');
+    expect(metadata.alternates?.canonical).toMatch(/\/workflows\/orders\/$/);
+    expect(metadata.openGraph).toMatchObject({
+      type: 'website',
+      siteName: 'GreenLight',
+      title: 'Order confirmations · GreenLight',
+      description: 'Critical: At least one check raised a critical finding.',
+      locale: 'en_US',
+    });
+    expect(metadata.twitter).toMatchObject({ card: 'summary_large_image', title: 'Order confirmations · GreenLight' });
+  });
+
+  it('gives the home page the name of the product and the install page its own title, once', () => {
+    expect(demoPageMetadata('/').openGraph).toMatchObject({ title: en.meta.defaultTitle, description: en.meta.description });
+    expect(demoPageMetadata('/setup/').title).toEqual({ absolute: 'Install GreenLight' });
+    expect(demoPageMetadata('/setup/').openGraph).toMatchObject({ title: 'Install GreenLight' });
+  });
+
+  it('points the preview at an image of 1200 by 630 that is in the site', () => {
+    const image = path.resolve(import.meta.dirname, '..', 'public', SOCIAL_IMAGE.path.slice(1));
+    const header = readFileSync(image);
+    expect(header.subarray(1, 4).toString('ascii')).toBe('PNG');
+    expect(header.readUInt32BE(16)).toBe(SOCIAL_IMAGE.width);
+    expect(header.readUInt32BE(20)).toBe(SOCIAL_IMAGE.height);
+    expect(header.length).toBeLessThan(300 * 1024);
   });
 });

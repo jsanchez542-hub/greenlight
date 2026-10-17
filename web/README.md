@@ -269,6 +269,9 @@ npm run audit:demo       # looks through web/out again, if you want to
 The demo expects to live at `/greenlight/`, which is how GitHub Pages serves a project page
 (`https://<user>.github.io/greenlight/`). `GREENLIGHT_DEMO_BASE_PATH` changes the folder (`/other`,
 or `/` for a site at the root); it ends up in every link, so only plain folder names are accepted.
+`GREENLIGHT_DEMO_ORIGIN` is the site it is published on (`https://jsanchez542-hub.github.io` by
+default, a bare https origin and nothing else); the canonical address and the link preview of
+every page are built from it, since those must be absolute.
 `npm run build:demo` builds the scanner first, exactly as `npm run build` does, and needs nothing
 else. The real dashboard is not touched: its own build is put aside while the demo is built and
 put back afterwards, and `npm run build`, `npm run panel` and their tests behave as before.
@@ -298,6 +301,13 @@ put back afterwards, and `npm run build`, `npm run panel` and their tests behave
   GreenLight"), a finding by its workflow and its check ("Order confirmations, silent error ·
   GreenLight"), the page that is not there as such. The built pages carry the English title;
   the browser then gives it in the language of the visitor.
+- Every page has a canonical address and a preview for the sites a link is shared on (Open Graph
+  and the large card of X): its title, its description and `public/og/overview.png`, a picture of
+  the overview at 1200 by 630. Those services read the built page and run no script, so the
+  preview is in English. To make the picture again, build the demo, serve `web/out` under
+  `/greenlight/` and capture the overview in a window of 1200 by 630 at a pixel ratio of 1, in the
+  dark theme, after the welcome has been closed; keep it under 300 KB, the limit some messaging
+  apps apply to previews.
 
 **Security.** The host cannot send headers, so each page carries its policy as a
 `<meta http-equiv="Content-Security-Policy">` that is the first thing in its head:

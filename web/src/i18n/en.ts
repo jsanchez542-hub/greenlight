@@ -458,6 +458,7 @@ export const en = {
     commandsCopy: 'the three commands',
     needs: 'It needs Node.js 22.12 or newer.',
     repository: 'See the repository on GitHub',
+    socialImage: 'The overview of GreenLight with invented n8n workflows grouped by state.',
   },
 
   failures: {

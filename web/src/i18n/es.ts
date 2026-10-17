@@ -466,6 +466,7 @@ export const es: Messages = {
     commandsCopy: 'los tres comandos',
     needs: 'Necesita Node.js 22.12 o superior.',
     repository: 'Ver el repositorio en GitHub',
+    socialImage: 'El resumen de GreenLight con workflows de n8n inventados, agrupados por estado.',
   },
 
   failures: {

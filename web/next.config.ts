@@ -1,6 +1,6 @@
 import path from 'node:path';
 import type { NextConfig } from 'next';
-import { demoBasePath } from './src/lib/demo-base-path';
+import { demoBasePath, demoOrigin } from './src/lib/demo-site';
 import { securityHeaders } from './src/lib/security';
 
 const repositoryRoot = path.join(import.meta.dirname, '..');
@@ -21,6 +21,7 @@ const shared: NextConfig = {
  */
 function demoConfig(): NextConfig {
   const basePath = demoBasePath(process.env['GREENLIGHT_DEMO_BASE_PATH']);
+  const origin = demoOrigin(process.env['GREENLIGHT_DEMO_ORIGIN']);
   return {
     ...shared,
     output: 'export',
@@ -30,7 +31,7 @@ function demoConfig(): NextConfig {
     trailingSlash: true,
     pageExtensions: ['demo.tsx', 'demo.ts'],
     images: { unoptimized: true },
-    env: { NEXT_PUBLIC_STATIC_DEMO: '1', NEXT_PUBLIC_BASE_PATH: basePath },
+    env: { NEXT_PUBLIC_STATIC_DEMO: '1', NEXT_PUBLIC_BASE_PATH: basePath, NEXT_PUBLIC_SITE_ORIGIN: origin },
   };
 }
 
