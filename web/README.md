@@ -400,18 +400,23 @@ screen the sidebar becomes a bar along the bottom.
 | `npm run lint` | ESLint |
 | `npm run typecheck` | TypeScript without emitting |
 | `npm test` | unit tests |
+| `npm run build:demo` | the online demo as plain files in `web/out`, audited (see Online demo) |
+| `npm run audit:demo` | the audit of `web/out` on its own |
 
 `dev`, `build` and `typecheck` rebuild the parent package first, because the dashboard
 imports its compiled output and its types.
 
 ```
-src/app/(app)/      the routes, inside one layout that holds the shell and the scan
-src/app/api/        the scan and connection check routes
-src/components/     shell, ui, onboarding and one folder per route, each with its stylesheet
+src/app/(app)/      the routes, inside one layout that holds the shell and the scan; the demo's are *.demo.tsx
+src/app/api/        the scan, connection check, connection and version notice routes
+src/components/     shell, ui, onboarding, demo and one folder per route, each with its stylesheet
+src/i18n/           the English and Spanish dictionaries and the language of the page
 src/lib/            parsing, formatting, sorting, filtering, navigation and onboarding logic
 src/lib/server/     code that only runs on the server
+scripts/            the build, the policy and the audit of the demo
 public/logo/        the project logo for light and dark backgrounds
-tests/              unit tests for everything in src/lib
+public/og/          the picture shown when a link to the demo is shared
+tests/              unit tests, a DOM test of the keyboard shortcuts and the audit of the built demo
 ```
 
 Types come from the parent package, so the contract has one source of truth. Scan results
