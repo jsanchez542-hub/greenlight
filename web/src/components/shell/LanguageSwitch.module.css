@@ -30,6 +30,14 @@
   font-weight: 700;
 }
 
+.group button:focus-visible {
+  outline-offset: -2px;
+}
+
+.group button[aria-pressed='true']:focus-visible {
+  outline-color: var(--on-accent);
+}
+
 .group[data-placement='sidebar'] {
   justify-self: start;
   margin-inline: 10px;

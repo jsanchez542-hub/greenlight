@@ -34,6 +34,14 @@
   font-weight: 700;
 }
 
+.switch button:focus-visible {
+  outline-offset: -2px;
+}
+
+.switch button[aria-pressed='true']:focus-visible {
+  outline-color: var(--on-accent);
+}
+
 .switch button[aria-pressed='false'] {
   color: var(--ink-muted);
 }

@@ -12,7 +12,7 @@
   --accent-strong: light-dark(#3f6212, #c2f670);
   --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--panel));
   --on-accent: light-dark(#ffffff, #01110e);
-  --focus: light-dark(#0b57d0, #c2f670);
+  --focus: var(--accent-strong);
 
   --critical: light-dark(#b3261e, #ff7b6f);
   --warning: light-dark(#8a5700, #f2b84b);
