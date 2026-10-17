@@ -27,11 +27,19 @@ updates:
       - dependency-name: "eslint"
         update-types: ["version-update:semver-major"]
     groups:
+      # Next and its lint config are released together, one version for both.
+      next:
+        patterns: ["next", "eslint-config-next", "@next/*"]
       development:
         dependency-type: development
         update-types: [minor, patch]
+        exclude-patterns: ["eslint-config-next", "@next/*"]
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    groups:
+      # CodeQL's init and analyze steps are one release and only run as a pair.
+      codeql:
+        patterns: ["github/codeql-action/*"]
