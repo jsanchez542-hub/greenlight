@@ -294,6 +294,10 @@ put back afterwards, and `npm run build`, `npm run panel` and their tests behave
   projects of the same user.
 - An address of a finding uses `~` where the dashboard uses `:`, because a folder name cannot
   hold a colon on every system and the demo is a set of folders.
+- Every page is named for what it shows: a workflow by its name ("Order confirmations ·
+  GreenLight"), a finding by its workflow and its check ("Order confirmations, silent error ·
+  GreenLight"), the page that is not there as such. The built pages carry the English title;
+  the browser then gives it in the language of the visitor.
 
 **Security.** The host cannot send headers, so each page carries its policy as a
 `<meta http-equiv="Content-Security-Policy">` that is the first thing in its head:

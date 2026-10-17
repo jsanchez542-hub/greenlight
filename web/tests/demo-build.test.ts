@@ -12,7 +12,7 @@ import { INSTALL_COMMANDS, REPOSITORY_URL } from '@/lib/demo';
 import { DEMO_LANGUAGE_KEY, LANGUAGE_INIT_SCRIPT, chooseLanguage } from '@/lib/demo-language';
 import { routeKey } from '@/lib/routes';
 import { normalizePath } from '@/lib/navigation';
-import { documentTexts, pageOf } from '@/components/demo/DemoDocument';
+import { demoDocument, fullTitle, pageOf } from '@/lib/demo-titles';
 import { en } from '@/i18n/en';
 import { es } from '@/i18n/es';
 import { pageLabel } from '@/lib/navigation';
@@ -161,7 +161,16 @@ describe('the demo that was built, when there is one', () => {
   it.skipIf(!exists)('passes the same audit, so a build that leaves something behind cannot be shipped', () => {
     expect(auditDemo(built).problems).toEqual([]);
   });
+
+  const html = (page: string) => readFileSync(path.join(built, page), 'utf8');
+  it.skipIf(!exists)('names each workflow and each finding in the title of its page', () => {
+    expect(html('workflows/orders/index.html')).toContain('<title>Order confirmations · GreenLight</title>');
+    expect(html('findings/orders~silent-error~0/index.html')).toContain('<title>Order confirmations, silent error · GreenLight</title>');
+    expect(html('setup/index.html')).toContain('<title>Install GreenLight</title>');
+    expect(html('404.html')).toContain('<title>Page not found · GreenLight</title>');
+  });
 });
+
 
 describe('the pieces a host without rewrites needs', () => {
   it('writes the dotted name of each segment file beside its folder', () => {
@@ -301,13 +310,42 @@ describe('the pieces of the pages of the demo', () => {
   });
 });
 
-describe('what the install page of the demo is called', () => {
-  it('has one name in its title, its breadcrumb and its heading, in each language', () => {
+describe('what the pages of the demo are called', () => {
+  const title = (pathname: string, messages = en, lang: 'en' | 'es' = 'en') =>
+    fullTitle(demoDocument(pathname, sampleResult, messages, lang), messages);
+
+  it('names the install page once, the same way as its breadcrumb and its heading', () => {
+    expect(title('/setup/')).toBe('Install GreenLight');
+    expect(title('/setup/', es, 'es')).toBe('Instala GreenLight');
     for (const messages of [en, es]) {
-      expect(documentTexts('/setup/', messages).title).toBe(`${messages.demo.pageTitle} · GreenLight`);
       expect(pageLabel('/setup/', messages, true)).toBe(messages.demo.title);
       expect(messages.demo.title.toLowerCase()).toBe(messages.demo.pageTitle.toLowerCase());
     }
+  });
+
+  it('names a workflow by its name and a finding by its workflow and its check, in each language', () => {
+    expect(title('/workflows/orders/')).toBe('Order confirmations · GreenLight');
+    expect(title('/workflows/orders/', es, 'es')).toBe('Order confirmations · GreenLight');
+    expect(title('/findings/orders~silent-error~0/')).toBe('Order confirmations, silent error · GreenLight');
+    expect(title('/findings/orders~silent-error~0/', es, 'es')).toBe('Order confirmations, error silencioso · GreenLight');
+    expect(title('/findings/inventory~duration-drift~0/', es, 'es')).toBe('Inventory sync, ralentización · GreenLight');
+  });
+
+  it('describes a workflow by its state and a finding by its sentence, in each language', () => {
+    expect(demoDocument('/workflows/orders/', sampleResult, en, 'en').description).toBe(
+      'Critical: At least one check raised a critical finding.',
+    );
+    expect(demoDocument('/findings/orders~silent-error~0/', sampleResult, es, 'es').description).toContain('devolvió un error');
+  });
+
+  it('falls back to the name of the kind of page for one it does not know', () => {
+    expect(title('/workflows/nobody/')).toBe('Workflow · GreenLight');
+    expect(title('/findings/nothing~here~0/')).toBe('Finding · GreenLight');
+  });
+
+  it('says that a page is not there, in each language', () => {
+    expect(title('/nowhere/')).toBe('Page not found · GreenLight');
+    expect(title('/_not-found/', es, 'es')).toBe('Página no encontrada · GreenLight');
   });
 
   it('keeps the name of the connection in the real dashboard', () => {
@@ -316,9 +354,8 @@ describe('what the install page of the demo is called', () => {
     expect(en.meta.pages.setup.title).toBe('Connect your n8n');
   });
 
-  it('keeps the other pages as they are in the demo', () => {
-    expect(documentTexts('/checks/', es).title).toBe('Comprobaciones · GreenLight');
-    expect(documentTexts('/nowhere/', en).title).toBe('Page not found · GreenLight');
+  it('keeps the other pages as they were', () => {
+    expect(title('/checks/', es, 'es')).toBe('Comprobaciones · GreenLight');
     expect(pageLabel('/checks/', es, true)).toBe('comprobaciones');
   });
 });

@@ -1,11 +1,8 @@
 import { Suspense } from 'react';
 import { FindingsView } from '@/components/findings/FindingsView';
-import { en } from '@/i18n/en';
+import { demoPageMetadata } from '@/lib/demo-metadata';
 
-export const metadata = {
-  title: en.meta.pages.findings.title,
-  description: en.meta.pages.findings.description,
-};
+export const metadata = demoPageMetadata('/findings/');
 
 export default function Page() {
   return (

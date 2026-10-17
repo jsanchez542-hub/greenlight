@@ -1,10 +1,7 @@
 import { ChecksView } from '@/components/checks/ChecksView';
-import { en } from '@/i18n/en';
+import { demoPageMetadata } from '@/lib/demo-metadata';
 
-export const metadata = {
-  title: en.meta.pages.checks.title,
-  description: en.meta.pages.checks.description,
-};
+export const metadata = demoPageMetadata('/checks/');
 
 export default function Page() {
   return <ChecksView />;

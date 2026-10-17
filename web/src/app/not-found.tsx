@@ -1,19 +1,12 @@
-import Link from 'next/link';
+import type { Metadata } from 'next';
+import { NotFoundView } from '@/components/ui/NotFoundView';
 import { currentMessages } from '@/lib/server/language';
-import styles from './not-found.module.css';
 
-export default async function NotFound() {
+export async function generateMetadata(): Promise<Metadata> {
   const t = await currentMessages();
+  return { title: t.notFound.title };
+}
 
-  return (
-    <main className={styles.page}>
-      <section className={styles.card}>
-        <h1>{t.notFound.title}</h1>
-        <p>{t.notFound.body}</p>
-        <Link href="/" className={styles.link}>
-          {t.notFound.home}
-        </Link>
-      </section>
-    </main>
-  );
+export default function NotFound() {
+  return <NotFoundView />;
 }

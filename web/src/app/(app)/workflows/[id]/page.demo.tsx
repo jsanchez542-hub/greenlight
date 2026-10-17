@@ -1,20 +1,24 @@
 import { WorkflowDetail } from '@/components/workflows/WorkflowDetail';
-import { en } from '@/i18n/en';
+import { demoPageMetadata } from '@/lib/demo-metadata';
 import { decodeSegment } from '@/lib/routes';
 import { sampleResult } from '@/lib/sample';
 
-export const dynamicParams = false;
+interface Props {
+  params: Promise<{ id: string }>;
+}
 
-export const metadata = {
-  title: en.meta.pages.workflow.title,
-  description: en.meta.pages.workflow.description,
-};
+export const dynamicParams = false;
 
 export function generateStaticParams() {
   return sampleResult.workflows.map(({ id }) => ({ id }));
 }
 
-export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+export async function generateMetadata({ params }: Props) {
+  const { id } = await params;
+  return demoPageMetadata(`/workflows/${id}/`);
+}
+
+export default async function Page({ params }: Props) {
   const { id } = await params;
   return <WorkflowDetail workflowId={decodeSegment(id)} />;
 }

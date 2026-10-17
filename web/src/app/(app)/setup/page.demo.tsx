@@ -1,10 +1,7 @@
 import { DemoInstall } from '@/components/demo/DemoInstall';
-import { en } from '@/i18n/en';
+import { demoPageMetadata } from '@/lib/demo-metadata';
 
-export const metadata = {
-  title: en.demo.pageTitle,
-  description: en.demo.pageDescription,
-};
+export const metadata = demoPageMetadata('/setup/');
 
 export default function Page() {
   return <DemoInstall />;
