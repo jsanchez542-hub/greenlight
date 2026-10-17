@@ -420,4 +420,6 @@ whose `version` is not 1 is rejected rather than half displayed.
 
 Dependencies: Next.js and React, and the parent package. Styling is plain CSS modules.
 ESLint is on version 9 and TypeScript on 6 because `typescript-eslint` does not yet support
-TypeScript 7, which the parent package uses.
+TypeScript 7, which the parent package uses. jsdom, for development only, gives the test of the keyboard
+shortcuts a document to run in; it stays on version 28, the newest that still runs on Node 22.12,
+the oldest version GreenLight supports.
