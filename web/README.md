@@ -58,7 +58,7 @@ the copy every few seconds and shows how old it is. **Scan now** starts a refres
 - If the copy is older than three intervals and has not refreshed, the page says so.
 - The key stays on the server. It is never sent to the browser. When a scan fails the server
   sends only the kind of failure (the instance rejected the key, could not be reached, took too
-  long, has an untrusted certificate...) and the page words it itself, so no text of the error,
+  long, has an untrusted certificate…) and the page words it itself, so no text of the error,
   and with it no key and no credentials written into `N8N_BASE_URL`, can travel with it.
 
 **Sample data.** Without an address and key the dashboard shows
@@ -199,7 +199,7 @@ finding is written from its evidence by `describeFinding` of `greenlight/i18n`, 
 function the command line uses, so both always say the same thing.
 
 Messages from the server are never shown as they arrive. A refusal or a failure travels as a short
-code (`hostNotAllowed`, `scanRejectedKey`, `rateLimited`...) and the page words it in the
+code (`hostNotAllowed`, `scanRejectedKey`, `rateLimited`…) and the page words it in the
 language of the reader. The connection check is written by the scanner in the language of the
 request.
 
