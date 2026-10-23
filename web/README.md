@@ -273,7 +273,7 @@ or `/` for a site at the root); it ends up in every link, so only plain folder n
 default, a bare https origin and nothing else); the canonical address and the link preview of
 every page are built from it, since those must be absolute.
 `npm run build:demo` builds the scanner first, exactly as `npm run build` does, and needs nothing
-else. The real dashboard is not touched: its own build is put aside while the demo is built and
+else. The real dashboard stays as it is. Its own build is set aside while the demo is built and
 put back afterwards, and `npm run build`, `npm run panel` and their tests behave as before.
 
 **What is different from the dashboard**
