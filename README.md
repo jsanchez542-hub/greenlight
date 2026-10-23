@@ -145,7 +145,7 @@ flickers does not produce an alert every few minutes. What was already reported 
 small file (`.greenlight-state.json`), so restarting does not repeat old alerts.
 
 If the scan itself cannot run three times in a row, which usually means the instance is down
-or the key was revoked, it says so, because a watcher that fails quietly is the problem this
+or the key was revoked, it says so, because a watcher that fails silently is the problem this
 project exists to solve. It says so again when scanning resumes.
 
 Without a webhook, changes are only printed. With one, each change is posted as JSON:
