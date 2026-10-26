@@ -25,7 +25,7 @@ First public release.
 - `watch` alerts only on what changed and posts a JSON alert to a webhook of your choice; an
   example n8n workflow turns it into an email.
 - A local dashboard with overview, findings, workflows and an explanation of every check, in light
-  and dark, usable on a phone-sized screen, with a first-run tour and a form to connect your n8n.
+  and dark, usable on a phone screen, with a tour on the first visit and a form to connect your n8n.
 - A guided setup (`npm run setup` or the form) that checks the connection step by step and explains
   each failure in plain words.
 - English and Spanish: the dashboard, the command line, the connection check and the alerts. The

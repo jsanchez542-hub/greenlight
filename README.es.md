@@ -6,7 +6,7 @@
 
 **Encuentra los workflows de n8n que fallan mientras informan de que todo fue bien.**
 
-[English](README.md) · Español
+[English](README.md) | Español
 
 Un workflow de producción informó de éxito durante tres semanas mientras no enviaba absolutamente nada.
 

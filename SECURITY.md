@@ -46,7 +46,7 @@ think the impact is. It will be answered as soon as possible.
   shows (your IP address and a `greenlight/<version>` user agent). It does not follow redirects, only
   accepts a plain `x.y.z` version number, builds the link to the release notes itself instead of
   using the one in the response, and fails silently. It never downloads or runs anything.
-- **The build is guarded.** The workflow token can only read the repository, third-party actions are
+- **The build is guarded.** The workflow token can only read the repository, actions from third parties are
   pinned to a commit, `npm audit` runs on production dependencies at every change, and Dependabot
   proposes updates.
 

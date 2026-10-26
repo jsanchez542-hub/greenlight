@@ -6,7 +6,7 @@
 
 **Finds the n8n workflows that fail while reporting success.**
 
-English · [Español](README.es.md)
+English | [Español](README.es.md)
 
 A production workflow reported success for three weeks while it sent nothing at all.
 
@@ -112,21 +112,21 @@ example can show every check at once. `npm run example` reproduces it from
 | --- | --- |
 | ![A finding with the numbers it rests on](docs/images/finding.png) | ![Every workflow, sortable and filterable](docs/images/workflows.png) |
 | Each finding shows the evidence it rests on and what to review. | Every workflow that was checked, with its state, trigger and last run. |
-| ![The first-run tour pointing at the four states](docs/images/tour.png) | ![The page that connects your n8n: two fields and a button](docs/images/setup.png) |
+| ![The tour shown on the first visit, pointing at the four states](docs/images/tour.png) | ![The page that connects your n8n: two fields and a button](docs/images/setup.png) |
 | A short tour the first time you open it. | **Connect your n8n**: an address, a key and one button. |
-| ![The light theme](docs/images/light.png) | <img src="docs/images/mobile.png" alt="The overview on a phone-sized screen" width="240"> |
-| A light and a dark theme, with a switch. | It works on a phone-sized screen too. |
+| ![The light theme](docs/images/light.png) | <img src="docs/images/mobile.png" alt="The overview on a phone screen" width="240"> |
+| A light and a dark theme, with a switch. | It works on a phone screen too. |
 
 - **Overview, Findings, Workflows and Checks.** The last page explains what each check looks for
   and the exact defaults it uses.
 - **Live or sample.** With a configured instance it scans on its own and shows how old the data is.
   Without one it shows sample data, labelled as such.
-- **A first-run guide.** The first time you open it there is a short tour, once. **Connect your n8n**
-  is a form with two fields: it runs the same step-by-step check as `npm run doctor` and saves the
+- **A guide for the first visit.** The first time you open it there is a short tour, once. **Connect your n8n**
+  is a form with two fields: it runs the same check, step by step, as `npm run doctor` and saves the
   connection for you, with no terminal.
 - **Light and dark.** A switch in the sidebar, and in the top bar on a phone, cycles System, Light
   and Dark and remembers the choice. System follows your operating system.
-- **It works on a phone-sized screen.** It needs a current browser: Chrome or Edge 123, Firefox 120
+- **It works on a phone screen.** It needs a current browser: Chrome or Edge 123, Firefox 120
   or Safari 17.5 and newer.
 - **Keyboard first.** `g` then `o`, `f`, `w` or `c` moves between pages, and `/` searches workflows.
 
@@ -178,8 +178,8 @@ the same information as data.
 If a delivery fails, the alert is kept and tried again on the next scan.
 
 GreenLight does not know what is behind the URL, so it works with anything that accepts a JSON
-POST. [`examples/n8n-alert-to-email.json`](examples/n8n-alert-to-email.json) is a two-node n8n
-workflow that turns the alert into an email: import it, choose your own SMTP credentials and
+POST. [`examples/n8n-alert-to-email.json`](examples/n8n-alert-to-email.json) is an n8n workflow
+with two nodes that turns the alert into an email: import it, choose your own SMTP credentials and
 addresses, and create a Header Auth credential whose name is `Authorization` and whose value is
 `Bearer ` followed by your token. Then set `GREENLIGHT_WEBHOOK_URL` to the production URL of its
 webhook and `GREENLIGHT_WEBHOOK_TOKEN` to the same token. The webhook URL is treated as a secret
@@ -215,7 +215,7 @@ the number of the latest version (see [Versions and updates](#versions-and-updat
 
 | Command | What it does |
 | --- | --- |
-| `npm run setup` | guided first-time setup, saves `.env` |
+| `npm run setup` | guided first setup, saves `.env` |
 | `npm run doctor` | checks the connection step by step |
 | `npm run scan` | scans once and prints the report; add `-- --json` for structured output |
 | `npm run watch` | scans on a schedule and alerts on changes |

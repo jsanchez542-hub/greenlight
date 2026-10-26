@@ -14,7 +14,7 @@ npm install
 npm run panel    # builds the dashboard, starts it and opens it in your browser
 ```
 
-A welcome dialog offers a one-minute tour. To see your own workflows press **Connect** in the
+A welcome dialog offers a tour that takes a minute. To see your own workflows press **Connect** in the
 sidebar: type the address of your n8n, paste an API key and press the button. No terminal and
 no file editing are needed. The page links to the place in n8n where keys are made.
 
@@ -53,7 +53,7 @@ the copy every few seconds and shows how old it is. **Scan now** starts a refres
 - If a refresh fails, for example because the instance is down or the key was revoked, the last
   good result stays on screen with a notice that says how old it is, what went wrong and a link
   to the connection check.
-- The first scan after a start takes tens of seconds on a mid-sized instance; until it ends
+- The first scan after a start takes tens of seconds on an instance of medium size; until it ends
   the page shows a progress notice.
 - If the copy is older than three intervals and has not refreshed, the page says so.
 - The key stays on the server. It is never sent to the browser. When a scan fails the server
@@ -115,12 +115,12 @@ do. This is the part to read before changing anything.
 - **If the program's environment sets them:** values in the process environment win over the
   file, so the page says so and Disconnect tells the person where to remove them.
 
-Because it writes, the dashboard stays on loopback. A reachable dashboard with no sign-in would
+Because it writes, the dashboard stays on loopback. A reachable dashboard with no login would
 let anyone who reaches it point GreenLight, and the key it holds, at a server of their choice.
 
 ### What it does not protect
 
-There is **no sign-in**. Anything running on the same machine as you can read the dashboard,
+There is **no login**. Anything running on the same machine as you can read the dashboard,
 and anyone you let past the loopback address sees your workflow names. That is why it only
 listens on loopback: the safe way to share it is a proxy you control that adds authentication
 in front of it, with the proxy's name in `GREENLIGHT_ALLOWED_HOSTS`. It does not defend against
@@ -133,7 +133,7 @@ stays out of the repository: no captures, JSON, logs or test data taken from a r
 ### Dependencies
 
 `npm audit --omit=dev` reports no vulnerabilities in what runs. `npm audit` also lists
-development-only advisories through `eslint-config-next`, which does not ship in the
+advisories that only concern development, through `eslint-config-next`, which does not ship in the
 dashboard.
 
 ## Routes
