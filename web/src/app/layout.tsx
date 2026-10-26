@@ -9,7 +9,7 @@ import './globals.css';
 export async function generateMetadata(): Promise<Metadata> {
   const t = await currentMessages();
   return {
-    title: { default: t.meta.defaultTitle, template: `%s · ${t.meta.title}` },
+    title: { default: t.meta.defaultTitle, template: `%s | ${t.meta.title}` },
     description: t.meta.description,
   };
 }

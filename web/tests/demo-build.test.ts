@@ -168,10 +168,10 @@ describe('the demo that was built, when there is one', () => {
     new RegExp(`<meta ${attribute}="${name.replace(/[.:]/g, (c) => `\\${c}`)}" content="([^"]*)"`).exec(text)?.[1] ?? null;
 
   it.skipIf(!exists)('names each workflow and each finding in the title of its page', () => {
-    expect(html('workflows/orders/index.html')).toContain('<title>Order confirmations · GreenLight</title>');
-    expect(html('findings/orders~silent-error~0/index.html')).toContain('<title>Order confirmations, silent error · GreenLight</title>');
+    expect(html('workflows/orders/index.html')).toContain('<title>Order confirmations | GreenLight</title>');
+    expect(html('findings/orders~silent-error~0/index.html')).toContain('<title>Order confirmations, silent error | GreenLight</title>');
     expect(html('setup/index.html')).toContain('<title>Install GreenLight</title>');
-    expect(html('404.html')).toContain('<title>Page not found · GreenLight</title>');
+    expect(html('404.html')).toContain('<title>Page not found | GreenLight</title>');
   });
 
   it.skipIf(!exists)('gives every page a preview for the sites a link is shared on, and keeps the page that is not there out of it', () => {
@@ -346,11 +346,11 @@ describe('what the pages of the demo are called', () => {
   });
 
   it('names a workflow by its name and a finding by its workflow and its check, in each language', () => {
-    expect(title('/workflows/orders/')).toBe('Order confirmations · GreenLight');
-    expect(title('/workflows/orders/', es, 'es')).toBe('Order confirmations · GreenLight');
-    expect(title('/findings/orders~silent-error~0/')).toBe('Order confirmations, silent error · GreenLight');
-    expect(title('/findings/orders~silent-error~0/', es, 'es')).toBe('Order confirmations, error silencioso · GreenLight');
-    expect(title('/findings/inventory~duration-drift~0/', es, 'es')).toBe('Inventory sync, ralentización · GreenLight');
+    expect(title('/workflows/orders/')).toBe('Order confirmations | GreenLight');
+    expect(title('/workflows/orders/', es, 'es')).toBe('Order confirmations | GreenLight');
+    expect(title('/findings/orders~silent-error~0/')).toBe('Order confirmations, silent error | GreenLight');
+    expect(title('/findings/orders~silent-error~0/', es, 'es')).toBe('Order confirmations, error silencioso | GreenLight');
+    expect(title('/findings/inventory~duration-drift~0/', es, 'es')).toBe('Inventory sync, ralentización | GreenLight');
   });
 
   it('describes a workflow by its state and a finding by its sentence, in each language', () => {
@@ -361,13 +361,13 @@ describe('what the pages of the demo are called', () => {
   });
 
   it('falls back to the name of the kind of page for one it does not know', () => {
-    expect(title('/workflows/nobody/')).toBe('Workflow · GreenLight');
-    expect(title('/findings/nothing~here~0/')).toBe('Finding · GreenLight');
+    expect(title('/workflows/nobody/')).toBe('Workflow | GreenLight');
+    expect(title('/findings/nothing~here~0/')).toBe('Finding | GreenLight');
   });
 
   it('says that a page is not there, in each language', () => {
-    expect(title('/nowhere/')).toBe('Page not found · GreenLight');
-    expect(title('/_not-found/', es, 'es')).toBe('Página no encontrada · GreenLight');
+    expect(title('/nowhere/')).toBe('Page not found | GreenLight');
+    expect(title('/_not-found/', es, 'es')).toBe('Página no encontrada | GreenLight');
   });
 
   it('keeps the name of the connection in the real dashboard', () => {
@@ -377,7 +377,7 @@ describe('what the pages of the demo are called', () => {
   });
 
   it('keeps the other pages as they were', () => {
-    expect(title('/checks/', es, 'es')).toBe('Comprobaciones · GreenLight');
+    expect(title('/checks/', es, 'es')).toBe('Comprobaciones | GreenLight');
     expect(pageLabel('/checks/', es, true)).toBe('comprobaciones');
   });
 });
@@ -405,11 +405,11 @@ describe('what a shared link of the demo shows', () => {
     expect(metadata.openGraph).toMatchObject({
       type: 'website',
       siteName: 'GreenLight',
-      title: 'Order confirmations · GreenLight',
+      title: 'Order confirmations | GreenLight',
       description: 'Critical: At least one check raised a critical finding.',
       locale: 'en_US',
     });
-    expect(metadata.twitter).toMatchObject({ card: 'summary_large_image', title: 'Order confirmations · GreenLight' });
+    expect(metadata.twitter).toMatchObject({ card: 'summary_large_image', title: 'Order confirmations | GreenLight' });
   });
 
   it('gives the home page the name of the product and the install page its own title, once', () => {

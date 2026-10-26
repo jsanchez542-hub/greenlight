@@ -90,7 +90,7 @@ export const es: Messages = {
 
   top: {
     sample: 'Datos de ejemplo',
-    notLive: '· no es una instancia real',
+    notLive: '(no es una instancia real)',
     sourceGroup: 'Origen de los datos',
     liveFull: 'En vivo',
     liveShort: 'En vivo',

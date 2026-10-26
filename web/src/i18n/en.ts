@@ -7,7 +7,7 @@ export const en = {
     title: 'GreenLight',
     defaultTitle: 'GreenLight scan results for n8n workflows',
     description:
-      'Silent errors, slow-downs, silence and dropped schedules in n8n workflows, read from a scan of the instance.',
+      'Silent errors, slowdowns, silence and dropped schedules in n8n workflows, read from a scan of the instance.',
     pages: {
       overview: {
         title: 'Overview',
@@ -88,7 +88,7 @@ export const en = {
 
   top: {
     sample: 'Sample data',
-    notLive: '· not a live instance',
+    notLive: '(not a live instance)',
     sourceGroup: 'Data source',
     liveFull: 'Live instance',
     liveShort: 'Live',
@@ -175,7 +175,7 @@ export const en = {
     shouldRefresh: (minutes: number) => `It should refresh every ${n(minutes)} min and has not.`,
     progressTitle: 'Scanning the instance',
     progressBody: (elapsed: string) =>
-      `Reading the execution history of each workflow, one at a time. On a mid-sized instance this takes tens of seconds. Elapsed: ${elapsed}.`,
+      `Reading the execution history of each workflow, one at a time. On an instance of medium size this takes tens of seconds. Elapsed: ${elapsed}.`,
     showSampleMeanwhile: 'Show sample data meanwhile',
     failedTitle: 'The scan did not finish',
     runAgain: 'Run the scan again',
@@ -431,9 +431,9 @@ export const en = {
     welcomeTitle: 'Welcome to GreenLight',
     welcomeBody:
       'Some n8n workflows finish green and still fail inside. GreenLight reads your run history and shows which ones.',
-    welcomeWithConnect: ' Take a one-minute tour, or connect your own n8n first.',
-    welcomeTourOnly: ' Take a one-minute tour of what is on screen.',
-    startTour: 'Take the 1-minute tour',
+    welcomeWithConnect: ' Take a quick tour, or connect your own n8n first.',
+    welcomeTourOnly: ' Take a quick tour of what is on screen.',
+    startTour: 'Take the quick tour',
     skipWelcome: 'Skip for now',
   },
 
@@ -445,7 +445,7 @@ export const en = {
     banner: 'This is a demo with invented workflows.',
     bannerLink: 'Install GreenLight to see your own.',
     installLink: 'Install GreenLight',
-    welcome: ' Take a one-minute tour, or see how to install it and read your own n8n.',
+    welcome: ' Take a quick tour, or see how to install it and read your own n8n.',
     welcomeInstall: 'How to install it',
     tourInstall: 'Install',
     pageTitle: 'Install GreenLight',

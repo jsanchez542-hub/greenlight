@@ -8,7 +8,7 @@ import { THEME_INIT_SCRIPT } from '@/lib/theme';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: { default: en.meta.defaultTitle, template: `%s · ${en.meta.title}` },
+  title: { default: en.meta.defaultTitle, template: `%s | ${en.meta.title}` },
   description: en.meta.description,
   referrer: 'no-referrer',
 };

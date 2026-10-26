@@ -51,7 +51,7 @@ export function Overview() {
         meta={
           <>
             {t.overview.scanned} <time dateTime={result.scannedAt}>{formatUtc(result.scannedAt, lang)}</time>
-            {' · '}
+            {' | '}
             {t.overview.checked(result.workflows.length)}
           </>
         }

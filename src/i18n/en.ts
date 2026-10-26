@@ -143,7 +143,7 @@ With watch --once it is the same, so it can run from cron or a scheduler.
     },
     untrustedCertificate: {
       detail: 'The HTTPS certificate of the instance is not trusted.',
-      hint: "The padlock of that address is not one this computer trusts. If it is your own server, install a proper certificate (a free one from Let's Encrypt works). Advanced: for a self-signed certificate, set NODE_EXTRA_CA_CERTS to your certificate file.",
+      hint: "The padlock of that address is not one this computer trusts. If it is your own server, install a proper certificate (a free one from Let's Encrypt works). Advanced: for a certificate you signed yourself, set NODE_EXTRA_CA_CERTS to your certificate file.",
     },
     connectionFailed: {
       detail: 'The connection failed before any answer came back.',
@@ -155,7 +155,7 @@ With watch --once it is the same, so it can run from cron or a scheduler.
     },
     status403: {
       detail: 'The API key is valid but is not allowed to read workflows.',
-      hint: 'Create a key that can read workflows and executions. GreenLight never writes, so a read-only key is enough.',
+      hint: 'Create a key that can read workflows and executions. GreenLight never writes, so a key that can only read is enough.',
     },
     status404: {
       detail: 'The address answered, but there is no n8n API there.',

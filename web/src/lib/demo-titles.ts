@@ -80,5 +80,5 @@ export function demoDocument(pathname: string, result: ScanResult, t: Messages, 
 }
 
 export function fullTitle(texts: DocumentTexts, t: Messages): string {
-  return texts.standalone ? texts.title : `${texts.title} · ${t.meta.title}`;
+  return texts.standalone ? texts.title : `${texts.title} | ${t.meta.title}`;
 }
