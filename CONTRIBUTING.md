@@ -24,6 +24,9 @@ npm test
 
 The dashboard has its own project in `web/` with its own `lint`, `typecheck`, `test` and `build`.
 
+The test against a real n8n, which the CI runs for each version it supports, is described in
+[e2e/README.md](e2e/README.md).
+
 ## What a good change looks like
 
 - **It comes from something that happened.** A check exists because a real instance failed in
