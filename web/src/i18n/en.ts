@@ -494,6 +494,13 @@ export const en = {
     scanForbidden: 'The scan could not finish: the API key is not allowed to read what GreenLight needs.',
     scanNotFound: 'The scan could not finish: there is no n8n API at the address of the instance.',
     scanServerError: 'The scan could not finish: the instance answered with an error.',
+    scanBadExecutionLimit:
+      'The scan could not start: GREENLIGHT_EXECUTION_LIMIT must be a positive whole number. Fix it in the .env file.',
+    scanBadDetailSample:
+      'The scan could not start: GREENLIGHT_DETAIL_SAMPLE must be a positive whole number. Fix it in the .env file.',
+    scanBadConcurrency:
+      'The scan could not start: GREENLIGHT_CONCURRENCY must be a whole number from 1 to 16. Fix it in the .env file.',
+    scanBadSetting: 'The scan could not start: one of the settings is not valid. Check the .env file.',
   },
 };
 

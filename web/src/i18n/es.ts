@@ -503,5 +503,12 @@ export const es: Messages = {
     scanForbidden: 'El análisis no pudo terminar: la clave de API no tiene permiso para leer lo que GreenLight necesita.',
     scanNotFound: 'El análisis no pudo terminar: no hay una API de n8n en la dirección de la instancia.',
     scanServerError: 'El análisis no pudo terminar: la instancia respondió con un error.',
+    scanBadExecutionLimit:
+      'El análisis no pudo empezar: GREENLIGHT_EXECUTION_LIMIT debe ser un número entero positivo. Corrígelo en el archivo .env.',
+    scanBadDetailSample:
+      'El análisis no pudo empezar: GREENLIGHT_DETAIL_SAMPLE debe ser un número entero positivo. Corrígelo en el archivo .env.',
+    scanBadConcurrency:
+      'El análisis no pudo empezar: GREENLIGHT_CONCURRENCY debe ser un número entero de 1 a 16. Corrígelo en el archivo .env.',
+    scanBadSetting: 'El análisis no pudo empezar: uno de los ajustes no es válido. Revisa el archivo .env.',
   },
 };

@@ -1,5 +1,8 @@
-import { N8nApiError } from 'greenlight-n8n';
+import { ConfigError, MAX_CONCURRENCY, N8nApiError, loadConfig } from 'greenlight-n8n';
 import { describe, expect, it } from 'vitest';
+import { en } from '@/i18n/en';
+import { es } from '@/i18n/es';
+import { failureText } from '@/lib/failure';
 import { describeScanFailure, hostOf, isLiveScanConfigured, liveCache } from '@/lib/server/live-scan';
 
 const env = {
@@ -65,6 +68,58 @@ describe('describeScanFailure', () => {
 
   it('describes a thrown value that is not an error', () => {
     expect(describeScanFailure('boom')).toBe('scanFailed');
+  });
+
+  describe('a setting that was refused', () => {
+    const connection = { N8N_BASE_URL: 'https://n8n.example.com', N8N_API_KEY: 'key-4f9c1e' };
+    const refused = (setting: string, value: string): unknown => {
+      try {
+        loadConfig({ ...connection, [setting]: value });
+      } catch (error) {
+        return error;
+      }
+      throw new Error('The setting was accepted.');
+    };
+
+    it.each([
+      ['GREENLIGHT_EXECUTION_LIMIT', '0', 'scanBadExecutionLimit'],
+      ['GREENLIGHT_DETAIL_SAMPLE', 'many', 'scanBadDetailSample'],
+      ['GREENLIGHT_CONCURRENCY', '99', 'scanBadConcurrency'],
+    ])('names %s, so the page can say which one to fix', (setting, value, code) => {
+      expect(refused(setting, value)).toBeInstanceOf(ConfigError);
+      expect(describeScanFailure(refused(setting, value))).toBe(code);
+    });
+
+    it('names a setting the dashboard does not know in general words', () => {
+      expect(describeScanFailure(new ConfigError('GREENLIGHT_SOMETHING is wrong', ['GREENLIGHT_SOMETHING']))).toBe('scanBadSetting');
+      expect(describeScanFailure(new ConfigError('no names', []))).toBe('scanBadSetting');
+    });
+
+    it.each([
+      ['scanBadExecutionLimit', 'GREENLIGHT_EXECUTION_LIMIT'],
+      ['scanBadDetailSample', 'GREENLIGHT_DETAIL_SAMPLE'],
+      ['scanBadConcurrency', 'GREENLIGHT_CONCURRENCY'],
+    ] as const)('says %s in both languages, with the variable and without its value', (code, variable) => {
+      for (const t of [en, es]) {
+        const text = failureText(code, t);
+
+        expect(text).toContain(variable);
+        expect(text).not.toContain('99');
+      }
+    });
+
+    it('writes the largest concurrency the program accepts', () => {
+      expect(failureText('scanBadConcurrency', en)).toContain(`1 to ${MAX_CONCURRENCY}`);
+      expect(failureText('scanBadConcurrency', es)).toContain(`1 a ${MAX_CONCURRENCY}`);
+    });
+
+    it('carries no text of the refusal, whatever the value was', () => {
+      const secret = 'value-that-must-not-travel';
+      const code = describeScanFailure(new ConfigError(`GREENLIGHT_CONCURRENCY must be a number, received "${secret}"`, ['GREENLIGHT_CONCURRENCY']));
+
+      expect(code).toBe('scanBadConcurrency');
+      expect(code).not.toContain(secret);
+    });
   });
 });
 

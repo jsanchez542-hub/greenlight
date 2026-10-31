@@ -3,6 +3,21 @@ import { commandName } from './command.js';
 import { DEFAULT_CONCURRENCY, MAX_CONCURRENCY } from './concurrency.js';
 import { messagesFor, type Lang } from './i18n/index.js';
 
+/**
+ * A setting that is missing or has a value the program cannot use. The text says which one in the
+ * language of the person, and `settings` names the variables involved so that a caller that must
+ * not repeat the text can still say what to fix.
+ */
+export class ConfigError extends Error {
+  constructor(
+    message: string,
+    readonly settings: readonly string[],
+  ) {
+    super(message);
+    this.name = 'ConfigError';
+  }
+}
+
 export interface Config {
   baseUrl: string;
   apiKey: string;
@@ -24,7 +39,7 @@ function readPositiveInteger(raw: string | undefined, fallback: number, name: st
   }
   const value = Number(raw);
   if (!Number.isInteger(value) || value <= 0) {
-    throw new Error(messagesFor(lang).config.notPositive(name, raw));
+    throw new ConfigError(messagesFor(lang).config.notPositive(name, raw), [name]);
   }
   return value;
 }
@@ -33,7 +48,7 @@ function readConcurrency(raw: string | undefined, lang: Lang): number {
   const name = 'GREENLIGHT_CONCURRENCY';
   const value = readPositiveInteger(raw, defaults.concurrency, name, lang);
   if (value > MAX_CONCURRENCY) {
-    throw new Error(messagesFor(lang).config.tooHigh(name, raw ?? '', MAX_CONCURRENCY));
+    throw new ConfigError(messagesFor(lang).config.tooHigh(name, raw ?? '', MAX_CONCURRENCY), [name]);
   }
   return value;
 }
@@ -43,7 +58,10 @@ export function loadConfig(env: Record<string, string | undefined>, lang: Lang =
   const apiKey = env['N8N_API_KEY']?.trim();
 
   if (!baseUrl || !apiKey) {
-    throw new Error(messagesFor(lang).config.missingConnection(commandName(env)));
+    throw new ConfigError(messagesFor(lang).config.missingConnection(commandName(env)), [
+      'N8N_BASE_URL',
+      'N8N_API_KEY',
+    ]);
   }
 
   const insecure = env['GREENLIGHT_ALLOW_INSECURE_HTTP']?.trim().toLowerCase();
@@ -84,7 +102,7 @@ function readSeverity(raw: string | undefined, lang: Lang): Severity {
   if (value === 'warning' || value === 'critical') {
     return value;
   }
-  throw new Error(messagesFor(lang).config.badSeverity(raw ?? ''));
+  throw new ConfigError(messagesFor(lang).config.badSeverity(raw ?? ''), ['GREENLIGHT_NOTIFY_MIN']);
 }
 
 function readWebhookUrl(raw: string | undefined, lang: Lang): string | null {
@@ -101,7 +119,7 @@ function readWebhookUrl(raw: string | undefined, lang: Lang): string | null {
   } catch {
     // reported below
   }
-  throw new Error(messagesFor(lang).config.badWebhook);
+  throw new ConfigError(messagesFor(lang).config.badWebhook, ['GREENLIGHT_WEBHOOK_URL']);
 }
 
 export function loadWatchConfig(env: Record<string, string | undefined>, lang: Lang = 'en'): WatchConfig {

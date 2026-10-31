@@ -1,4 +1,4 @@
-export { loadConfig, loadWatchConfig, type Config, type WatchConfig } from './config.js';
+export { ConfigError, loadConfig, loadWatchConfig, type Config, type WatchConfig } from './config.js';
 export { MAX_CONCURRENCY } from './concurrency.js';
 export { INSECURE_HTTP_MESSAGE, N8nApiError, N8nClient, type N8nClientOptions } from './n8n/client.js';
 export { isPrivateHost } from './n8n/network.js';

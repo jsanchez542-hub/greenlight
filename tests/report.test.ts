@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_CONCURRENCY, MAX_CONCURRENCY } from '../src/concurrency.js';
-import { loadConfig } from '../src/config.js';
+import { ConfigError, loadConfig, loadWatchConfig } from '../src/config.js';
 import { messagesFor } from '../src/i18n/index.js';
 import { renderReport } from '../src/report.js';
 import type { ScanResult } from '../src/scan.js';
@@ -79,6 +79,34 @@ describe('loadConfig', () => {
     expect(() => loadConfig({ ...connection, GREENLIGHT_CONCURRENCY: String(MAX_CONCURRENCY + 1) })).toThrow(
       /from 1 to 16/,
     );
+  });
+
+  it('refuses a setting with an error that names it, so the value never has to be repeated', () => {
+    const connection = { N8N_BASE_URL: 'https://n8n.example.com', N8N_API_KEY: 'k' };
+    const refusal = (action: () => unknown): ConfigError => {
+      try {
+        action();
+      } catch (error) {
+        return error as ConfigError;
+      }
+      throw new Error('The setting was accepted.');
+    };
+
+    const cases: Array<[() => unknown, string[]]> = [
+      [() => loadConfig({}), ['N8N_BASE_URL', 'N8N_API_KEY']],
+      [() => loadConfig({ ...connection, GREENLIGHT_EXECUTION_LIMIT: '0' }), ['GREENLIGHT_EXECUTION_LIMIT']],
+      [() => loadConfig({ ...connection, GREENLIGHT_DETAIL_SAMPLE: 'x' }), ['GREENLIGHT_DETAIL_SAMPLE']],
+      [() => loadConfig({ ...connection, GREENLIGHT_CONCURRENCY: '99' }), ['GREENLIGHT_CONCURRENCY']],
+      [() => loadWatchConfig({ GREENLIGHT_NOTIFY_MIN: 'loud' }), ['GREENLIGHT_NOTIFY_MIN']],
+      [() => loadWatchConfig({ GREENLIGHT_WEBHOOK_URL: 'nope' }), ['GREENLIGHT_WEBHOOK_URL']],
+      [() => loadWatchConfig({ GREENLIGHT_INTERVAL_MINUTES: '-5' }), ['GREENLIGHT_INTERVAL_MINUTES']],
+    ];
+    for (const [action, settings] of cases) {
+      const error = refusal(action);
+
+      expect(error).toBeInstanceOf(ConfigError);
+      expect(error.settings).toEqual(settings);
+    }
   });
 
   it('documents the setting in the help of both languages with the real limits', () => {

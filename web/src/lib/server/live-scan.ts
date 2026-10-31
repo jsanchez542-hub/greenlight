@@ -1,4 +1,4 @@
-import { N8nApiError, N8nClient, loadConfig, scan, type ScanResult } from 'greenlight-n8n';
+import { ConfigError, N8nApiError, N8nClient, loadConfig, scan, type ScanResult } from 'greenlight-n8n';
 import type { FailureCode } from '../failure';
 import { currentEnvironment, type Environment } from './environment';
 import { checkInstanceUrl } from './instance-url';
@@ -73,6 +73,13 @@ export function liveCache(env: Environment = currentEnvironment()): ScanCache {
   return holder.greenlightScanCache.cache;
 }
 
+// A refused setting is named by the variable and never by its value, which the page does not repeat.
+const SETTING_FAILURES: Record<string, FailureCode> = {
+  GREENLIGHT_EXECUTION_LIMIT: 'scanBadExecutionLimit',
+  GREENLIGHT_DETAIL_SAMPLE: 'scanBadDetailSample',
+  GREENLIGHT_CONCURRENCY: 'scanBadConcurrency',
+};
+
 const CERTIFICATE_CODES = new Set([
   'CERT_HAS_EXPIRED',
   'DEPTH_ZERO_SELF_SIGNED_CERT',
@@ -109,6 +116,9 @@ function statusFailure(status: number): FailureCode {
  * belongs in a page, so only the kind of failure travels and the page words it itself.
  */
 export function describeScanFailure(error: unknown): FailureCode {
+  if (error instanceof ConfigError) {
+    return SETTING_FAILURES[error.settings[0] ?? ''] ?? 'scanBadSetting';
+  }
   if (error instanceof N8nApiError) {
     return statusFailure(error.status);
   }
