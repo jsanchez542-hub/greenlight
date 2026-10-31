@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { commandName } from './command.js';
 import { loadConfig, loadWatchConfig } from './config.js';
 import { messagesFor, parseLang, resolveLang, type Lang } from './i18n/index.js';
 import { N8nClient } from './n8n/client.js';
@@ -74,6 +75,7 @@ async function runInitCommand(lang: Lang): Promise<number> {
       prompter,
       diagnose,
       lang,
+      command: commandName(),
       envPath: '.env',
       readFile: (path) => {
         try {
@@ -118,7 +120,7 @@ async function runDoctor(lang: Lang): Promise<number> {
     process.stdout.write(`${t.doctorOk}\n`);
     return 0;
   }
-  process.stdout.write(`${t.doctorFix}\n`);
+  process.stdout.write(`${t.doctorFix(commandName())}\n`);
   return 1;
 }
 
@@ -237,7 +239,7 @@ async function main(rawArgv: string[]): Promise<number> {
     } catch {
       // Help must work even when the settings file is broken.
     }
-    process.stdout.write(messagesFor(flagLang ?? resolveLang(process.env)).cli.usage);
+    process.stdout.write(messagesFor(flagLang ?? resolveLang(process.env)).cli.usage(commandName()));
     return 0;
   }
 

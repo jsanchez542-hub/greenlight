@@ -17,6 +17,8 @@ export interface InitDependencies {
   envPath: string;
   maxAttempts?: number;
   lang?: Lang;
+  /** How the person starts the program, so the next steps name a command they have. */
+  command?: string;
 }
 
 export function renderDiagnosis(diagnosis: Diagnosis, lang: Lang = 'en'): string[] {
@@ -135,7 +137,7 @@ export async function runInit(deps: InitDependencies): Promise<number> {
   deps.writeFile(envPath, upsertEnv(saved, values));
   prompter.say(t.saved(envPath));
   prompter.say('');
-  for (const line of t.next) {
+  for (const line of t.next(deps.command ?? 'greenlight')) {
     prompter.say(line);
   }
   return 0;

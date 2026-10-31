@@ -83,7 +83,10 @@ describe('loadConfig', () => {
 
   it('documents the setting in the help of both languages with the real limits', () => {
     for (const lang of ['en', 'es'] as const) {
-      const line = messagesFor(lang).cli.usage.split('\n').find((text) => text.includes('GREENLIGHT_CONCURRENCY'));
+      const line = messagesFor(lang)
+        .cli.usage('greenlight')
+        .split('\n')
+        .find((text) => text.includes('GREENLIGHT_CONCURRENCY'));
 
       expect(line).toContain(String(MAX_CONCURRENCY));
       expect(line).toContain(String(DEFAULT_CONCURRENCY));

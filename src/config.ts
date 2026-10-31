@@ -1,4 +1,5 @@
 import type { Severity } from './analysis/types.js';
+import { commandName } from './command.js';
 import { DEFAULT_CONCURRENCY, MAX_CONCURRENCY } from './concurrency.js';
 import { messagesFor, type Lang } from './i18n/index.js';
 
@@ -42,7 +43,7 @@ export function loadConfig(env: Record<string, string | undefined>, lang: Lang =
   const apiKey = env['N8N_API_KEY']?.trim();
 
   if (!baseUrl || !apiKey) {
-    throw new Error(messagesFor(lang).config.missingConnection);
+    throw new Error(messagesFor(lang).config.missingConnection(commandName(env)));
   }
 
   const insecure = env['GREENLIGHT_ALLOW_INSECURE_HTTP']?.trim().toLowerCase();

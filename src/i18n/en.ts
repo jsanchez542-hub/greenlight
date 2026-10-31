@@ -1,3 +1,5 @@
+import { commandRow } from './layout.js';
+
 const plural = (count: number, one: string, many: string): string => `${count} ${count === 1 ? one : many}`;
 
 /**
@@ -6,16 +8,16 @@ const plural = (count: number, one: string, many: string): string => `${count} $
  */
 export const en = {
   cli: {
-    usage: `GreenLight  checks an n8n instance for workflows that fail without saying so.
+    usage: (command: string) => `GreenLight  checks an n8n instance for workflows that fail without saying so.
 
-  greenlight init                     guided first-time setup: connects to your n8n and saves .env
-  greenlight doctor                   checks the connection step by step and says what to fix
-  greenlight [--json]                 scan once and print the report
-  greenlight --version                print the version
-  greenlight watch [--once]           scan on a schedule and alert when something new appears
+${commandRow(command, 'init', 'guided first-time setup: connects to your n8n and saves .env')}
+${commandRow(command, 'doctor', 'checks the connection step by step and says what to fix')}
+${commandRow(command, '[--json]', 'scan once and print the report')}
+${commandRow(command, '--version', 'print the version')}
+${commandRow(command, 'watch [--once]', 'scan on a schedule and alert when something new appears')}
 
 Settings are read from the environment and from a .env file in the current folder.
-Running greenlight init writes that file for you.
+Running ${command} init writes that file for you.
 
 Environment:
   N8N_BASE_URL                URL of the n8n instance
@@ -41,7 +43,7 @@ With watch --once it is the same, so it can run from cron or a scheduler.
     unknownError: 'unknown error',
     doctorHeading: (version: string, host: string | null) => `GreenLight ${version}  doctor${host === null ? '' : `  ${host}`}`,
     doctorOk: 'Everything needed is in place.',
-    doctorFix: 'Run greenlight init to fix the settings.',
+    doctorFix: (command: string) => `Run ${command} init to fix the settings.`,
     watching: (instance: string, minutes: number, hasWebhook: boolean) =>
       `Watching ${instance} every ${minutes} min. ${
         hasWebhook ? 'Alerts go to the webhook.' : 'No webhook set, changes are only printed.'
@@ -65,8 +67,8 @@ With watch --once it is the same, so it can run from cron or a scheduler.
   },
 
   config: {
-    missingConnection:
-      'N8N_BASE_URL and N8N_API_KEY are not set. Run greenlight init for a guided setup, or set them in the environment or in a .env file.',
+    missingConnection: (command: string) =>
+      `N8N_BASE_URL and N8N_API_KEY are not set. Run ${command} init for a guided setup, or set them in the environment or in a .env file.`,
     notPositive: (name: string, raw: string) => `${name} must be a positive whole number, received "${raw}".`,
     tooHigh: (name: string, raw: string, max: number) =>
       `${name} must be a whole number from 1 to ${max}, received "${raw}".`,
@@ -215,13 +217,16 @@ With watch --once it is the same, so it can run from cron or a scheduler.
     confirmSave: (path: string) => `Save these settings to ${path}?`,
     notSaved: 'Nothing was saved.',
     saved: (path: string) => `Saved to ${path}. It holds your API key, so keep it private and do not commit it.`,
-    next: [
-      'What next:',
-      '  Scan once and read the report   greenlight            (from a clone: npm run scan)',
-      '  Keep watching and get alerts    greenlight watch      (from a clone: npm run watch)',
-      '  Open the dashboard              npm run panel',
-      '  Check the connection again      greenlight doctor',
-    ],
+    next: (command: string) => {
+      const fromClone = command === 'greenlight';
+      return [
+        'What next:',
+        `  Scan once and read the report   ${fromClone ? 'greenlight            (from a clone: npm run scan)' : command}`,
+        `  Keep watching and get alerts    ${fromClone ? 'greenlight watch      (from a clone: npm run watch)' : `${command} watch`}`,
+        `  Open the dashboard              npm run panel${fromClone ? '' : ' (from a clone of the repository)'}`,
+        `  Check the connection again      ${command} doctor`,
+      ];
+    },
     cancelled: 'Setup cancelled.',
     yesNo: { yes: '[Y/n]', no: '[y/N]' },
   },

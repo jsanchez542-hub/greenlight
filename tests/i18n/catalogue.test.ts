@@ -30,11 +30,15 @@ function strings(node: Node, out: string[] = []): string[] {
 const probes = (count: number): (number | string)[] =>
   Array.from({ length: count }, (_, index) => (index === 0 ? 3 : `probe${index}`));
 
-/** Calls every message function with a number first and recognisable text after it. */
+/**
+ * Calls every message function with a number first and recognisable text after it. A function
+ * that returns several lines, such as the next steps of the setup, is read as one text.
+ */
 function called(node: Node, out: { text: string; args: (number | string)[] }[] = []) {
   if (typeof node === 'function') {
     const args = probes(node.length);
-    out.push({ text: (node as (...values: unknown[]) => string)(...args), args });
+    const result = (node as (...values: unknown[]) => string | string[])(...args);
+    out.push({ text: Array.isArray(result) ? result.join('\n') : result, args });
   } else if (typeof node === 'object' && !Array.isArray(node)) {
     Object.values(node).forEach((value) => called(value as Node, out));
   }
