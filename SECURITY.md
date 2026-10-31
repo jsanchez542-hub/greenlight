@@ -52,6 +52,18 @@ think the impact is. It will be answered as soon as possible.
   pinned to a commit, `npm audit` runs on production dependencies at every change, and Dependabot
   proposes updates.
 
+## The package on npm
+
+- **It has no dependencies and runs nothing when it is installed.** The package ships without
+  `preinstall`, `install` and `postinstall` scripts and without any dependency, so installing it
+  adds one package and executes nothing. A release stops if that stops being true.
+- **It is built in public.** Each version is published by a GitHub Actions workflow of this
+  repository, and npm keeps a signed provenance statement that says which repository, commit and
+  workflow built it. In a project that installed it, `npm audit signatures` verifies that statement.
+- **What is published is what was tried.** The release packs the package once, installs that same
+  file on Linux and on Windows and uses it, and publishes the file only if it is unchanged. The
+  steps are in [docs/releasing.md](docs/releasing.md).
+
 ## Known advisories in development tooling
 
 `npm audit` in `web/` reports moderate advisories in the lint tooling. All of them arrive through
