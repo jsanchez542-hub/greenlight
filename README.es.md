@@ -24,8 +24,27 @@ GreenLight lee una instancia de n8n a través de su API y busca los fallos que n
 
 ## Inicio rápido
 
-Necesitas dos cosas: **Node.js 22.12 o superior** (desde [nodejs.org](https://nodejs.org); el botón
-marcado como LTS es el correcto) y **Git**, o el botón **Code, y luego Download ZIP** de esta página.
+Necesitas **Node.js 22.12 o superior** (desde [nodejs.org](https://nodejs.org); el botón marcado como
+LTS es el correcto) y una clave de API de tu n8n. En n8n la clave está en Settings, luego n8n API, y
+basta con permiso de lectura.
+
+```bash
+npx greenlight-n8n init
+npx greenlight-n8n
+```
+
+`init` te pide la dirección de tu n8n y la clave, comprueba la conexión paso a paso y guarda las dos
+en un archivo `.env` de la carpeta actual. La clave se queda en tu equipo, así que mantén ese archivo
+fuera de git. El segundo comando analiza una vez e imprime el informe. Si algo no funciona,
+`npx greenlight-n8n doctor` comprueba la conexión e indica qué corregir.
+
+El paquete no tiene dependencias y no ejecuta nada al instalarse. Para escribir `greenlight` en lugar
+de `npx greenlight-n8n`, instálalo una vez con `npm install --global greenlight-n8n`.
+
+### El panel
+
+El panel no está en el paquete de npm. Está en este repositorio, así que además necesitas **Git**, o el
+botón **Code, y luego Download ZIP** de esta página.
 
 ```bash
 git clone https://github.com/jsanchez542-hub/greenlight.git
@@ -39,12 +58,11 @@ minutos. Empieza con datos de ejemplo, así que puedes explorarlo enseguida. Si 
 puerto 3000, elige el siguiente libre y te dice cuál.
 
 Para ver tu propio n8n, pulsa **Conecta tu n8n**, escribe su dirección y una clave de API, y pulsa
-**Conectar**. En n8n la clave está en Settings, luego n8n API, y basta con permiso de lectura. La clave
-se queda en este equipo, en un archivo `.env` que git ignora. Si algo falla, la página dice qué y cómo
-corregirlo, y **Desconectar** lo deshace.
+**Conectar**. La clave se queda en este equipo, en un archivo `.env` que git ignora. Si algo falla, la
+página dice qué y cómo corregirlo, y **Desconectar** lo deshace.
 
-¿Prefieres la terminal? `npm run setup` hace las mismas dos preguntas, `npm run scan` imprime un informe
-y `npm run doctor` comprueba la conexión paso a paso si algo no funciona.
+En un clon, `npm run setup`, `npm run scan` y `npm run doctor` hacen lo mismo que los tres comandos de
+arriba.
 
 El panel y la línea de comandos hablan inglés y español; consulta [Idioma](#idioma).
 
@@ -234,8 +252,9 @@ Donde n8n deja elegir los permisos de una clave de API, `workflow:list`, `workfl
 
 `scan` y `watch --once` terminan con 0 cuando no se encuentra nada, con 1 cuando se encuentra algo y con
 2 cuando el análisis no pudo ejecutarse, así que pueden condicionar un flujo de despliegue. Fuera de un
-clon de este repositorio, los mismos comandos son `greenlight init`, `greenlight doctor`, `greenlight`
-y `greenlight watch`. Para elegir el idioma de una ejecución, añade `--lang es` o `--lang en`.
+clon de este repositorio, los mismos comandos son `npx greenlight-n8n init`, `npx greenlight-n8n doctor`,
+`npx greenlight-n8n` y `npx greenlight-n8n watch`, o `greenlight init` y los demás si lo instalas de forma
+global. Para elegir el idioma de una ejecución, añade `--lang es` o `--lang en`.
 
 ## Salida
 
@@ -358,8 +377,10 @@ versiones de parche, y todo lo que rompiera esa lista espera a la 2.0.0. El aspe
 interno del panel pueden cambiar en cualquier versión menor.
 
 `greenlight --version` te dice qué versión tienes, y `greenlight doctor` también la imprime, de modo que
-aparezca en cada informe de error. Para actualizar un clon, ejecuta `git pull` y luego `npm install`.
-Lo que cambió está en [CHANGELOG.md](CHANGELOG.md) (en inglés).
+aparezca en cada informe de error. Para tener la versión más reciente con npx, escribe
+`npx greenlight-n8n@latest`. Una instalación global se actualiza con
+`npm install --global greenlight-n8n@latest`, y un clon con `git pull` y luego `npm install`. Lo que
+cambió está en [CHANGELOG.md](CHANGELOG.md) (en inglés).
 
 **Que te avisen de una versión nueva es opcional y viene desactivado**, porque de otro modo GreenLight
 solo contacta con tu n8n y con tu webhook de alertas. Si lo activas (una casilla en el formulario de
@@ -368,8 +389,8 @@ petición, como mucho una vez al día: un `GET` sencillo a la API pública de Gi
 de la última versión publicada. No se envía ninguna clave, ni la dirección de tu n8n, ni nada sobre ti,
 aunque GitHub, como cualquier sitio web, ve tu dirección IP. Si no se puede contactar con él, no se
 muestra nada y nada se rompe. El aviso aparece en el panel, al final de `scan` y `doctor`, y en el
-registro de `watch`. Nunca instala nada: enlaza con las notas de la versión y tú actualizas con
-`git pull`.
+registro de `watch`. Nunca instala nada: enlaza con las notas de la versión y tú actualizas de la misma
+forma en que lo instalaste.
 
 Sin esa opción, usa **Watch, luego Custom, luego Releases** en este repositorio de GitHub para recibir
 un correo.
