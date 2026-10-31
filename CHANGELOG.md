@@ -9,6 +9,19 @@ and the project follows [semantic versioning](https://semver.org); the README sa
 
 - A live demo of the dashboard with invented data, built as a static site, published on GitHub
   Pages and linked from both READMEs.
+- `GREENLIGHT_CONCURRENCY` (4 by default, from 1 to 16) sets how many workflows are read at the
+  same time. `scan()` takes the same setting as the `concurrency` option; left out, it reads one
+  workflow at a time as before, so code that uses the package directly sees no change.
+- `npm run benchmark` times a scan of an invented instance whose every answer is delayed, to
+  measure what reading several workflows at once gains.
+
+### Changed
+
+- The scan reads four workflows at a time instead of one after another. The result is identical, in
+  the same order. On an invented instance of 500 workflows where each request takes about 31 ms, a
+  scan went from 93 to 23 seconds. A real instance may not keep that pace if it is asked for more at
+  once: `GREENLIGHT_CONCURRENCY=1` brings back the old behavior.
+- The dashboard no longer says, while it scans, that the workflows are read one at a time.
 
 ## [1.0.0] - 2026-10-08
 

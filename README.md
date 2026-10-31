@@ -198,6 +198,7 @@ scan, so it can run from cron or a scheduler instead of staying alive.
 | `N8N_API_KEY` | required | API key with read access |
 | `GREENLIGHT_EXECUTION_LIMIT` | 200 | executions read per workflow |
 | `GREENLIGHT_DETAIL_SAMPLE` | 5 | executions inspected node by node |
+| `GREENLIGHT_CONCURRENCY` | 4 | workflows read at the same time, from 1 to 16; `1` reads them one after another |
 | `GREENLIGHT_ALLOW_INSECURE_HTTP` | off | `1` lets the key travel over plain http to a public host; not recommended |
 | `GREENLIGHT_LANG` | language of the computer | `en` or `es`, for the command line, the alerts and the dashboard |
 | `GREENLIGHT_CHECK_UPDATES` | off | `1` tells you when a new version is out; see [Versions and updates](#versions-and-updates) |
@@ -314,8 +315,14 @@ why each one can be covered by a test and reproduced from the evidence printed b
 
 It reads whatever execution history the instance still holds, so a short retention window
 limits what can be compared. Workflows that have never run are skipped rather than guessed at.
-Detail inspection is sampled, not exhaustive, because that endpoint is expensive. The scan reads
-workflows one after another, so on a large instance it takes as long as the API takes to answer.
+Detail inspection is sampled, not exhaustive, because that endpoint is expensive.
+
+The scan reads four workflows at a time by default (`GREENLIGHT_CONCURRENCY`), so there are never
+more than four requests in flight against your instance. On an invented instance of 500 workflows
+where each request takes about 31 ms, a scan took 23 seconds, against 93 seconds reading one
+workflow at a time as version 1.0 did, with an identical result. A real instance answers at its own
+pace and may slow down if it is asked for more at once, so lower the setting if it does, or if a
+proxy in front of it limits requests. `npm run benchmark` repeats the measurement.
 
 ## Versions and updates
 

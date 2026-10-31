@@ -203,6 +203,7 @@ en marcha.
 | `N8N_API_KEY` | obligatoria | clave de API con permiso de lectura |
 | `GREENLIGHT_EXECUTION_LIMIT` | 200 | ejecuciones que se leen por workflow |
 | `GREENLIGHT_DETAIL_SAMPLE` | 5 | ejecuciones que se revisan nodo a nodo |
+| `GREENLIGHT_CONCURRENCY` | 4 | workflows que se leen a la vez, de 1 a 16; con `1` se leen uno tras otro |
 | `GREENLIGHT_ALLOW_INSECURE_HTTP` | desactivado | con `1` la clave puede viajar por http sin cifrar a un servidor público; no se recomienda |
 | `GREENLIGHT_LANG` | idioma del equipo | `en` o `es`, para la línea de comandos, las alertas y el panel |
 | `GREENLIGHT_CHECK_UPDATES` | desactivado | con `1` te avisa cuando hay una versión nueva; consulta [Versiones y actualizaciones](#versiones-y-actualizaciones) |
@@ -326,8 +327,14 @@ cubrir con una prueba y reproducir a partir de la evidencia impresa a su lado.
 Lee el historial de ejecuciones que la instancia aún conserva, así que una ventana de retención corta
 limita lo que se puede comparar. Los workflows que nunca se han ejecutado se omiten en lugar de
 adivinarse. La inspección de detalle se hace por muestreo, no de forma exhaustiva, porque ese endpoint
-es costoso. El análisis lee los workflows uno tras otro, así que en una instancia grande tarda lo que
-tarde la API en responder.
+es costoso.
+
+El análisis lee cuatro workflows a la vez por defecto (`GREENLIGHT_CONCURRENCY`), así que nunca hay
+más de cuatro peticiones en curso contra tu instancia. En una instancia inventada de 500 workflows
+donde cada petición tarda unos 31 ms, el análisis tardó 23 segundos, frente a 93 leyendo los
+workflows de uno en uno como hacía la versión 1.0, con un resultado idéntico. Una instancia real
+responde a su ritmo y puede ir más lenta si se le piden más cosas a la vez, así que baja el ajuste si
+ocurre, o si un proxy delante de ella limita las peticiones. `npm run benchmark` repite la medición.
 
 ## Versiones y actualizaciones
 
