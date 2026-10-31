@@ -3,10 +3,10 @@
 //
 //   node scripts/verify-published.mjs 1.2.3
 
-import { spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { spawnCommandSync } from './spawn.mjs';
 
 // `--package` points the same checks at another package, which is how they are tried before a release.
 const packageFlag = process.argv.indexOf('--package');
@@ -17,8 +17,7 @@ if (!/^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/.test(version ?? '') || !/^(@[a-z0-9-]+\
   process.exit(2);
 }
 
-const windows = process.platform === 'win32';
-const run = (args, cwd) => spawnSync('npm', args, { cwd, encoding: 'utf8', shell: windows });
+const run = (args, cwd) => spawnCommandSync('npm', args, { cwd, encoding: 'utf8' });
 const sleep = (ms) => new Promise((done) => setTimeout(done, ms));
 const fail = (message) => {
   process.stderr.write(`${message}\n`);
@@ -54,7 +53,7 @@ try {
         fail('npm did not report a verified signature and a verified provenance attestation for the package.');
       }
 
-      const ran = spawnSync('npx', ['--no-install', PACKAGE, '--version'], { cwd: project, encoding: 'utf8', shell: windows });
+      const ran = spawnCommandSync('npx', ['--no-install', PACKAGE, '--version'], { cwd: project, encoding: 'utf8' });
       if (ran.status !== 0 || ran.stdout.trim() !== version) {
         fail(`${PACKAGE} --version printed "${ran.stdout.trim()}" instead of ${version}.`);
       }

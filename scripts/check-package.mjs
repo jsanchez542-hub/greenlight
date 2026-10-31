@@ -6,11 +6,11 @@
 //
 // Inside GitHub Actions it also writes `tarball` and `sha256` to the outputs of the step.
 
-import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { appendFileSync, mkdirSync, openSync, readFileSync, readSync, closeSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { checkPackage } from './package-rules.mjs';
+import { spawnCommandSync } from './spawn.mjs';
 
 const outIndex = process.argv.indexOf('--out');
 const outDirectory = resolve(outIndex === -1 ? '.' : (process.argv[outIndex + 1] ?? '.'));
@@ -18,9 +18,8 @@ mkdirSync(outDirectory, { recursive: true });
 
 // The build has already run: the tarball must hold what was built and tested, so no script is
 // allowed to rebuild it here.
-const packed = spawnSync('npm', ['pack', '--json', '--ignore-scripts', '--pack-destination', outDirectory], {
+const packed = spawnCommandSync('npm', ['pack', '--json', '--ignore-scripts', '--pack-destination', outDirectory], {
   encoding: 'utf8',
-  shell: process.platform === 'win32',
 });
 if (packed.status !== 0) {
   process.stderr.write(`npm pack failed:\n${packed.stderr}\n`);

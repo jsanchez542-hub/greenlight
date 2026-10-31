@@ -8,11 +8,11 @@
 //
 // The instance has to be a throwaway one on this machine: see guard.mjs.
 
-import { spawn } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { spawnCommand } from '../scripts/spawn.mjs';
 import { assertThrowawayInstance } from './guard.mjs';
 import { createApiKey, createOwner, readVersion, seedWorkflows, waitUntilReady } from './seed.mjs';
 
@@ -37,7 +37,6 @@ if (option('package') === undefined) {
 }
 const tarball = resolve(option('package'));
 const expectedVersion = option('n8n');
-const windows = process.platform === 'win32';
 
 // Nothing from the machine that runs this may reach the program under test.
 const cleanEnvironment = Object.fromEntries(
@@ -46,7 +45,7 @@ const cleanEnvironment = Object.fromEntries(
 
 function run(command, args, { cwd, env = {} }) {
   return new Promise((done) => {
-    const child = spawn(command, args, { cwd, env: { ...cleanEnvironment, ...env }, shell: windows, stdio: ['ignore', 'pipe', 'pipe'] });
+    const child = spawnCommand(command, args, { cwd, env: { ...cleanEnvironment, ...env }, stdio: ['ignore', 'pipe', 'pipe'] });
     let stdout = '';
     let stderr = '';
     child.stdout.on('data', (chunk) => (stdout += chunk));
@@ -65,7 +64,7 @@ const project = mkdtempSync(join(tmpdir(), 'greenlight-e2e-'));
 
 try {
   writeFileSync(join(project, 'package.json'), '{ "name": "e2e", "version": "0.0.0", "private": true }\n');
-  const install = await run('npm', ['install', windows ? `"${tarball}"` : tarball, '--no-audit', '--no-fund'], { cwd: project });
+  const install = await run('npm', ['install', tarball, '--no-audit', '--no-fund'], { cwd: project });
   note('the package installs', install.code === 0, install.stderr);
 
   await waitUntilReady(baseUrl);

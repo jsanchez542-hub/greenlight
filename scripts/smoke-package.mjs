@@ -5,10 +5,10 @@
 //   node scripts/check-package.mjs --out some/folder    # makes the tarball
 //   node scripts/smoke-package.mjs some/folder/greenlight-n8n-1.2.3.tgz
 
-import { spawn } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { spawnCommand } from './spawn.mjs';
 import { startSyntheticServer } from './synthetic-server.mjs';
 
 const tarballArgument = process.argv[2];
@@ -17,7 +17,6 @@ if (tarballArgument === undefined) {
   process.exit(2);
 }
 const tarball = resolve(tarballArgument);
-const windows = process.platform === 'win32';
 const KEY = 'smoke-test-key';
 
 // Nothing from the machine that runs this may reach the program under test.
@@ -27,10 +26,9 @@ const baseEnvironment = Object.fromEntries(
 
 function run(command, args, { cwd, env = {} }) {
   return new Promise((done) => {
-    const child = spawn(command, args, {
+    const child = spawnCommand(command, args, {
       cwd,
       env: { ...baseEnvironment, ...env },
-      shell: windows,
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     let stdout = '';
@@ -53,7 +51,7 @@ let server;
 try {
   writeFileSync(join(project, 'package.json'), '{ "name": "smoke", "version": "0.0.0", "private": true }\n');
 
-  const install = await run('npm', ['install', windows ? `"${tarball}"` : tarball, '--no-audit', '--no-fund', '--foreground-scripts'], {
+  const install = await run('npm', ['install', tarball, '--no-audit', '--no-fund', '--foreground-scripts'], {
     cwd: project,
   });
   note('the tarball installs', install.code === 0, install.stderr);
