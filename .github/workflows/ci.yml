@@ -59,3 +59,26 @@ jobs:
         working-directory: web
       - run: npm run build
         working-directory: web
+
+  package:
+    name: Package, ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      # Packs what would be published and refuses anything that should not be in it. Then the
+      # tarball is installed in an empty folder and used, so a broken package shows up here and
+      # not on the computer of the first person who tries it.
+      - id: pack
+        run: node scripts/check-package.mjs --out "${{ runner.temp }}/package"
+      - run: node scripts/smoke-package.mjs "${{ steps.pack.outputs.tarball }}"

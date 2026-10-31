@@ -2,6 +2,7 @@ node_modules/
 dist/
 .env
 *.log
+*.tgz
 
 .greenlight-state.json
 .greenlight-state.json.tmp
