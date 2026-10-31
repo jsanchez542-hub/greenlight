@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { assertThrowawayInstance } from '../e2e/guard.mjs';
 
-describe('the end-to-end test only runs against an n8n on this machine', () => {
+describe('the test against a real n8n only runs against an n8n on this machine', () => {
   it.each([
     ['http://127.0.0.1:5678', 'http://127.0.0.1:5678'],
     ['http://localhost:5678/', 'http://localhost:5678'],

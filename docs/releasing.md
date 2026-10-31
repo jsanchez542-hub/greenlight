@@ -41,7 +41,7 @@ npm does, that page is the one to check.
 
 **On npm**
 
-1. Use an account with two-factor authentication.
+1. Use an account that asks for a second factor when you sign in.
 2. The package does not exist until the first release, and npm sets up trusted publishing from the
    settings of an existing package. So the first release is published with a token, and the later
    ones without any. Create a granular access token that can read and write packages, with the

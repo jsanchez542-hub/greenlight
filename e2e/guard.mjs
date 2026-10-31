@@ -1,4 +1,4 @@
-// The end-to-end test creates users, keys and workflows on the instance it is pointed at. That is
+// The test against a real n8n creates users, keys and workflows on the instance it is pointed at. That is
 // fine on a throwaway one and a disaster on a real one, so it refuses anything that is not on
 // this machine, whatever it is told.
 
@@ -17,7 +17,7 @@ export function assertThrowawayInstance(address) {
   }
   if (!LOCAL.has(url.hostname) || (url.protocol !== 'http:' && url.protocol !== 'https:')) {
     throw new Error(
-      'The end-to-end test only runs against an n8n on this machine, because it creates users, keys and workflows on it.',
+      'The test against a real n8n only runs against an n8n on this machine, because it creates users, keys and workflows on it.',
     );
   }
   if (url.username !== '' || url.password !== '' || url.pathname.replace(/\/+$/, '') !== '') {

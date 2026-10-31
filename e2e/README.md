@@ -1,4 +1,4 @@
-# End-to-end test against a real n8n
+# Test against a real n8n
 
 The unit tests answer with invented data. This test starts a real n8n, puts five workflows on it,
 runs them, installs the packaged program in an empty folder and scans the instance with a key that
