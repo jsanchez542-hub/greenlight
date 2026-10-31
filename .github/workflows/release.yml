@@ -76,8 +76,19 @@ jobs:
         with:
           name: package
           path: ${{ runner.temp }}/package
-      - run: node scripts/verify-checksum.mjs "${{ runner.temp }}/package/greenlight-n8n-${{ needs.build.outputs.version }}.tgz" "${{ needs.build.outputs.sha256 }}"
-      - run: node scripts/smoke-package.mjs "${{ runner.temp }}/package/greenlight-n8n-${{ needs.build.outputs.version }}.tgz"
+      # The values reach the commands through the environment and not through the text of the
+      # command, and bash runs them on both systems so that "$FILE" means the same on each.
+      - name: It must be the file that was built
+        shell: bash
+        env:
+          FILE: ${{ runner.temp }}/package/greenlight-n8n-${{ needs.build.outputs.version }}.tgz
+          SHA256: ${{ needs.build.outputs.sha256 }}
+        run: node scripts/verify-checksum.mjs "$FILE" "$SHA256"
+      - name: Install it and use it
+        shell: bash
+        env:
+          FILE: ${{ runner.temp }}/package/greenlight-n8n-${{ needs.build.outputs.version }}.tgz
+        run: node scripts/smoke-package.mjs "$FILE"
 
   publish:
     name: Publish to npm
@@ -136,4 +147,8 @@ jobs:
         with:
           node-version: 22
           package-manager-cache: false
-      - run: node scripts/verify-published.mjs "${{ needs.build.outputs.version }}"
+      - name: Install it from npm and check it
+        shell: bash
+        env:
+          VERSION: ${{ needs.build.outputs.version }}
+        run: node scripts/verify-published.mjs "$VERSION"

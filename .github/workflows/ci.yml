@@ -80,5 +80,12 @@ jobs:
       # tarball is installed in an empty folder and used, so a broken package shows up here and
       # not on the computer of the first person who tries it.
       - id: pack
-        run: node scripts/check-package.mjs --out "${{ runner.temp }}/package"
-      - run: node scripts/smoke-package.mjs "${{ steps.pack.outputs.tarball }}"
+        shell: bash
+        env:
+          OUT: ${{ runner.temp }}/package
+        run: node scripts/check-package.mjs --out "$OUT"
+      - name: Install it and use it
+        shell: bash
+        env:
+          TARBALL: ${{ steps.pack.outputs.tarball }}
+        run: node scripts/smoke-package.mjs "$TARBALL"
