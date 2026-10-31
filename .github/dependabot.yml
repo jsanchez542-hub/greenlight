@@ -26,10 +26,16 @@ updates:
       # eslint-config-next does not support ESLint 10 yet.
       - dependency-name: "eslint"
         update-types: ["version-update:semver-major"]
+      # jsdom 29 and later need Node 22.22 or newer, and the project supports Node 22.12.
+      - dependency-name: "jsdom"
+        update-types: ["version-update:semver-major"]
     groups:
       # Next and its lint config are released together, one version for both.
       next:
         patterns: ["next", "eslint-config-next", "@next/*"]
+      # React and its renderer must keep the same version, so they arrive in one pull request.
+      react:
+        patterns: ["react", "react-dom"]
       development:
         dependency-type: development
         update-types: [minor, patch]
