@@ -1,4 +1,4 @@
-import type { WorkflowHealth } from 'greenlight';
+import type { WorkflowHealth } from 'greenlight-n8n';
 import { StatusIcon } from './StatusIcon';
 import styles from './FilterGroup.module.css';
 

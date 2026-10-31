@@ -1,4 +1,4 @@
-import { DEFAULT_LANG, parseLang, type Lang } from 'greenlight/i18n';
+import { DEFAULT_LANG, parseLang, type Lang } from 'greenlight-n8n/i18n';
 
 const MAX_HEADER_LENGTH = 1024;
 const MAX_ENTRIES = 20;

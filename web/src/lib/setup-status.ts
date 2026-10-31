@@ -1,4 +1,4 @@
-import type { CheckStep, Diagnosis, StepId, StepStatus, WorkflowHealth } from 'greenlight';
+import type { CheckStep, Diagnosis, StepId, StepStatus, WorkflowHealth } from 'greenlight-n8n';
 import { asBoolean, asCount, asRecord, asString } from './scan-result';
 
 export interface SetupStatus {

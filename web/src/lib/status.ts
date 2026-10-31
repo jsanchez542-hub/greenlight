@@ -1,4 +1,4 @@
-import type { DetectorName, Severity, WorkflowHealth } from 'greenlight';
+import type { DetectorName, Severity, WorkflowHealth } from 'greenlight-n8n';
 
 export const healthStates: readonly WorkflowHealth[] = ['critical', 'warning', 'healthy', 'no-runs'];
 export const severities: readonly Severity[] = ['critical', 'warning'];

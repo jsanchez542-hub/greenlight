@@ -1,4 +1,4 @@
-import { REPOSITORY, releaseUrl } from 'greenlight';
+import { REPOSITORY, releaseUrl } from 'greenlight-n8n';
 import { describe, expect, it } from 'vitest';
 import { fetchUpdateState, requestUpdateChoice } from '@/lib/update-client';
 import {

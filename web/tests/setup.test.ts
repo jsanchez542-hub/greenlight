@@ -1,4 +1,4 @@
-import type { Diagnosis } from 'greenlight';
+import type { Diagnosis } from 'greenlight-n8n';
 import { describe, expect, it } from 'vitest';
 import { parseSetupStatus, pollDelayMs, setupPhase, type SetupStatus } from '@/lib/setup-status';
 import { createSetupChecker } from '@/lib/server/setup-check';

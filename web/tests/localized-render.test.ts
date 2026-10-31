@@ -1,4 +1,4 @@
-import type { Finding } from 'greenlight';
+import type { Finding } from 'greenlight-n8n';
 import { createElement, type ReactElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';

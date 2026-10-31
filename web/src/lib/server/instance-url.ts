@@ -1,4 +1,4 @@
-import { INSECURE_HTTP_MESSAGE, isPrivateHost } from 'greenlight';
+import { INSECURE_HTTP_MESSAGE, isPrivateHost } from 'greenlight-n8n';
 
 const MAX_URL_LENGTH = 2048;
 

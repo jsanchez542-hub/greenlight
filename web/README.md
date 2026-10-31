@@ -196,7 +196,7 @@ values of the evidence.
 
 Dates, hours and numbers are written with `Intl` for the language (`2 mar 2026, 09:00 UTC`,
 `12,3 s`, `12.345`), and so are "5 min ago" and "hace 5 min". The sentence that explains a
-finding is written from its evidence by `describeFinding` of `greenlight/i18n`, the same
+finding is written from its evidence by `describeFinding` of `greenlight-n8n/i18n`, the same
 function the command line uses, so both always say the same thing.
 
 Messages from the server are never shown as they arrive. A refusal or a failure travels as a short

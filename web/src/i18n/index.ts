@@ -1,4 +1,4 @@
-import { DEFAULT_LANG, languages, parseLang, type Lang } from 'greenlight/i18n';
+import { DEFAULT_LANG, languages, parseLang, type Lang } from 'greenlight-n8n/i18n';
 import { en, type Messages } from './en';
 import { es } from './es';
 

@@ -1,4 +1,4 @@
-import type { Diagnosis } from 'greenlight';
+import type { Diagnosis } from 'greenlight-n8n';
 import { existsSync, lstatSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';

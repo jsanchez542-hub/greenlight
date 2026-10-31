@@ -1,10 +1,10 @@
-import { VERSION } from 'greenlight';
+import { VERSION } from 'greenlight-n8n';
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createLimiter } from '@/lib/server/connect';
-import { MemoryUpdateCache } from 'greenlight';
+import { MemoryUpdateCache } from 'greenlight-n8n';
 import { handleUpdateChoice, readUpdates, type UpdateChoiceContext } from '@/lib/server/updates';
 
 const NEWER = '9.9.9';

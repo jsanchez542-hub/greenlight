@@ -1,5 +1,5 @@
-import type { ScanResult } from 'greenlight';
-import { describeFinding } from 'greenlight/i18n';
+import type { ScanResult } from 'greenlight-n8n';
+import { describeFinding } from 'greenlight-n8n/i18n';
 import type { Lang, Messages } from '@/i18n';
 import { keyFindings } from './findings';
 import { normalizePath } from './navigation';

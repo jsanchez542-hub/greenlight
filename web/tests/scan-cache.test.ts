@@ -1,4 +1,4 @@
-import type { ScanResult } from 'greenlight';
+import type { ScanResult } from 'greenlight-n8n';
 import { describe, expect, it } from 'vitest';
 import { sampleResult } from '@/lib/sample';
 import { ScanCache } from '@/lib/server/scan-cache';

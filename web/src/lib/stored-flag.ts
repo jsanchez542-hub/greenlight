@@ -1,4 +1,4 @@
-import type { Lang } from 'greenlight/i18n';
+import type { Lang } from 'greenlight-n8n/i18n';
 import { LANGUAGE_TOKENS, formatFlagCookie, languageFromTokens, parseFlagCookie, withLanguage } from './flag-cookie';
 
 export const WELCOME_FLAG = 'greenlight.welcome.v1';

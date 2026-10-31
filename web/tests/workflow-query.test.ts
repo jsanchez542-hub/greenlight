@@ -1,4 +1,4 @@
-import type { WorkflowHealth, WorkflowSummary } from 'greenlight';
+import type { WorkflowHealth, WorkflowSummary } from 'greenlight-n8n';
 import { describe, expect, it } from 'vitest';
 import {
   defaultWorkflowQuery,

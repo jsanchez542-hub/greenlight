@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import vm from 'node:vm';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { REPOSITORY } from 'greenlight';
+import { REPOSITORY } from 'greenlight-n8n';
 import { auditDemo } from '../scripts/demo-audit.mjs';
 import { contentSecurityPolicy, inlineScriptHashes, inlineScripts, policyOf, withPolicy } from '../scripts/demo-policy.mjs';
 import { addFlatSegmentNames } from '../scripts/demo-segments.mjs';

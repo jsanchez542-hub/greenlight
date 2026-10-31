@@ -1,4 +1,4 @@
-import type { Finding, Severity, WorkflowHealth, WorkflowSummary } from 'greenlight';
+import type { Finding, Severity, WorkflowHealth, WorkflowSummary } from 'greenlight-n8n';
 import { healthStates, severities } from './status';
 
 export type HealthFilter = WorkflowHealth | 'all';

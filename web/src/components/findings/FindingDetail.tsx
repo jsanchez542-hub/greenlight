@@ -1,6 +1,6 @@
 'use client';
 
-import { describeFinding } from 'greenlight/i18n';
+import { describeFinding } from 'greenlight-n8n/i18n';
 import Link from 'next/link';
 import { useLang, useMessages } from '@/i18n/context';
 import { keyFindings } from '@/lib/findings';

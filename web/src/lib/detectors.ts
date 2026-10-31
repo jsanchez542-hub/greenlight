@@ -1,4 +1,4 @@
-import type { DetectorName, Severity } from 'greenlight';
+import type { DetectorName, Severity } from 'greenlight-n8n';
 
 export const detectorSeverity: Record<DetectorName, Severity> = {
   'silent-error': 'critical',

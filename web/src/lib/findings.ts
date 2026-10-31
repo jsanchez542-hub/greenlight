@@ -1,4 +1,4 @@
-import type { DetectorName, Finding, Severity } from 'greenlight';
+import type { DetectorName, Finding, Severity } from 'greenlight-n8n';
 import { detectorNames, severities } from './status';
 
 export interface KeyedFinding {

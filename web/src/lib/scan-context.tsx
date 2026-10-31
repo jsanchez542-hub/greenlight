@@ -1,6 +1,6 @@
 'use client';
 
-import type { ScanResult } from 'greenlight';
+import type { ScanResult } from 'greenlight-n8n';
 import { createContext, useContext } from 'react';
 import type { FailureCode } from './failure';
 

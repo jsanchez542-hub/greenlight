@@ -1,6 +1,6 @@
 'use client';
 
-import type { WorkflowSummary } from 'greenlight';
+import type { WorkflowSummary } from 'greenlight-n8n';
 import Link from 'next/link';
 import { useLang, useMessages } from '@/i18n/context';
 import { formatBeforeScan, formatNumber, formatUtc } from '@/lib/format';

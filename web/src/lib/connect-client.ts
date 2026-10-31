@@ -1,4 +1,4 @@
-import type { Diagnosis } from 'greenlight';
+import type { Diagnosis } from 'greenlight-n8n';
 import { failureOf, silence } from './api-client';
 import { ApiFailure } from './failure';
 import { asBoolean, asRecord } from './scan-result';

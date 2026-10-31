@@ -1,4 +1,4 @@
-import type { ScanResult } from 'greenlight';
+import type { ScanResult } from 'greenlight-n8n';
 import { parseFailureCode, type FailureCode } from './failure';
 import { asBoolean, asCount, asRecord, asString, parseScanResult } from './scan-result';
 

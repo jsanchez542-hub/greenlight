@@ -1,7 +1,7 @@
 'use client';
 
-import type { Finding } from 'greenlight';
-import { evidenceLabel, evidenceValue } from 'greenlight/i18n';
+import type { Finding } from 'greenlight-n8n';
+import { evidenceLabel, evidenceValue } from 'greenlight-n8n/i18n';
 import { useLang } from '@/i18n/context';
 import { formatNumber } from '@/lib/format';
 import styles from './EvidenceList.module.css';

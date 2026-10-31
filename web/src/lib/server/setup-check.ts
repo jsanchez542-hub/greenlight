@@ -1,4 +1,4 @@
-import { diagnose as runDiagnosis, type Diagnosis, type DiagnoseInput } from 'greenlight';
+import { diagnose as runDiagnosis, type Diagnosis, type DiagnoseInput } from 'greenlight-n8n';
 import type { Lang } from '@/i18n';
 import type { SetupStatus } from '../setup-status';
 import { currentEnvironment, type Environment } from './environment';

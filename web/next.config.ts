@@ -7,7 +7,7 @@ const repositoryRoot = path.join(import.meta.dirname, '..');
 const demo = process.env['GREENLIGHT_STATIC_DEMO'] === '1';
 
 const shared: NextConfig = {
-  serverExternalPackages: ['greenlight'],
+  serverExternalPackages: ['greenlight-n8n'],
   outputFileTracingRoot: repositoryRoot,
   turbopack: { root: repositoryRoot },
   poweredByHeader: false,

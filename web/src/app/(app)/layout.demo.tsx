@@ -1,4 +1,4 @@
-import { VERSION } from 'greenlight';
+import { VERSION } from 'greenlight-n8n';
 import type { ReactNode } from 'react';
 import { AppShell } from '@/components/shell/AppShell';
 import { sampleResult } from '@/lib/sample';

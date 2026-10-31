@@ -1,6 +1,6 @@
 'use client';
 
-import type { ScanResult } from 'greenlight';
+import type { ScanResult } from 'greenlight-n8n';
 import type { ReactNode } from 'react';
 import { ControlsContext, ResultContext, type ScanControls } from './scan-context';
 

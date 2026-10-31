@@ -1,4 +1,4 @@
-import { MemoryUpdateCache, VERSION, checkForUpdate, updateChecksEnabled, type UpdateCache } from 'greenlight';
+import { MemoryUpdateCache, VERSION, checkForUpdate, updateChecksEnabled, type UpdateCache } from 'greenlight-n8n';
 import type { FailureCode } from '../failure';
 import { EnvFileError, environmentProblem, type Environment } from './environment';
 import type { RateLimiter } from './rate-limit';

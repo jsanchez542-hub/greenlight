@@ -1,4 +1,4 @@
-import { N8nApiError, N8nClient, loadConfig, scan, type ScanResult } from 'greenlight';
+import { N8nApiError, N8nClient, loadConfig, scan, type ScanResult } from 'greenlight-n8n';
 import type { FailureCode } from '../failure';
 import { currentEnvironment, type Environment } from './environment';
 import { checkInstanceUrl } from './instance-url';

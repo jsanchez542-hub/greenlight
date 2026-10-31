@@ -1,4 +1,4 @@
-import type { WorkflowSummary } from 'greenlight';
+import type { WorkflowSummary } from 'greenlight-n8n';
 import { healthStates } from './status';
 import { filterByHealth, type HealthFilter } from './workflows';
 

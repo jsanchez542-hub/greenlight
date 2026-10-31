@@ -1,4 +1,4 @@
-import type { DetectorName, Finding, Severity } from 'greenlight';
+import type { DetectorName, Finding, Severity } from 'greenlight-n8n';
 import { describe, expect, it } from 'vitest';
 import { sampleResult } from '@/lib/sample';
 import { detectorSeverity } from '@/lib/detectors';

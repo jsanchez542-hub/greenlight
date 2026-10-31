@@ -1,4 +1,4 @@
-import type { DetectorName, Finding, ScanResult, WorkflowHealth, WorkflowSummary } from 'greenlight';
+import type { DetectorName, Finding, ScanResult, WorkflowHealth, WorkflowSummary } from 'greenlight-n8n';
 import { detectorNames, healthStates, severities } from './status';
 
 export class InvalidScanResultError extends Error {

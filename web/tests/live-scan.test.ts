@@ -1,4 +1,4 @@
-import { N8nApiError } from 'greenlight';
+import { N8nApiError } from 'greenlight-n8n';
 import { describe, expect, it } from 'vitest';
 import { describeScanFailure, hostOf, isLiveScanConfigured, liveCache } from '@/lib/server/live-scan';
 

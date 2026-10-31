@@ -1,4 +1,4 @@
-import { languages, type Lang } from 'greenlight/i18n';
+import { languages, type Lang } from 'greenlight-n8n/i18n';
 
 export const FLAG_COOKIE_NAME = 'greenlight_ui';
 export const FLAG_COOKIE_MAX_AGE_SECONDS = 365 * 24 * 60 * 60;

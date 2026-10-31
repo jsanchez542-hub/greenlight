@@ -1,4 +1,4 @@
-import { VERSION } from 'greenlight';
+import { VERSION } from 'greenlight-n8n';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';

@@ -1,7 +1,7 @@
 import { closeSync, fsyncSync, lstatSync, openSync, renameSync, unlinkSync, writeSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
 import path from 'node:path';
-import { removeEnvKeys, upsertEnv } from 'greenlight';
+import { removeEnvKeys, upsertEnv } from 'greenlight-n8n';
 import { EnvFileError, MAX_ENV_FILE_BYTES, readEnvText } from './environment';
 
 export const CONNECTION_SETTINGS = ['N8N_BASE_URL', 'N8N_API_KEY'] as const;

@@ -1,6 +1,6 @@
 'use client';
 
-import type { ScanResult } from 'greenlight';
+import type { ScanResult } from 'greenlight-n8n';
 import { useMemo, useState, type ReactNode } from 'react';
 import type { FailureCode } from './failure';
 import type { LiveSnapshot } from './live-snapshot';

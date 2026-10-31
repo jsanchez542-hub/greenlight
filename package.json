@@ -1,5 +1,5 @@
 {
-  "name": "greenlight",
+  "name": "greenlight-n8n",
   "version": "1.0.0",
   "description": "Detects n8n workflow failures that report success",
   "license": "MIT",
@@ -33,11 +33,18 @@
   },
   "types": "./dist/index.d.ts",
   "bin": {
+    "greenlight-n8n": "dist/cli.js",
     "greenlight": "dist/cli.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "!dist/**/*.map",
+    "CHANGELOG.md"
   ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "engines": {
     "node": ">=22.12"
   },

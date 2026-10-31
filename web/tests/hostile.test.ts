@@ -1,4 +1,4 @@
-import type { Finding, WorkflowSummary } from 'greenlight';
+import type { Finding, WorkflowSummary } from 'greenlight-n8n';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';

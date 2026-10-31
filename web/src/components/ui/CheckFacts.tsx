@@ -1,6 +1,6 @@
 'use client';
 
-import type { DetectorName } from 'greenlight';
+import type { DetectorName } from 'greenlight-n8n';
 import { useMessages } from '@/i18n/context';
 import styles from './CheckFacts.module.css';
 

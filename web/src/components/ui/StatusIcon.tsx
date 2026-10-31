@@ -1,4 +1,4 @@
-import type { WorkflowHealth } from 'greenlight';
+import type { WorkflowHealth } from 'greenlight-n8n';
 import type { ReactNode } from 'react';
 import styles from './StatusIcon.module.css';
 
