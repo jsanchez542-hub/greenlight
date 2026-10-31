@@ -5,9 +5,13 @@ name: Release
 # publishes it, which waits for the approval of the "npm" environment. npm records in the
 # provenance that the package was built from this repository by this workflow.
 # The steps to take around it are in docs/releasing.md.
+#
+# Run by hand from the Actions tab, it does everything up to the publication and stops there, so the
+# whole pipeline can be tried without publishing anything.
 on:
   release:
     types: [published]
+  workflow_dispatch:
 
 # The jobs only read the repository. The job that publishes asks for more on its own.
 permissions:
@@ -39,6 +43,7 @@ jobs:
       - run: npm test
       - run: npm run build
       - name: The tag must name the version that is published
+        if: github.event_name == 'release'
         env:
           TAG: ${{ github.event.release.tag_name }}
         run: |
@@ -92,6 +97,7 @@ jobs:
 
   publish:
     name: Publish to npm
+    if: github.event_name == 'release'
     needs: [build, smoke]
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -135,6 +141,7 @@ jobs:
 
   verify:
     name: Check it on npm, ${{ matrix.os }}
+    if: github.event_name == 'release'
     needs: [build, publish]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15

@@ -33,6 +33,12 @@ cannot be replaced: if something is wrong with it, publish a patch version and r
 4. Approve the deployment to the `npm` environment in the run of the Release workflow.
 5. Wait for the two **Check it on npm** jobs to finish.
 
+## Trying the pipeline without publishing
+
+Before the first release, and after any change to the workflow, run it by hand: in the Actions tab
+choose Release, then Run workflow. It builds, checks and tries the package on Linux and Windows and
+stops before the publication, so nothing reaches npm and nobody is asked for an approval.
+
 ## Setting it up once
 
 npm describes trusted publishing, which is what the later releases use, on
