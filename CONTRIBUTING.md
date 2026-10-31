@@ -52,8 +52,9 @@ The dashboard has its own project in `web/` with its own `lint`, `typecheck`, `t
 
 1. Move the entries under "Unreleased" in `CHANGELOG.md` to a heading with the new version and the date.
 2. Set the version with `npm version <x.y.z> --no-git-tag-version` in the root and in `web/`, and commit.
-3. Tag it `vX.Y.Z`, push the tag and create the release from the same text:
-   `gh release create vX.Y.Z --title "vX.Y.Z" --notes-file <the changelog text>`.
+3. Merge it, then create the release on GitHub with the tag `vX.Y.Z` and the changelog text as its
+   notes. Publishing the release publishes the package to npm: [docs/releasing.md](docs/releasing.md)
+   says what the workflow does and what is set up once.
 
 Fixes are patch versions, anything new that keeps working setups working is a minor version, and a
 major version is only for a change that breaks something the README promises to keep stable.

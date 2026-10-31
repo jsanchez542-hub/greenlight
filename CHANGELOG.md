@@ -14,6 +14,11 @@ and the project follows [semantic versioning](https://semver.org); the README sa
   workflow at a time as before, so code that uses the package directly sees no change.
 - `npm run benchmark` times a scan of an invented instance whose every answer is delayed, to
   measure what reading several workflows at once gains.
+- The scanner is published on npm as `greenlight-n8n`, so `npx greenlight-n8n init` and
+  `npx greenlight-n8n` work without cloning anything. It installs two commands, `greenlight-n8n` and
+  `greenlight`. It has no dependencies and no install scripts, each version is built and published by
+  a GitHub Actions workflow with provenance, and the file is tried on Linux and Windows before it is
+  published. The dashboard stays in the repository.
 
 ### Changed
 
@@ -22,6 +27,13 @@ and the project follows [semantic versioning](https://semver.org); the README sa
   scan went from 93 to 23 seconds. A real instance may not keep that pace if it is asked for more at
   once: `GREENLIGHT_CONCURRENCY=1` brings back the old behavior.
 - The dashboard no longer says, while it scans, that the workflows are read one at a time.
+- The help, the missing settings error, the connection check and the steps after the setup name the
+  command you have: `npx greenlight-n8n ...` when you started it with npx, `greenlight ...`
+  otherwise. Before, someone trying it with npx was told to type a command that does not exist on
+  their computer.
+- The package is called `greenlight-n8n`, so a program that uses it from code writes
+  `import { scan } from 'greenlight-n8n'`. The commands, the options, the environment variables, the
+  exit codes, the `--json` output and the alert payload are as in 1.0.
 
 ## [1.0.0] - 2026-10-08
 
