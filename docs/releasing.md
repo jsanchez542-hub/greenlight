@@ -52,7 +52,9 @@ npm does, that page is the one to check.
    settings of an existing package. So the first release is published with a token, and the later
    ones without any. Create a granular access token that can read and write packages, with the
    shortest expiry the form allows. It has to cover all packages because the new one cannot be
-   chosen yet.
+   chosen yet. A workflow cannot type a one-time code, so the token has to be allowed to publish
+   without one, which the form offers as a checkbox. Copy the token when it is shown, because npm
+   shows it once, and paste it only into the GitHub secret below.
 
 **On GitHub**
 
