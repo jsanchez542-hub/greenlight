@@ -64,8 +64,12 @@ think the impact is. It will be answered as soon as possible.
 
 ## Known advisories in development tooling
 
-`npm audit` in `web/` reports `braces` (GHSA-vfj7-8cjw-p6xm, denial of service through deeply nested
-patterns). It arrives through the lint configuration of Next.js, it is only used on this repository's
-own files while linting, and no patched release exists yet. Everything the scanner and the dashboard
-run is clean: `npm audit --omit=dev` reports no vulnerabilities in either project. The dependency
-will be updated as soon as a fix is published.
+`npm audit` in `web/` reports moderate advisories in the lint tooling. All of them arrive through
+ESLint and its plugins by way of `minimatch` (GHSA-g3hv-75wg-m249, denial of service when matching
+crafted patterns). That tooling only reads this repository's own files while linting, and nothing of
+it ships or runs for whoever uses GreenLight. The fix that npm offers is a downgrade, and moving to a
+newer ESLint has to wait until `eslint-config-next` supports ESLint 10, so Dependabot is told not to
+propose that major version. ESLint 9, which its maintainers no longer support, stays until then.
+Everything the scanner and the dashboard run is clean: `npm audit --omit=dev` reports no
+vulnerabilities in either project, and the root project reports none at all, development tools
+included.
