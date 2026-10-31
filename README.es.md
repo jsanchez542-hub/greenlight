@@ -346,7 +346,9 @@ cubrir con una prueba y reproducir a partir de la evidencia impresa a su lado.
 Lee el historial de ejecuciones que la instancia aún conserva, así que una ventana de retención corta
 limita lo que se puede comparar. Los workflows que nunca se han ejecutado se omiten en lugar de
 adivinarse. La inspección de detalle se hace por muestreo, no de forma exhaustiva, porque ese endpoint
-es costoso.
+es costoso. Lee lo que produjo cada nodo y no lo que hace el resto del workflow con ello, así que un
+error que un paso posterior gestiona a propósito, como el que sale por la salida de error de un nodo,
+también se comunica.
 
 El análisis lee cuatro workflows a la vez por defecto (`GREENLIGHT_CONCURRENCY`), así que nunca hay
 más de cuatro peticiones en curso contra tu instancia. En una instancia inventada de 500 workflows

@@ -1,12 +1,14 @@
 # End-to-end test against a real n8n
 
-The unit tests answer with invented data. This test starts a real n8n, puts three workflows on it,
+The unit tests answer with invented data. This test starts a real n8n, puts five workflows on it,
 runs them, installs the packaged program in an empty folder and scans the instance with a key that
 can only read.
 
 | Workflow | What it does | What a scan has to say |
 | --- | --- | --- |
-| E2E silent failure | A step that fails every time, set to carry on | a critical silent error on that step |
+| E2E silent failure | A step that fails every time, set to continue with its regular output | a critical silent error on that step |
+| E2E error output, not connected | The same step, set to continue using its error output, which leads nowhere | a critical silent error on that step |
+| E2E error output, connected | The same, with the error output connected to a step that handles it | a critical silent error as well: the scan reads what a node produced, not what the rest of the workflow does with it |
 | E2E healthy | A step that works | nothing, and the workflow is healthy |
 | E2E never run | Switched on and never called | no history, so nothing is judged |
 

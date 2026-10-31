@@ -6,7 +6,8 @@ name: End to end
 # refuses any address that is not on the machine running the test. See e2e/README.md.
 on:
   push:
-    branches: [main]
+    # Branches named ci/ are where this workflow is tried before it reaches main.
+    branches: [main, 'ci/**']
     paths:
       - 'src/**'
       - 'e2e/**'

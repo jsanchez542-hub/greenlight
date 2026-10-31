@@ -334,7 +334,9 @@ why each one can be covered by a test and reproduced from the evidence printed b
 
 It reads whatever execution history the instance still holds, so a short retention window
 limits what can be compared. Workflows that have never run are skipped rather than guessed at.
-Detail inspection is sampled, not exhaustive, because that endpoint is expensive.
+Detail inspection is sampled, not exhaustive, because that endpoint is expensive. It reads what each
+node produced and not what the rest of the workflow does with it, so an error that a later step
+handles on purpose, such as one routed through the error output of a node, is still reported.
 
 The scan reads four workflows at a time by default (`GREENLIGHT_CONCURRENCY`), so there are never
 more than four requests in flight against your instance. On an invented instance of 500 workflows
