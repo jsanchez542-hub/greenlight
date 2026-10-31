@@ -59,8 +59,10 @@ npm does, that page is the one to check.
 **On GitHub**
 
 1. In Settings, then Environments, create the environment `npm` before the first release. Add
-   yourself as a required reviewer and limit deployments to the tags `v*`. A release run that names
-   an environment which does not exist creates it without protection.
+   yourself as a required reviewer and limit deployments to the tags `v*`. Leave "Prevent
+   self-review" unchecked: the person who publishes the release is also its only reviewer, and with
+   it checked nobody could approve the deployment. A release run that names an environment which
+   does not exist creates it without protection.
 2. Store the token as a secret called `NPM_TOKEN` of that environment, not of the repository, so
    that only a run that was approved can read it.
 
