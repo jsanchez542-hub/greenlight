@@ -35,6 +35,10 @@ cannot be replaced: if something is wrong with it, publish a patch version and r
 
 ## Setting it up once
 
+npm describes trusted publishing, which is what the later releases use, on
+[its own page](https://docs.npmjs.com/trusted-publishers). If something here stops matching what
+npm does, that page is the one to check.
+
 **On npm**
 
 1. Use an account with two-factor authentication.
@@ -59,8 +63,8 @@ cannot be replaced: if something is wrong with it, publish a patch version and r
 2. On the day of the second release, before publishing it, open the settings of the package on
    npmjs.com, find Trusted Publisher, choose GitHub Actions and fill in the owner
    `jsanchez542-hub`, the repository `greenlight`, the workflow file `release.yml` and the
-   environment `npm`. npm discards a trusted publisher that has not completed a publish within two
-   days, so it is set up when a release is about to go out.
+   environment `npm`. The page above says that a new trusted publisher expires if it has not
+   completed its first publish within two days, so it is set up when a release is about to go out.
 3. Once a release has gone out that way, choose **Require two-factor authentication and disallow
    tokens** in the same settings, and remove any remaining publish tokens from the account.
 
