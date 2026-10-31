@@ -5,6 +5,10 @@ and the project follows [semantic versioning](https://semver.org); the README sa
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-31
+
+One command to try it, faster scans and a test against a real n8n.
+
 ### Added
 
 - A live demo of the dashboard with invented data, built as a static site, published on GitHub
