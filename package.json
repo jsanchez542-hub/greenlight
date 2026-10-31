@@ -46,6 +46,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "example": "npm run build && node examples/synthetic-instance.mjs",
+    "benchmark": "npm run build && node scripts/benchmark-scan.mjs",
     "setup": "node dist/cli.js init",
     "doctor": "node dist/cli.js doctor",
     "scan": "node dist/cli.js",
