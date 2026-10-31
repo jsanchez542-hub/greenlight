@@ -9,7 +9,9 @@ think the impact is. It will be answered as soon as possible.
 ## What to keep in mind when using GreenLight
 
 - **Use a key that can only read.** GreenLight reads workflows and execution history and never
-  writes to your instance. Give it a key with read access and nothing more.
+  writes to your instance. Give it a key with read access and nothing more. Where n8n lets you
+  choose the scopes of a key, `workflow:list`, `workflow:read`, `execution:list` and
+  `execution:read` are all a scan needs, and the test against a real n8n uses a key with only those.
 - **Keep the key out of git.** `greenlight init` writes it to a `.env` file, which this repository
   already ignores. Do not commit it, paste it in an issue or share screenshots that show it.
 - **The dashboard has no login.** It listens on `127.0.0.1` and refuses other hostnames, so it is

@@ -212,6 +212,9 @@ Only read endpoints are used. GreenLight never writes to the instance. It talks 
 if you set one, to the alert webhook; and, only if you turn it on, once a day to GitHub to ask for
 the number of the latest version (see [Versions and updates](#versions-and-updates)).
 
+Where n8n lets you choose the scopes of an API key, `workflow:list`, `workflow:read`,
+`execution:list` and `execution:read` are all a scan needs.
+
 ## Commands
 
 | Command | What it does |
@@ -325,6 +328,12 @@ where each request takes about 31 ms, a scan took 23 seconds, against 93 seconds
 workflow at a time as version 1.0 did, with an identical result. A real instance answers at its own
 pace and may slow down if it is asked for more at once, so lower the setting if it does, or if a
 proxy in front of it limits requests. `npm run benchmark` repeats the measurement.
+
+The CI scans a real n8n of versions 2.45.7 and 3.0.1 on every change to the code, with workflows
+that fail in known ways, and checks that the scan reports exactly what was planted
+([e2e/README.md](e2e/README.md)). The checks that depend on time (drift, silence and frequency drop)
+are covered by tests with invented histories, because a new instance has no history to judge. Other
+versions that offer the same public API should work, but they are not tested.
 
 ## Versions and updates
 

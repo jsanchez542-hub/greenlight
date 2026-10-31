@@ -218,6 +218,9 @@ si configuras uno, con el webhook de alertas; y, solo si lo activas, una vez al 
 preguntar el número de la última versión (consulta [Versiones y
 actualizaciones](#versiones-y-actualizaciones)).
 
+Donde n8n deja elegir los permisos de una clave de API, `workflow:list`, `workflow:read`,
+`execution:list` y `execution:read` es todo lo que necesita un análisis.
+
 ## Comandos
 
 | Comando | Qué hace |
@@ -337,6 +340,13 @@ donde cada petición tarda unos 31 ms, el análisis tardó 23 segundos, frente a
 workflows de uno en uno como hacía la versión 1.0, con un resultado idéntico. Una instancia real
 responde a su ritmo y puede ir más lenta si se le piden más cosas a la vez, así que baja el ajuste si
 ocurre, o si un proxy delante de ella limita las peticiones. `npm run benchmark` repite la medición.
+
+La CI analiza un n8n real de las versiones 2.45.7 y 3.0.1 en cada cambio del código, con workflows
+que fallan de formas conocidas, y comprueba que el análisis comunica exactamente lo que se plantó
+([e2e/README.md](e2e/README.md)). Las comprobaciones que dependen del tiempo (deriva, silencio y caída
+de frecuencia) las cubren pruebas con historiales inventados, porque una instancia nueva no tiene
+historial que juzgar. Otras versiones que ofrezcan la misma API pública deberían funcionar, pero no
+están probadas.
 
 ## Versiones y actualizaciones
 
