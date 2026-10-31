@@ -20,6 +20,7 @@ Entorno:
   N8N_API_KEY                 clave de API con permiso de lectura
   GREENLIGHT_EXECUTION_LIMIT  ejecuciones que se leen por workflow (por defecto 200)
   GREENLIGHT_DETAIL_SAMPLE    ejecuciones que se revisan nodo a nodo (por defecto 5)
+  GREENLIGHT_CONCURRENCY      workflows que se leen a la vez, de 1 a 16 (por defecto 4)
   GREENLIGHT_ALLOW_INSECURE_HTTP  con 1 envía la clave por http sin cifrar a un servidor público (no recomendado)
   GREENLIGHT_LANG             "en" o "es"; por defecto, el idioma de este equipo
   GREENLIGHT_CHECK_UPDATES    con 1 te avisa cuando hay una versión nueva (desactivado por defecto, ver el README)
@@ -65,6 +66,7 @@ Con watch --once son los mismos, así que sirve para cron o cualquier programado
     missingConnection:
       'Faltan N8N_BASE_URL y N8N_API_KEY. Ejecuta greenlight init para una configuración guiada, o defínelas en el entorno o en un archivo .env.',
     notPositive: (name, raw) => `${name} debe ser un número entero positivo y se recibió "${raw}".`,
+    tooHigh: (name, raw, max) => `${name} debe ser un número entero de 1 a ${max} y se recibió "${raw}".`,
     badSeverity: (raw) => `GREENLIGHT_NOTIFY_MIN debe ser "warning" o "critical" y se recibió "${raw}".`,
     badWebhook: 'GREENLIGHT_WEBHOOK_URL debe ser una dirección http o https válida.',
   },

@@ -95,6 +95,9 @@ describe('the connection check', () => {
 describe('settings errors', () => {
   it('are written in the chosen language', () => {
     expect(() => loadConfig({}, 'es')).toThrow(/Faltan N8N_BASE_URL y N8N_API_KEY/);
+    expect(() =>
+      loadConfig({ N8N_BASE_URL: 'https://n8n.example.com', N8N_API_KEY: 'k', GREENLIGHT_CONCURRENCY: '40' }, 'es'),
+    ).toThrow(/entero de 1 a 16/);
     expect(() => loadWatchConfig({ GREENLIGHT_NOTIFY_MIN: 'loud' }, 'es')).toThrow(/debe ser "warning" o "critical"/);
     expect(() => loadWatchConfig({ GREENLIGHT_WEBHOOK_URL: 'nope' }, 'es')).toThrow(/dirección http o https válida/);
     expect(nodeVersionProblem('18.0.0', 'es')).toContain('necesita Node.js 22.12');

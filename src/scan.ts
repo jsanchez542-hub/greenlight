@@ -2,14 +2,20 @@ import { analyseWorkflow } from './analysis/analyse.js';
 import { lastStartedAt } from './analysis/statistics.js';
 import { defaultAnalysisOptions, type AnalysisOptions, type Finding } from './analysis/types.js';
 import { runsOnAClock } from './analysis/trigger.js';
+import { MAX_CONCURRENCY, isValidConcurrency, mapWithLimit } from './concurrency.js';
 import type { N8nClient } from './n8n/client.js';
-import type { Execution, ExecutionDetail } from './n8n/types.js';
+import type { Execution, ExecutionDetail, Workflow } from './n8n/types.js';
 
 export const SCAN_RESULT_VERSION = 1;
 
 export interface ScanOptions {
   executionLimit: number;
   detailSampleSize: number;
+  /**
+   * How many workflows are read at the same time, from 1 to `MAX_CONCURRENCY`. Left out it is 1,
+   * which reads them one after another as version 1.0 did. The result is the same for any value.
+   */
+  concurrency?: number;
   analysis?: AnalysisOptions;
   now?: Date;
 }
@@ -62,50 +68,75 @@ function healthOf(executions: Execution[], findings: Finding[]): WorkflowHealth 
   return findings.length > 0 ? 'warning' : 'healthy';
 }
 
-export async function scan(client: N8nClient, options: ScanOptions): Promise<ScanResult> {
-  const now = options.now ?? new Date();
-  const workflows = await client.listWorkflows();
-  const summaries: WorkflowSummary[] = [];
+interface WorkflowScan {
+  summary: WorkflowSummary;
+  findings: Finding[];
+}
+
+/** Reads one workflow and judges it. Its requests go out one after another. */
+async function scanWorkflow(
+  client: N8nClient,
+  workflow: Workflow,
+  options: ScanOptions,
+  now: Date,
+): Promise<WorkflowScan> {
+  const detail = await client.getWorkflow(workflow.id);
+  const onAClock = runsOnAClock(detail.nodes);
+  const executions = await client.listExecutions({
+    workflowId: workflow.id,
+    limit: options.executionLimit,
+  });
+
   const findings: Finding[] = [];
-
-  for (const workflow of workflows) {
-    const detail = await client.getWorkflow(workflow.id);
-    const onAClock = runsOnAClock(detail.nodes);
-    const executions = await client.listExecutions({
-      workflowId: workflow.id,
-      limit: options.executionLimit,
-    });
-
-    const workflowFindings: Finding[] = [];
-    if (executions.length > 0) {
-      const executionDetails: ExecutionDetail[] = [];
-      for (const execution of recentSuccesses(executions, options.detailSampleSize)) {
-        executionDetails.push(await client.getExecution(execution.id));
-      }
-
-      workflowFindings.push(
-        ...analyseWorkflow({
-          workflow,
-          runsOnAClock: onAClock,
-          executions,
-          executionDetails,
-          now,
-          options: options.analysis ?? defaultAnalysisOptions,
-        }),
-      );
+  if (executions.length > 0) {
+    const executionDetails: ExecutionDetail[] = [];
+    for (const execution of recentSuccesses(executions, options.detailSampleSize)) {
+      executionDetails.push(await client.getExecution(execution.id));
     }
 
-    findings.push(...workflowFindings);
-    summaries.push({
+    findings.push(
+      ...analyseWorkflow({
+        workflow,
+        runsOnAClock: onAClock,
+        executions,
+        executionDetails,
+        now,
+        options: options.analysis ?? defaultAnalysisOptions,
+      }),
+    );
+  }
+
+  return {
+    findings,
+    summary: {
       id: workflow.id,
       name: workflow.name,
       active: workflow.active,
       trigger: onAClock ? 'schedule' : 'event',
       executionsRead: executions.length,
       lastStartedAt: lastStartedAt(executions)?.toISOString() ?? null,
-      health: healthOf(executions, workflowFindings),
-    });
+      health: healthOf(executions, findings),
+    },
+  };
+}
+
+export async function scan(client: N8nClient, options: ScanOptions): Promise<ScanResult> {
+  const concurrency = options.concurrency ?? 1;
+  if (!isValidConcurrency(concurrency)) {
+    throw new RangeError(
+      `concurrency must be a whole number from 1 to ${MAX_CONCURRENCY}, received ${String(concurrency)}.`,
+    );
   }
+
+  const now = options.now ?? new Date();
+  const workflows = await client.listWorkflows();
+  // The results come back in the order of the list, so the output does not depend on which
+  // workflow finished first.
+  const scanned = await mapWithLimit(workflows, concurrency, (workflow) =>
+    scanWorkflow(client, workflow, options, now),
+  );
+  const summaries = scanned.map(({ summary }) => summary);
+  const findings = scanned.flatMap((entry) => entry.findings);
 
   summaries.sort(
     (a, b) => healthOrder[a.health] - healthOrder[b.health] || a.name.localeCompare(b.name),

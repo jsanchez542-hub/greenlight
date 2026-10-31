@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { N8nClient } from '../src/n8n/client.js';
+import { MAX_CONCURRENCY } from '../src/concurrency.js';
+import { N8nApiError, N8nClient } from '../src/n8n/client.js';
 import { scan } from '../src/scan.js';
 import type { Execution, ExecutionDetail, WorkflowDetail } from '../src/n8n/types.js';
 
@@ -125,5 +126,154 @@ describe('scan', () => {
     expect(result.findings).toHaveLength(1);
     expect(result.findings[0]?.workflowId).toBe('wf-orders');
     expect(result.findings[0]?.detector).toBe('silent-error');
+  });
+});
+
+describe('scan with several workflows read at once', () => {
+  interface Traffic {
+    requests: number;
+    inFlight: number;
+    peak: number;
+  }
+
+  const crowd: WorkflowDetail[] = Array.from({ length: 12 }, (_, index) => ({
+    id: `wf-${index}`,
+    name: `Workflow ${String(index).padStart(2, '0')}`,
+    active: true,
+    nodes: [{ name: 'Every hour', type: 'n8n-nodes-base.scheduleTrigger' }],
+  }));
+  const crowdExecutions = Object.fromEntries(crowd.map(({ id }) => [id, hourly(id, 30)]));
+  // Every third workflow reports success while one of its steps returns an error.
+  const failsSilently = (workflowId: string): boolean => Number(workflowId.slice(3)) % 3 === 0;
+
+  function workflowOf(url: URL): string | null {
+    const last = url.pathname.split('/').at(-1) ?? '';
+    if (url.pathname === '/api/v1/workflows') {
+      return null;
+    }
+    if (url.pathname === '/api/v1/executions') {
+      return url.searchParams.get('workflowId');
+    }
+    return url.pathname.startsWith('/api/v1/workflows/') ? last : last.split('-').slice(0, 2).join('-');
+  }
+
+  function crowdInstance(traffic: Traffic, broken: Record<string, number> = {}): typeof globalThis.fetch {
+    return (async (input: string | URL | Request) => {
+      const url = input instanceof URL ? input : new URL(String(input));
+      const workflowId = workflowOf(url);
+      traffic.requests += 1;
+      traffic.inFlight += 1;
+      traffic.peak = Math.max(traffic.peak, traffic.inFlight);
+
+      try {
+        // The later a workflow is in the list, the faster it answers, so they do not finish in list order.
+        const turns = workflowId === null ? 0 : (crowd.length - 1 - Number(workflowId.slice(3))) * 2;
+        for (let turn = 0; turn < turns; turn += 1) {
+          await Promise.resolve();
+        }
+
+        const status = workflowId === null ? undefined : broken[workflowId];
+        if (status !== undefined && url.pathname.startsWith('/api/v1/workflows/')) {
+          return new Response('broken', { status });
+        }
+
+        let body: unknown;
+        if (url.pathname === '/api/v1/workflows') {
+          body = { data: crowd.map(({ id, name, active }) => ({ id, name, active })) };
+        } else if (url.pathname.startsWith('/api/v1/workflows/')) {
+          body = crowd.find((workflow) => workflow.id === workflowId);
+        } else if (url.pathname === '/api/v1/executions') {
+          body = { data: crowdExecutions[workflowId ?? ''] ?? [] };
+        } else {
+          const execution = Object.values(crowdExecutions)
+            .flat()
+            .find((candidate) => candidate.id === url.pathname.split('/').at(-1));
+          body =
+            execution === undefined
+              ? undefined
+              : detail(execution, failsSilently(execution.workflowId) ? { error: 'Account Restricted' } : { id: 'ok' });
+        }
+
+        return new Response(JSON.stringify(body), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        });
+      } finally {
+        traffic.inFlight -= 1;
+      }
+    }) as typeof globalThis.fetch;
+  }
+
+  function newTraffic(): Traffic {
+    return { requests: 0, inFlight: 0, peak: 0 };
+  }
+
+  function clientFor(traffic: Traffic, broken?: Record<string, number>): N8nClient {
+    return new N8nClient({
+      baseUrl: 'https://n8n.example.com',
+      apiKey: 'test-key',
+      fetch: crowdInstance(traffic, broken),
+    });
+  }
+
+  function runCrowd(concurrency: number | undefined, traffic = newTraffic()) {
+    return scan(clientFor(traffic), {
+      executionLimit: 200,
+      detailSampleSize: 5,
+      now: NOW,
+      ...(concurrency === undefined ? {} : { concurrency }),
+    });
+  }
+
+  it('gives the same result whatever the number of workflows read at once', async () => {
+    const sequential = await runCrowd(1);
+
+    expect(sequential.findings.map((finding) => finding.workflowId)).toEqual(['wf-0', 'wf-3', 'wf-6', 'wf-9']);
+    for (const concurrency of [2, 4, MAX_CONCURRENCY]) {
+      expect(JSON.stringify(await runCrowd(concurrency))).toBe(JSON.stringify(sequential));
+    }
+  });
+
+  it('never has more requests in flight than the number it was told to read at once', async () => {
+    const traffic = newTraffic();
+    await runCrowd(3, traffic);
+
+    expect(traffic.peak).toBe(3);
+  });
+
+  it('reads one workflow at a time unless told otherwise, as version 1.0 did', async () => {
+    const traffic = newTraffic();
+    await runCrowd(undefined, traffic);
+
+    expect(traffic.peak).toBe(1);
+  });
+
+  it('refuses a number it cannot honour before sending any request', async () => {
+    for (const concurrency of [0, -1, 1.5, Number.NaN, MAX_CONCURRENCY + 1]) {
+      const traffic = newTraffic();
+
+      await expect(runCrowd(concurrency, traffic)).rejects.toThrow(RangeError);
+      expect(traffic.requests).toBe(0);
+    }
+  });
+
+  it('fails with the error of the earliest workflow that fails, as a one-by-one scan would', async () => {
+    async function statusOfFailure(concurrency: number): Promise<number | undefined> {
+      try {
+        await scan(clientFor(newTraffic(), { 'wf-2': 500, 'wf-7': 503 }), {
+          executionLimit: 200,
+          detailSampleSize: 5,
+          now: NOW,
+          concurrency,
+        });
+      } catch (error) {
+        return error instanceof N8nApiError ? error.status : undefined;
+      }
+      return undefined;
+    }
+
+    expect(await statusOfFailure(1)).toBe(500);
+    expect(await statusOfFailure(4)).toBe(500);
+    expect(await statusOfFailure(MAX_CONCURRENCY)).toBe(500);
   });
 });

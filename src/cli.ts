@@ -133,6 +133,7 @@ async function runScan(argv: string[], lang: Lang): Promise<number> {
   const result = await scan(client, {
     executionLimit: config.executionLimit,
     detailSampleSize: config.detailSampleSize,
+    concurrency: config.concurrency,
   });
 
   const asJson = argv.includes('--json');
@@ -171,6 +172,7 @@ async function runWatch(argv: string[], lang: Lang): Promise<number> {
       scan(client, {
         executionLimit: config.executionLimit,
         detailSampleSize: config.detailSampleSize,
+        concurrency: config.concurrency,
       }),
     store: new FileStateStore(watchConfig.stateFile, warn, lang),
     deliver:

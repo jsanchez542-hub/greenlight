@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { DEFAULT_CONCURRENCY, MAX_CONCURRENCY } from '../src/concurrency.js';
 import { loadConfig } from '../src/config.js';
+import { messagesFor } from '../src/i18n/index.js';
 import { renderReport } from '../src/report.js';
 import type { ScanResult } from '../src/scan.js';
 
@@ -54,6 +56,38 @@ describe('loadConfig', () => {
 
     expect(config.executionLimit).toBe(200);
     expect(config.detailSampleSize).toBe(5);
+    expect(config.concurrency).toBe(4);
+  });
+
+  it('reads how many workflows to scan at once, from 1 to the maximum', () => {
+    const connection = { N8N_BASE_URL: 'https://n8n.example.com', N8N_API_KEY: 'k' };
+
+    expect(loadConfig({ ...connection, GREENLIGHT_CONCURRENCY: '1' }).concurrency).toBe(1);
+    expect(loadConfig({ ...connection, GREENLIGHT_CONCURRENCY: ' 8 ' }).concurrency).toBe(8);
+    expect(loadConfig({ ...connection, GREENLIGHT_CONCURRENCY: String(MAX_CONCURRENCY) }).concurrency).toBe(
+      MAX_CONCURRENCY,
+    );
+    expect(loadConfig({ ...connection, GREENLIGHT_CONCURRENCY: '' }).concurrency).toBe(DEFAULT_CONCURRENCY);
+  });
+
+  it('rejects a concurrency that is zero, fractional, not a number or above the maximum', () => {
+    const connection = { N8N_BASE_URL: 'https://n8n.example.com', N8N_API_KEY: 'k' };
+
+    for (const raw of ['0', '-3', '2.5', 'many']) {
+      expect(() => loadConfig({ ...connection, GREENLIGHT_CONCURRENCY: raw })).toThrow(/positive whole number/);
+    }
+    expect(() => loadConfig({ ...connection, GREENLIGHT_CONCURRENCY: String(MAX_CONCURRENCY + 1) })).toThrow(
+      /from 1 to 16/,
+    );
+  });
+
+  it('documents the setting in the help of both languages with the real limits', () => {
+    for (const lang of ['en', 'es'] as const) {
+      const line = messagesFor(lang).cli.usage.split('\n').find((text) => text.includes('GREENLIGHT_CONCURRENCY'));
+
+      expect(line).toContain(String(MAX_CONCURRENCY));
+      expect(line).toContain(String(DEFAULT_CONCURRENCY));
+    }
   });
 
   it('rejects a limit that is not a positive whole number', () => {

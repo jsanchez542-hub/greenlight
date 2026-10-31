@@ -1,4 +1,5 @@
 import type { Severity } from './analysis/types.js';
+import { DEFAULT_CONCURRENCY, MAX_CONCURRENCY } from './concurrency.js';
 import { messagesFor, type Lang } from './i18n/index.js';
 
 export interface Config {
@@ -6,12 +7,14 @@ export interface Config {
   apiKey: string;
   executionLimit: number;
   detailSampleSize: number;
+  concurrency: number;
   allowInsecureHttp: boolean;
 }
 
 const defaults = {
   executionLimit: 200,
   detailSampleSize: 5,
+  concurrency: DEFAULT_CONCURRENCY,
 };
 
 function readPositiveInteger(raw: string | undefined, fallback: number, name: string, lang: Lang): number {
@@ -21,6 +24,15 @@ function readPositiveInteger(raw: string | undefined, fallback: number, name: st
   const value = Number(raw);
   if (!Number.isInteger(value) || value <= 0) {
     throw new Error(messagesFor(lang).config.notPositive(name, raw));
+  }
+  return value;
+}
+
+function readConcurrency(raw: string | undefined, lang: Lang): number {
+  const name = 'GREENLIGHT_CONCURRENCY';
+  const value = readPositiveInteger(raw, defaults.concurrency, name, lang);
+  if (value > MAX_CONCURRENCY) {
+    throw new Error(messagesFor(lang).config.tooHigh(name, raw ?? '', MAX_CONCURRENCY));
   }
   return value;
 }
@@ -51,6 +63,7 @@ export function loadConfig(env: Record<string, string | undefined>, lang: Lang =
       'GREENLIGHT_DETAIL_SAMPLE',
       lang,
     ),
+    concurrency: readConcurrency(env['GREENLIGHT_CONCURRENCY'], lang),
   };
 }
 
