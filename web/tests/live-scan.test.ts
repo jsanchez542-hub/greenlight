@@ -84,6 +84,11 @@ describe('liveCache', () => {
     const before = liveCache(settings);
     expect(liveCache({ ...settings, GREENLIGHT_SCAN_INTERVAL_MINUTES: '9' })).not.toBe(before);
   });
+
+  it('starts a new cache when the number of workflows read at once changes', () => {
+    const before = liveCache(settings);
+    expect(liveCache({ ...settings, GREENLIGHT_CONCURRENCY: '8' })).not.toBe(before);
+  });
 });
 
 describe('hostOf', () => {

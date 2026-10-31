@@ -175,7 +175,7 @@ export const en = {
     shouldRefresh: (minutes: number) => `It should refresh every ${n(minutes)} min and has not.`,
     progressTitle: 'Scanning the instance',
     progressBody: (elapsed: string) =>
-      `Reading the execution history of each workflow, one at a time. On an instance of medium size this takes tens of seconds. Elapsed: ${elapsed}.`,
+      `Reading the execution history of your workflows, a few at a time. A small instance takes a few seconds and a large one longer. Elapsed: ${elapsed}.`,
     showSampleMeanwhile: 'Show sample data meanwhile',
     failedTitle: 'The scan did not finish',
     runAgain: 'Run the scan again',

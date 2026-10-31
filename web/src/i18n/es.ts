@@ -180,7 +180,7 @@ export const es: Messages = {
     shouldRefresh: (minutes) => `Debería actualizarse cada ${n(minutes)} min y no lo ha hecho.`,
     progressTitle: 'Analizando la instancia',
     progressBody: (elapsed) =>
-      `Leyendo el historial de ejecuciones de cada workflow, uno por uno. En una instancia mediana tarda decenas de segundos. Tiempo transcurrido: ${elapsed}.`,
+      `Leyendo el historial de ejecuciones de tus workflows, varios a la vez. Una instancia pequeña tarda unos segundos y una grande, más. Tiempo transcurrido: ${elapsed}.`,
     showSampleMeanwhile: 'Mientras tanto, ver datos de ejemplo',
     failedTitle: 'El análisis no terminó',
     runAgain: 'Repetir el análisis',

@@ -39,6 +39,7 @@ real ones.
 | `GREENLIGHT_SCAN_INTERVAL_MINUTES` | 5 | how old the stored scan may get before it is refreshed |
 | `GREENLIGHT_EXECUTION_LIMIT` | 200 | executions read per workflow |
 | `GREENLIGHT_DETAIL_SAMPLE` | 5 | executions inspected node by node |
+| `GREENLIGHT_CONCURRENCY` | 4 | workflows read at the same time, from 1 to 16 |
 | `GREENLIGHT_ALLOWED_HOSTS` | none | extra host names allowed, see Security |
 | `GREENLIGHT_CHECK_UPDATES` | off | `1` to be told when a new version is out, see Version notices; the only thing that ever contacts anything but your n8n |
 | `GREENLIGHT_LANG` | the browser's language | `en` or `es`: the language of the dashboard when the person has not chosen one on the page, see Language |
@@ -53,8 +54,8 @@ the copy every few seconds and shows how old it is. **Scan now** starts a refres
 - If a refresh fails, for example because the instance is down or the key was revoked, the last
   good result stays on screen with a notice that says how old it is, what went wrong and a link
   to the connection check.
-- The first scan after a start takes tens of seconds on an instance of medium size; until it ends
-  the page shows a progress notice.
+- The first scan after a start takes a few seconds on a small instance and longer on a large one;
+  until it ends the page shows a progress notice.
 - If the copy is older than three intervals and has not refreshed, the page says so.
 - The key stays on the server. It is never sent to the browser. When a scan fails the server
   sends only the kind of failure (the instance rejected the key, could not be reached, took too

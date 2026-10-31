@@ -11,6 +11,7 @@ const SETTING_NAMES = [
   'N8N_API_KEY',
   'GREENLIGHT_EXECUTION_LIMIT',
   'GREENLIGHT_DETAIL_SAMPLE',
+  'GREENLIGHT_CONCURRENCY',
   'GREENLIGHT_SCAN_INTERVAL_MINUTES',
   'GREENLIGHT_ALLOW_INSECURE_HTTP',
 ] as const;
@@ -52,6 +53,7 @@ async function executeScan(env: Environment): Promise<ScanResult> {
   return scan(client, {
     executionLimit: config.executionLimit,
     detailSampleSize: config.detailSampleSize,
+    concurrency: config.concurrency,
   });
 }
 
