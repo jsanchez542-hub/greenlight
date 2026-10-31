@@ -26,27 +26,8 @@ announce themselves.
 
 ## Quick start
 
-You need **Node.js 22.12 or newer** (from [nodejs.org](https://nodejs.org); the button marked LTS is
-the right one) and an API key from your n8n. In n8n the key is under Settings, then n8n API, and
-read access is enough.
-
-```bash
-npx greenlight-n8n init
-npx greenlight-n8n
-```
-
-`init` asks for the address of your n8n and the key, checks the connection step by step and saves
-both in a `.env` file in the current folder. The key stays on your computer, so keep that file out
-of git. The second command scans once and prints the report. If something does not work,
-`npx greenlight-n8n doctor` checks the connection and says what to fix.
-
-The package has no dependencies and runs nothing when it is installed. To type `greenlight` instead
-of `npx greenlight-n8n`, install it once with `npm install --global greenlight-n8n`.
-
-### The dashboard
-
-The dashboard is not in the npm package. It is in this repository, so you also need **Git**, or the
-**Code, then Download ZIP** button on this page.
+You need two things: **Node.js 22.12 or newer** (from [nodejs.org](https://nodejs.org); the button
+marked LTS is the right one) and **Git**, or the **Code, then Download ZIP** button on this page.
 
 ```bash
 git clone https://github.com/jsanchez542-hub/greenlight.git
@@ -60,11 +41,12 @@ minute or two. It starts with sample data, so you can look around straight away.
 is using port 3000 it picks the next free one and says which.
 
 To see your own n8n, press **Connect your n8n**, type its address and an API key, and press
-**Connect**. The key stays on this computer, in a `.env` file that git ignores. If something is wrong
-the page says what and how to fix it, and **Disconnect** undoes it.
+**Connect**. In n8n the key is under Settings, then n8n API, and read access is enough. The key
+stays on this computer, in a `.env` file that git ignores. If something is wrong the page says what
+and how to fix it, and **Disconnect** undoes it.
 
-In a clone, `npm run setup`, `npm run scan` and `npm run doctor` do the same as the three commands
-above.
+Prefer the terminal? `npm run setup` asks the same two questions, `npm run scan` prints a report,
+and `npm run doctor` checks the connection step by step if something does not work.
 
 The dashboard and the command line speak English and Spanish; see [Language](#language).
 
@@ -243,8 +225,7 @@ the number of the latest version (see [Versions and updates](#versions-and-updat
 
 `scan` and `watch --once` exit with 0 when nothing is found, 1 when something is, and 2 when the
 scan could not run, so they can gate a deployment pipeline. Outside a clone of this repository the
-same commands are `npx greenlight-n8n init`, `npx greenlight-n8n doctor`, `npx greenlight-n8n` and
-`npx greenlight-n8n watch`, or `greenlight init` and so on once it is installed globally.
+same commands are `greenlight init`, `greenlight doctor`, `greenlight`, `greenlight watch`.
 
 ## Output
 
@@ -354,9 +335,8 @@ settings arrive in minor versions, fixes in patch versions, and anything that wo
 waits for 2.0.0. The look and the internals of the dashboard may change in any minor version.
 
 `greenlight --version` tells you which version you have, and `greenlight doctor` prints it too, so it
-is in every bug report. To get the newest version with npx, write `npx greenlight-n8n@latest`. A
-global install is updated with `npm install --global greenlight-n8n@latest`, and a clone with
-`git pull` and then `npm install`. What changed is in [CHANGELOG.md](CHANGELOG.md).
+is in every bug report. To update a clone, run `git pull` and then `npm install`. What changed is in
+[CHANGELOG.md](CHANGELOG.md).
 
 **Being told about a new version is optional and off by default**, because GreenLight otherwise
 contacts nothing but your n8n and your alert webhook. If you turn it on (a checkbox in the
@@ -365,7 +345,7 @@ it makes one request, at most once a day: a plain `GET` to GitHub's public API f
 the latest release. No key, no address of your n8n and nothing about you is sent, although GitHub,
 like any website, sees your IP address. If it cannot be reached, nothing is shown and nothing breaks.
 The notice appears in the dashboard, at the end of `scan` and `doctor`, and in the `watch` log. It
-never installs anything: it links to the release notes, and you update the way you installed it.
+never installs anything: it links to the release notes, and you update with `git pull`.
 
 Without it, use **Watch, then Custom, then Releases** on this repository on GitHub to be emailed.
 
