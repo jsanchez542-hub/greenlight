@@ -5,7 +5,7 @@ and the project follows [semantic versioning](https://semver.org); the README sa
 
 ## [Unreleased]
 
-## [1.1.0] - 2026-10-31
+## [1.1.0] - 2026-11-07
 
 One command to try it, faster scans and a test against a real n8n.
 
