@@ -249,6 +249,7 @@ Donde n8n deja elegir los permisos de una clave de API, `workflow:list`, `workfl
 | `npm run watch` | analiza cada cierto tiempo y avisa de los cambios |
 | `npm run panel` | prepara y arranca el panel, y lo abre en el navegador |
 | `npm run example` | imprime el informe de una instancia sintética |
+| `npm run benchmark` | mide lo que tarda un análisis de una instancia inventada, para ver lo que gana leer varios workflows a la vez |
 
 `scan` y `watch --once` terminan con 0 cuando no se encuentra nada, con 1 cuando se encuentra algo y con
 2 cuando el análisis no pudo ejecutarse, así que pueden condicionar un flujo de despliegue. Fuera de un
@@ -360,7 +361,7 @@ workflows de uno en uno como hacía la versión 1.0, con un resultado idéntico.
 responde a su ritmo y puede ir más lenta si se le piden más cosas a la vez, así que baja el ajuste si
 ocurre, o si un proxy delante de ella limita las peticiones. `npm run benchmark` repite la medición.
 
-La CI analiza un n8n real de las versiones 2.45.7 y 3.0.1 en cada cambio del código, con workflows
+La CI analiza un n8n real de las versiones 2.45.7 y 3.0.1 en cada cambio del analizador, con workflows
 que fallan de formas conocidas, y comprueba que el análisis comunica exactamente lo que se plantó
 ([e2e/README.md](e2e/README.md)). Las comprobaciones que dependen del tiempo (deriva, silencio y caída
 de frecuencia) las cubren pruebas con historiales inventados, porque una instancia nueva no tiene
@@ -416,6 +417,9 @@ Este README también está disponible en [inglés](README.md). [CHANGELOG.md](CH
 | `tests/` | sus pruebas |
 | `web/` | el panel, un proyecto de Next.js independiente |
 | `examples/` | la instancia sintética, su salida y el workflow de n8n para las alertas por correo |
+| `e2e/` | la prueba contra un n8n real que ejecuta la CI en cada cambio del analizador |
+| `scripts/` | el lanzador del panel, la medición de rendimiento y las comprobaciones previas a cada versión |
+| `docs/` | las capturas y [cómo se publica una versión](docs/releasing.md) |
 | `assets/logo/` | el logotipo en los tamaños que necesita una página |
 
 El analizador no tiene dependencias de producción y funciona solo con Node.
