@@ -1,24 +1,13 @@
-import type { ExecutionDetail, NodeRun } from '../../n8n/types.js';
+import type { ExecutionDetail } from '../../n8n/types.js';
+import { readNodeRuns, type RunView } from '../../n8n/run-data.js';
 import type { Detector, Finding } from '../types.js';
 
-function carriesError(runs: NodeRun[]): boolean {
-  for (const run of runs) {
-    for (const branch of run.data?.main ?? []) {
-      for (const item of branch ?? []) {
-        if (item.json !== undefined && 'error' in item.json) {
-          return true;
-        }
-      }
-    }
-  }
-  return false;
+function carriesError(runs: readonly RunView[]): boolean {
+  return runs.some((run) => (run.outputs.get('main') ?? []).some((json) => Object.hasOwn(json, 'error')));
 }
 
 function failingNodes(execution: ExecutionDetail): string[] {
-  const runData = execution.data?.resultData?.runData ?? {};
-  return Object.entries(runData)
-    .filter(([, runs]) => carriesError(runs))
-    .map(([nodeName]) => nodeName);
+  return [...readNodeRuns(execution)].filter(([, runs]) => carriesError(runs)).map(([nodeName]) => nodeName);
 }
 
 export const detectSilentErrors: Detector = ({ workflow, executionDetails }): Finding[] => {
