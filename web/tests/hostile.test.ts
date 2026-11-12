@@ -13,13 +13,16 @@ import { decodeSegment, findingHref, workflowHref } from '@/lib/routes';
 import { parseScanResult } from '@/lib/scan-result';
 import { THEME_INIT_SCRIPT } from '@/lib/theme';
 
+// Characters that cannot be seen are built from their numbers, so that this file holds none.
+const char = (code: number): string => String.fromCharCode(code);
+
 const payloads = [
   '<img src=x onerror=alert(1)>',
   '"><svg onload=alert(1)>',
   '</script><script>alert(1)</script>',
   "'; alert(1); //",
   'javascript:alert(1)',
-  '‮evil‬​',
+  `${char(0x202e)}evil${char(0x202c)}${char(0x200b)}`,
   '<iframe srcdoc="<script>alert(1)</script>">',
   '{{constructor.constructor("alert(1)")()}}',
 ];
@@ -127,8 +130,7 @@ describe('text from an instance is never rendered as markup', () => {
 });
 
 describe('a name from the instance cannot change the order in which the page is read', () => {
-  // Built from its number, so that this file holds no character that cannot be seen.
-  const rightToLeftOverride = String.fromCharCode(0x202e);
+  const rightToLeftOverride = char(0x202e);
   const name = `Orders${rightToLeftOverride}`;
   const setApart = new RegExp(`<bdi[^>]*>${name}</bdi>`);
 
@@ -166,7 +168,7 @@ describe('a name from the instance cannot change the order in which the page is 
 });
 
 describe('identifiers placed in addresses', () => {
-  const ids = ['../../etc/passwd', 'a b/c%00', '"><svg onload=alert(1)>', 'x?y=1&z=2#frag', 'back\\slash', '‮​', 'a'.repeat(5000)];
+  const ids = ['../../etc/passwd', 'a b/c%00', '"><svg onload=alert(1)>', 'x?y=1&z=2#frag', 'back\\slash', `${char(0x202e)}${char(0x200b)}`, 'a'.repeat(5000)];
   const unsafe = /[/?#\s"'<>\\]/;
 
   it('are encoded so they cannot add a segment, a query or a fragment', () => {
