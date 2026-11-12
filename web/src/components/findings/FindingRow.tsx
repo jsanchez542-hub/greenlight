@@ -1,6 +1,6 @@
 'use client';
 
-import { describeFinding } from 'greenlight-n8n/i18n';
+import { describeFinding, revealControls } from 'greenlight-n8n/i18n';
 import Link from 'next/link';
 import { useLang, useMessages } from '@/i18n/context';
 import type { KeyedFinding } from '@/lib/findings';
@@ -23,11 +23,11 @@ export function FindingRow({ entry, showWorkflow = true }: FindingRowProps) {
       <div className={styles.head}>
         <StatusLabel state={finding.severity} label={t.status.severity[finding.severity]} />
         <span className={styles.check}>{t.checks.detectors[finding.detector].label}</span>
-        {showWorkflow && <span className={styles.workflow}>{finding.workflowName}</span>}
+        {showWorkflow && <bdi className={styles.workflow}>{finding.workflowName}</bdi>}
       </div>
       <p className={styles.summary}>
         <Link href={findingHref(entry.key)} className={styles.link}>
-          {describeFinding(finding, lang)}
+          {revealControls(describeFinding(finding, lang))}
         </Link>
       </p>
     </li>

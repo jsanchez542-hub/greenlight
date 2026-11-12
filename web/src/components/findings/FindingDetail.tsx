@@ -1,6 +1,6 @@
 'use client';
 
-import { describeFinding } from 'greenlight-n8n/i18n';
+import { describeFinding, revealControls } from 'greenlight-n8n/i18n';
 import Link from 'next/link';
 import { useLang, useMessages } from '@/i18n/context';
 import { keyFindings } from '@/lib/findings';
@@ -41,9 +41,9 @@ export function FindingDetail({ findingKey }: { findingKey: string }) {
           <StatusLabel state={finding.severity} label={t.status.severity[finding.severity]} />
           <span>{t.checks.detectors[finding.detector].label}</span>
         </h2>
-        <p className={styles.summary}>{describeFinding(finding, lang)}</p>
+        <p className={styles.summary}>{revealControls(describeFinding(finding, lang))}</p>
         <Link href={workflowHref(finding.workflowId)} className={styles.workflowLink}>
-          {t.findings.openWorkflow(finding.workflowName)}
+          {t.findings.openWorkflow(revealControls(finding.workflowName))}
         </Link>
       </section>
 

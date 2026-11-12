@@ -6,6 +6,7 @@ import { FindingRow } from '@/components/findings/FindingRow';
 import { ConnectionCheck } from '@/components/setup/ConnectionCheck';
 import { EvidenceList } from '@/components/ui/EvidenceList';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { WorkflowMap } from '@/components/overview/WorkflowMap';
 import { WorkflowTable } from '@/components/workflows/WorkflowTable';
 import { sampleResult } from '@/lib/sample';
 import { decodeSegment, findingHref, workflowHref } from '@/lib/routes';
@@ -122,6 +123,45 @@ describe('text from an instance is never rendered as markup', () => {
     const markup = html(createElement(FindingRow, { entry: { key: 'k', finding: finding('javascript:alert(1)') } }));
     expect(markup).not.toMatch(/href="javascript:/i);
     expect(markup).toContain('href="/findings/');
+  });
+});
+
+describe('a name from the instance cannot change the order in which the page is read', () => {
+  // Built from its number, so that this file holds no character that cannot be seen.
+  const rightToLeftOverride = String.fromCharCode(0x202e);
+  const name = `Orders${rightToLeftOverride}`;
+  const setApart = new RegExp(`<bdi[^>]*>${name}</bdi>`);
+
+  it('is set apart from the text around it wherever it is shown on its own', () => {
+    const shown = {
+      'the finding list': html(createElement(FindingRow, { entry: { key: 'k', finding: { ...finding('x'), workflowName: name } } })),
+      'the workflow table': html(
+        createElement(WorkflowTable, {
+          workflows: [{ ...workflow('x'), name }],
+          scannedAt: sampleResult.scannedAt,
+          findingCounts: new Map(),
+          sort: 'status',
+          direction: 'asc',
+          onSort: () => undefined,
+        }),
+      ),
+      'the workflow map': html(createElement(WorkflowMap, { workflows: [{ ...workflow('x'), name }] })),
+      'a page title': html(createElement(PageHeader, { title: name })),
+      'the evidence': html(createElement(EvidenceList, { evidence: { node: name } })),
+    };
+
+    for (const [where, markup] of Object.entries(shown)) {
+      expect(markup, where).toMatch(setApart);
+    }
+  });
+
+  it('is written out where it sits inside a sentence, so the rest of the sentence keeps its order', () => {
+    const quoting = { ...finding('x'), summary: `"${name}" emitted an error.` };
+
+    const markup = html(createElement(FindingRow, { entry: { key: 'k', finding: quoting } }));
+
+    expect(markup).toContain('Orders\\u{202E}&quot; emitted an error.');
+    expect(markup).not.toContain(`${name}&quot;`);
   });
 });
 
