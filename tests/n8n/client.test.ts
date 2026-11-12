@@ -32,6 +32,12 @@ describe('N8nClient', () => {
     expect(calls[0]?.headers['X-N8N-API-KEY']).toBe('test-key');
   });
 
+  it('gives the id of a workflow as text even when the instance sends it as a number', async () => {
+    const workflows = await client(stubFetch([{ data: [{ id: 12, name: 'Orders', active: true }] }])).listWorkflows();
+
+    expect(workflows).toEqual([{ id: '12', name: 'Orders', active: true }]);
+  });
+
   it('follows the cursor until the last page', async () => {
     const executions = await client(
       stubFetch([

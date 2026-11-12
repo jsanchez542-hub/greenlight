@@ -99,8 +99,11 @@ export class N8nClient {
     this.fetchImpl = options.fetch ?? globalThis.fetch;
   }
 
-  listWorkflows(): Promise<Workflow[]> {
-    return this.collect<Workflow>('/api/v1/workflows');
+  async listWorkflows(): Promise<Workflow[]> {
+    const workflows = await this.collect<Workflow>('/api/v1/workflows');
+    // The id goes on as text into keys, addresses and the result, so one that arrives as a
+    // number becomes its text here and nothing after this has to wonder.
+    return workflows.map((workflow) => ({ ...workflow, id: String(workflow.id) }));
   }
 
   listExecutions(options: ListExecutionsOptions = {}): Promise<Execution[]> {
