@@ -90,6 +90,10 @@ With watch --once it is the same, so it can run from cron or a scheduler.
       `n8n API returned ${status} for ${path}. Check N8N_BASE_URL and N8N_API_KEY.`,
     notTheApi: (path: string) =>
       `What answered ${path} is not the n8n API. Check that N8N_BASE_URL is the address you open n8n with.`,
+    listDoesNotEnd: (path: string) =>
+      `The list at ${path} does not end: n8n pointed again to a page it had already given, or gave an empty page and said there was more. Try again, and if it goes on, look at the instance and at anything that sits in front of it.`,
+    listTooLong: (path: string, entries: number) =>
+      `The list at ${path} has more than ${entries} entries, which is more than GreenLight reads.`,
     tooManyRedirects: (path: string) => `n8n API sent too many redirects for ${path}. Use the final address in N8N_BASE_URL.`,
     unusableRedirect: (path: string) => `n8n API sent an unusable redirect for ${path}. Use the final address in N8N_BASE_URL.`,
     otherHost: (path: string) =>

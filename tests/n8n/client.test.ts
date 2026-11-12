@@ -274,6 +274,78 @@ describe('N8nClient', () => {
     });
   });
 
+  describe('a list that does not end', () => {
+    // Each of these would go round for ever if the client believed the instance, so the instance
+    // gives up by itself after more requests than any of them needs and the test fails cleanly.
+    function pagesFrom(nextPage: (request: number) => unknown, giveUpAfter = 1000) {
+      const seen = { requests: 0 };
+      const fetchImpl = (async () => {
+        seen.requests += 1;
+        if (seen.requests > giveUpAfter) {
+          throw new Error(`the client asked ${giveUpAfter} times and was still going`);
+        }
+        return new Response(JSON.stringify(nextPage(seen.requests)), { status: 200 });
+      }) as typeof globalThis.fetch;
+      return { fetchImpl, seen };
+    }
+
+    it('is given up when the instance points again to a page it already gave', { timeout: 10_000 }, async () => {
+      const cursors = ['second', 'third', 'second'];
+      const { fetchImpl, seen } = pagesFrom((request) => ({
+        data: [{ id: String(request) }],
+        nextCursor: cursors[(request - 1) % cursors.length],
+      }));
+
+      const attempt = client(fetchImpl).listWorkflows();
+
+      await expect(attempt).rejects.toBeInstanceOf(N8nApiError);
+      await expect(attempt).rejects.toThrow('does not end');
+      expect(seen.requests).toBe(3);
+    });
+
+    it('is given up when a page comes empty and says there is more', { timeout: 10_000 }, async () => {
+      const { fetchImpl, seen } = pagesFrom((request) => ({ data: [], nextCursor: `page-${request}` }));
+
+      await expect(client(fetchImpl).listWorkflows()).rejects.toThrow('does not end');
+      expect(seen.requests).toBe(1);
+    });
+
+    it('is given up after 400 pages, however different each one looks', { timeout: 10_000 }, async () => {
+      const { fetchImpl, seen } = pagesFrom((request) => ({ data: [{ id: String(request) }], nextCursor: `page-${request}` }));
+
+      const attempt = client(fetchImpl).listWorkflows();
+
+      await expect(attempt).rejects.toBeInstanceOf(N8nApiError);
+      await expect(attempt).rejects.toThrow('more than 100000');
+      expect(seen.requests).toBe(400);
+    });
+
+    it('is read to its end when it has as many pages as it is allowed', { timeout: 10_000 }, async () => {
+      const { fetchImpl } = pagesFrom((request) => ({
+        data: [{ id: String(request) }],
+        nextCursor: request < 400 ? `page-${request}` : null,
+      }));
+
+      expect(await client(fetchImpl).listWorkflows()).toHaveLength(400);
+    });
+
+    it('does not repeat the cursor in the error, which the instance wrote', { timeout: 10_000 }, async () => {
+      const { fetchImpl } = pagesFrom(() => ({ data: [{ id: '1' }], nextCursor: 'cursor-that-must-not-travel' }));
+
+      const attempt = client(fetchImpl).listWorkflows();
+
+      await expect(attempt).rejects.toThrow('/api/v1/workflows');
+      await expect(attempt).rejects.not.toThrow(/cursor-that-must-not-travel/);
+    });
+
+    it('does not matter when the limit that was asked for is reached first', { timeout: 10_000 }, async () => {
+      const { fetchImpl, seen } = pagesFrom(() => ({ data: [{ id: '1' }, { id: '2' }], nextCursor: 'same' }));
+
+      expect(await client(fetchImpl).listExecutions({ limit: 2 })).toHaveLength(2);
+      expect(seen.requests).toBe(1);
+    });
+  });
+
   it('accepts a base URL with a trailing slash', async () => {
     const calls: StubCall[] = [];
     await client(stubFetch([{ data: [] }], calls), 'https://n8n.example.com/').listWorkflows();
