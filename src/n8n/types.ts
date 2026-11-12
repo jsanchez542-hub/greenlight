@@ -4,14 +4,10 @@ export interface Workflow {
   active: boolean;
 }
 
-export interface WorkflowNode {
-  name: string;
-  type: string;
-  parameters?: Record<string, unknown>;
-}
-
+/** Its nodes are unchecked, like everything the instance sends. */
 export interface WorkflowDetail extends Workflow {
-  nodes: WorkflowNode[];
+  /** `runsOnAClock` is the way to read them. */
+  nodes?: unknown;
 }
 
 export type ExecutionStatus =

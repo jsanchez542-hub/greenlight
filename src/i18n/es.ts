@@ -85,6 +85,8 @@ Con watch --once son los mismos, así que sirve para cron o cualquier programado
       'Esa dirección empieza por http y es accesible desde internet, así que la clave de API viajaría sin cifrar. Usa la versión https de la dirección. (Avanzado: GREENLIGHT_ALLOW_INSECURE_HTTP=1 lo permite igualmente.)',
     apiStatus: (status, path) =>
       `La API de n8n respondió ${status} en ${path}. Revisa N8N_BASE_URL y N8N_API_KEY.`,
+    notTheApi: (path) =>
+      `Lo que respondió en ${path} no es la API de n8n. Comprueba que N8N_BASE_URL es la dirección con la que abres n8n.`,
     tooManyRedirects: (path) =>
       `La API de n8n envió demasiadas redirecciones en ${path}. Usa la dirección final en N8N_BASE_URL.`,
     unusableRedirect: (path) =>

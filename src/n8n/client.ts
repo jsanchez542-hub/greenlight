@@ -1,5 +1,6 @@
 import { messagesFor, type Lang } from '../i18n/index.js';
 import { isPrivateHost } from './network.js';
+import { isRecord } from './shape.js';
 import type { Execution, ExecutionDetail, Workflow, WorkflowDetail } from './types.js';
 
 const PAGE_SIZE = 250;
@@ -55,7 +56,27 @@ export class N8nApiError extends Error {
 
 interface Page<T> {
   data: T[];
-  nextCursor?: string | null;
+  nextCursor?: unknown;
+}
+
+function isPage(body: unknown): boolean {
+  return isRecord(body) && Array.isArray(body['data']) && body['data'].every(isRecord);
+}
+
+/**
+ * A body that is not JSON, such as the page of a proxy, reads as nothing, which no caller takes
+ * for an answer of the API. Anything else that goes wrong while it is read is a failure of the
+ * network and is thrown as it is.
+ */
+async function jsonOf(response: Response): Promise<unknown> {
+  try {
+    return await response.json();
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      return undefined;
+    }
+    throw error;
+  }
 }
 
 export class N8nClient {
@@ -85,13 +106,15 @@ export class N8nClient {
   }
 
   getWorkflow(id: string): Promise<WorkflowDetail> {
-    return this.request<WorkflowDetail>(`/api/v1/workflows/${encodeURIComponent(id)}`, {});
+    return this.request<WorkflowDetail>(`/api/v1/workflows/${encodeURIComponent(id)}`, {}, isRecord);
   }
 
   getExecution(id: string): Promise<ExecutionDetail> {
-    return this.request<ExecutionDetail>(`/api/v1/executions/${encodeURIComponent(id)}`, {
-      includeData: 'true',
-    });
+    return this.request<ExecutionDetail>(
+      `/api/v1/executions/${encodeURIComponent(id)}`,
+      { includeData: 'true' },
+      isRecord,
+    );
   }
 
   private async collect<T>(
@@ -104,14 +127,18 @@ export class N8nClient {
 
     do {
       const remaining = limit === undefined ? PAGE_SIZE : limit - items.length;
-      const page = await this.request<Page<T>>(path, {
-        ...query,
-        limit: String(Math.min(PAGE_SIZE, remaining)),
-        ...(cursor === undefined ? {} : { cursor }),
-      });
+      const page = await this.request<Page<T>>(
+        path,
+        {
+          ...query,
+          limit: String(Math.min(PAGE_SIZE, remaining)),
+          ...(cursor === undefined ? {} : { cursor }),
+        },
+        isPage,
+      );
 
       items.push(...page.data);
-      cursor = page.nextCursor ?? undefined;
+      cursor = typeof page.nextCursor === 'string' && page.nextCursor !== '' ? page.nextCursor : undefined;
     } while (cursor !== undefined && (limit === undefined || items.length < limit));
 
     return limit === undefined ? items : items.slice(0, limit);
@@ -121,8 +148,16 @@ export class N8nClient {
    * Redirects are followed here and not by the runtime, because the API key travels in a header
    * and the runtime would send it wherever the redirect points. A redirect is only followed when
    * it stays on the same host and does not drop from https to http.
+   *
+   * `isExpected` says whether the body has the outline the caller reads. The address can belong
+   * to something that is not n8n and still answer with a success, and that must end the scan
+   * with a reason: read as an empty list it would pass for an instance with nothing wrong.
    */
-  private async request<T>(path: string, query: Record<string, string>): Promise<T> {
+  private async request<T>(
+    path: string,
+    query: Record<string, string>,
+    isExpected: (body: unknown) => boolean,
+  ): Promise<T> {
     const first = new URL(this.baseUrl + path);
     for (const [key, value] of Object.entries(query)) {
       first.searchParams.set(key, value);
@@ -144,7 +179,11 @@ export class N8nClient {
         throw new N8nApiError(messagesFor(this.lang).client.apiStatus(response.status, path), response.status);
       }
 
-      return (await response.json()) as T;
+      const body = await jsonOf(response);
+      if (!isExpected(body)) {
+        throw new N8nApiError(messagesFor(this.lang).client.notTheApi(path), response.status);
+      }
+      return body as T;
     }
   }
 

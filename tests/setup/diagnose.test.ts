@@ -161,6 +161,28 @@ describe('diagnose', () => {
       expect(result.steps.find((item) => item.id === 'reach')?.hint).toContain('without /api/v1');
     });
 
+    it('recognises an address that answers with a web page and not with the n8n API', async () => {
+      const page = (async () =>
+        new Response('<!doctype html><title>Welcome</title>', {
+          status: 200,
+          headers: { 'content-type': 'text/html' },
+        })) as typeof globalThis.fetch;
+
+      const result = await diagnose({ ...good, fetch: page });
+
+      expect(status(result, 'reach')).toBe('failed');
+      expect(result.steps.find((item) => item.id === 'reach')?.detail).toContain('no n8n API there');
+      expect(result.steps.find((item) => item.id === 'reach')?.hint).toContain('without /api/v1');
+      expect(status(result, 'authenticate')).toBe('skipped');
+    });
+
+    it('recognises an address whose answer is not the list of workflows', async () => {
+      const result = await diagnose({ ...good, fetch: instance({ workflows: { body: { message: 'hello' } } }) });
+
+      expect(status(result, 'reach')).toBe('failed');
+      expect(result.steps.find((item) => item.id === 'reach')?.detail).toContain('no n8n API there');
+    });
+
     it('explains a redirect without sending the key anywhere', async () => {
       const calls: string[] = [];
       const redirecting = (async (input: string | URL | Request) => {

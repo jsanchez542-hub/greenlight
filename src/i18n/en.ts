@@ -88,6 +88,8 @@ With watch --once it is the same, so it can run from cron or a scheduler.
       'That address starts with http and can be reached from the internet, so the API key would travel unencrypted. Use the https version of the address. (Advanced: GREENLIGHT_ALLOW_INSECURE_HTTP=1 allows it anyway.)',
     apiStatus: (status: number, path: string) =>
       `n8n API returned ${status} for ${path}. Check N8N_BASE_URL and N8N_API_KEY.`,
+    notTheApi: (path: string) =>
+      `What answered ${path} is not the n8n API. Check that N8N_BASE_URL is the address you open n8n with.`,
     tooManyRedirects: (path: string) => `n8n API sent too many redirects for ${path}. Use the final address in N8N_BASE_URL.`,
     unusableRedirect: (path: string) => `n8n API sent an unusable redirect for ${path}. Use the final address in N8N_BASE_URL.`,
     otherHost: (path: string) =>

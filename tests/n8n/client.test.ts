@@ -185,6 +185,95 @@ describe('N8nClient', () => {
     });
   });
 
+  describe('an answer that the n8n API would not give', () => {
+    const NOT_THE_API = 'is not the n8n API';
+
+    it.each([
+      ['a document without the list', {}],
+      ['a list that is text', { data: 'text' }],
+      ['a list that is an object', { data: { 0: { id: '1' } } }],
+      ['a list of something other than documents', { data: [null] }],
+      ['nothing', null],
+      ['a bare list', [{ id: '1' }]],
+      ['text', 'text'],
+    ])('refuses %s where a page of a list was asked for', async (_shape, body) => {
+      const attempt = client(stubFetch([body])).listWorkflows();
+
+      await expect(attempt).rejects.toBeInstanceOf(N8nApiError);
+      await expect(attempt).rejects.toThrow(NOT_THE_API);
+    });
+
+    it.each([
+      ['nothing', null],
+      ['a list', [{ id: '1' }]],
+      ['text', 'text'],
+    ])('refuses %s where a workflow or an execution was asked for', async (_shape, body) => {
+      await expect(client(stubFetch([body])).getWorkflow('1')).rejects.toThrow(NOT_THE_API);
+      await expect(client(stubFetch([body])).getExecution('1')).rejects.toThrow(NOT_THE_API);
+    });
+
+    it('refuses a web page, such as the one a proxy shows before letting anyone in', async () => {
+      const page = (async () =>
+        new Response('<!doctype html><title>Welcome</title>', {
+          status: 200,
+          headers: { 'content-type': 'text/html' },
+        })) as typeof globalThis.fetch;
+
+      const attempt = client(page).listWorkflows();
+
+      await expect(attempt).rejects.toBeInstanceOf(N8nApiError);
+      await expect(attempt).rejects.toThrow(NOT_THE_API);
+    });
+
+    it('keeps the status of the answer, which was a success', async () => {
+      const error: unknown = await client(stubFetch([{}]))
+        .listWorkflows()
+        .catch((caught: unknown) => caught);
+
+      expect(error).toBeInstanceOf(N8nApiError);
+      expect((error as N8nApiError).status).toBe(200);
+    });
+
+    it('does not repeat what was answered, which can hold anything', async () => {
+      const attempt = client(stubFetch([{ data: 'text-that-must-not-travel' }])).listWorkflows();
+
+      await expect(attempt).rejects.not.toThrow(/text-that-must-not-travel/);
+    });
+
+    it('does not blame the address when the network fails while the answer is read', async () => {
+      const cutOff = (async () =>
+        ({
+          ok: true,
+          status: 200,
+          headers: new Headers(),
+          json: async () => {
+            throw new TypeError('terminated');
+          },
+        }) as unknown as Response) as typeof globalThis.fetch;
+
+      const attempt = client(cutOff).listWorkflows();
+
+      await expect(attempt).rejects.toThrow('terminated');
+      await expect(attempt).rejects.not.toBeInstanceOf(N8nApiError);
+    });
+
+    it('stops at a cursor that is not text', async () => {
+      let requests = 0;
+      const onePage = (async () => {
+        requests += 1;
+        if (requests > 1) {
+          throw new Error('asked for a page that does not exist');
+        }
+        return new Response(JSON.stringify({ data: [{ id: '1' }], nextCursor: 7 }), { status: 200 });
+      }) as typeof globalThis.fetch;
+
+      const workflows = await client(onePage).listWorkflows();
+
+      expect(workflows).toHaveLength(1);
+      expect(requests).toBe(1);
+    });
+  });
+
   it('accepts a base URL with a trailing slash', async () => {
     const calls: StubCall[] = [];
     await client(stubFetch([{ data: [] }], calls), 'https://n8n.example.com/').listWorkflows();

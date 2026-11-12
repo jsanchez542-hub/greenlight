@@ -129,6 +129,34 @@ describe('scan', () => {
   });
 });
 
+describe('scan of a workflow whose nodes cannot be read', () => {
+  function instanceWith(nodes: unknown): typeof globalThis.fetch {
+    const summary = { id: 'wf-odd', name: 'Odd one', active: true };
+    return (async (input: string | URL | Request) => {
+      const { pathname } = input instanceof URL ? input : new URL(String(input));
+      const body =
+        pathname === '/api/v1/workflows'
+          ? { data: [summary] }
+          : pathname.startsWith('/api/v1/workflows/')
+            ? { ...summary, nodes }
+            : { data: [] };
+      return new Response(JSON.stringify(body), { status: 200, headers: { 'content-type': 'application/json' } });
+    }) as typeof globalThis.fetch;
+  }
+
+  it.each([
+    ['missing', undefined],
+    ['null', null],
+    ['text', 'text'],
+  ])('goes on when they are %s, and takes it for one that does not run on a clock', async (_shape, nodes) => {
+    const client = new N8nClient({ baseUrl: 'https://n8n.example.com', apiKey: 'test-key', fetch: instanceWith(nodes) });
+
+    const result = await scan(client, { executionLimit: 200, detailSampleSize: 5, now: NOW });
+
+    expect(result.workflows).toEqual([expect.objectContaining({ id: 'wf-odd', trigger: 'event', health: 'no-runs' })]);
+  });
+});
+
 describe('scan with several workflows read at once', () => {
   interface Traffic {
     requests: number;
