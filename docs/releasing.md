@@ -78,10 +78,16 @@ npm does, that page is the one to check.
 2. On the day of the second release, before publishing it, open the settings of the package on
    npmjs.com, find Trusted Publisher, choose GitHub Actions and fill in the owner
    `jsanchez542-hub`, the repository `greenlight`, the workflow file `release.yml` and the
-   environment `npm`. The page above says that a new trusted publisher expires if it has not
-   completed its first publish within two days, so it is set up when a release is about to go out.
+   environment `npm`. Under Allowed actions, tick **Allow npm publish** and leave **Allow npm
+   dist-tag** unticked: without the first one, a trusted publisher created since September 2026
+   can only stage a version for someone to approve on npm, and this workflow publishes directly.
+   The owner, the repository and the workflow file cannot be changed once the connection is set
+   up; a wrong one is deleted and created again. The page above says that a new trusted publisher
+   expires if it has not completed its first publish within two days, so it is set up when a
+   release is about to go out.
 3. Once a release has gone out that way, choose **Require two-factor authentication and disallow
-   tokens** in the same settings, and remove any remaining publish tokens from the account.
+   bypass 2fa tokens** in the same settings, and remove any remaining publish tokens from the
+   account.
 
 The publishing step needs npm 11.5.1 or newer, which is why that job runs on Node 24.
 
