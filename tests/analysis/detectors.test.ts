@@ -100,6 +100,52 @@ describe('detectSilentErrors', () => {
 
     expect(detectSilentErrors(input({ executionDetails: [clean] }))).toEqual([]);
   });
+
+  describe('with run data it cannot trust', () => {
+    const detailWith = (runData: unknown): ExecutionDetail =>
+      ({
+        id: 'odd',
+        workflowId: workflow.id,
+        status: 'success',
+        startedAt: NOW.toISOString(),
+        stoppedAt: NOW.toISOString(),
+        data: { resultData: { runData } },
+      }) as unknown as ExecutionDetail;
+
+    const odd: Array<[string, unknown]> = [
+      ['an item whose json is text', { Send: [{ data: { main: [[{ json: 'text' }]] } }] }],
+      ['an item whose json is null', { Send: [{ data: { main: [[{ json: null }]] } }] }],
+      ['an item that is null', { Send: [{ data: { main: [[null]] } }] }],
+      ['main as an object', { Send: [{ data: { main: { 0: [] } } }] }],
+      ['the runs of a node as an object', { Send: { data: { main: [] } } }],
+      ['a branch that is a number', { Send: [{ data: { main: [5] } }] }],
+      ['a run that is null', { Send: [null] }],
+      ['data that is text', { Send: [{ data: 'text' }] }],
+      ['run data that is a list', [{ data: { main: [[{ json: { error: 'x' } }]] } }]],
+      ['run data that is null', null],
+    ];
+
+    it.each(odd)('does not fail on %s', (_shape, runData) => {
+      expect(() => detectSilentErrors(input({ executionDetails: [detailWith(runData)] }))).not.toThrow();
+    });
+
+    it('does not take a json that is a list for an error', () => {
+      const listed = detailWith({ Send: [{ data: { main: [[{ json: [{ error: 'x' }] }]] } }] });
+
+      expect(detectSilentErrors(input({ executionDetails: [listed] }))).toEqual([]);
+    });
+
+    it('still reports the nodes it can read next to one it cannot', () => {
+      const mixed = detailWith({
+        Broken: [{ data: { main: [[{ json: 'text' }]] } }],
+        'Get Unread Replies': [{ data: { main: [[{ json: { error: 'Account Restricted' } }]] } }],
+      });
+
+      const findings = detectSilentErrors(input({ executionDetails: [mixed] }));
+
+      expect(findings.map((finding) => finding.evidence['node'])).toEqual(['Get Unread Replies']);
+    });
+  });
 });
 
 describe('detectDurationDrift', () => {

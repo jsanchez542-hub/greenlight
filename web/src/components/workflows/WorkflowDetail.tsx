@@ -1,5 +1,6 @@
 'use client';
 
+import { revealControls } from 'greenlight-n8n/i18n';
 import Link from 'next/link';
 import { useLang, useMessages } from '@/i18n/context';
 import { formatBeforeScan, formatUtc } from '@/lib/format';
@@ -29,7 +30,7 @@ export function WorkflowDetail({ workflowId }: { workflowId: string }) {
     <>
       <PageHeader
         title={workflow.name}
-        meta={t.workflows.id(workflow.id)}
+        meta={t.workflows.id(revealControls(workflow.id))}
         actions={
           <Link href="/workflows" className={styles.back}>
             {t.workflows.all}

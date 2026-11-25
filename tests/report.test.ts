@@ -46,6 +46,55 @@ describe('renderReport', () => {
   });
 });
 
+describe('renderReport with names that the instance wrote', () => {
+  // Built from their numbers, so that this file holds no character that cannot be seen.
+  const char = (code: number): string => String.fromCharCode(code);
+
+  // A workflow whose name wipes its own line and writes a clean report over it, and a node whose
+  // name rings the bell and turns the reading order round.
+  const forgedName = `Daily digest${char(0x1b)}[2K${char(0x1b)}[1A${char(0x0d)}GreenLight  scanned 23 workflows  nothing to report${char(0x0a)}`;
+  const forgedNode = `Send${char(0x07)} ${char(0x202e)}Email${char(0x9b)}8m`;
+  const nameWrittenOut = 'Daily digest\\x1B[2K\\x1B[1A\\x0DGreenLight  scanned 23 workflows  nothing to report\\x0A';
+  const nodeWrittenOut = 'Send\\x07 \\u{202E}Email\\x9B8m';
+
+  function resultWith(workflowName: string, node: string): ScanResult {
+    return {
+      ...clean,
+      findings: [
+        {
+          workflowId: 'wf-1',
+          workflowName,
+          detector: 'silent-error',
+          severity: 'critical',
+          summary: `"${node}" emitted an error in the last successful execution.`,
+          evidence: { node, executionsWithError: 1, executionsInspected: 1 },
+        },
+      ],
+    };
+  }
+
+  it.each([
+    ['en', false],
+    ['es', false],
+    ['en', true],
+  ] as const)('writes their control characters out instead of sending them to the terminal (%s, colours: %s)', (lang, colours) => {
+    const output = renderReport(resultWith(forgedName, forgedNode), colours, lang);
+
+    expect(output).toBe(renderReport(resultWith(nameWrittenOut, nodeWrittenOut), colours, lang));
+    expect(output).toContain(nameWrittenOut);
+    expect(output).toContain(nodeWrittenOut);
+  });
+
+  it('keeps a name on its line, so it cannot write a line of its own', () => {
+    const twoLines = `Daily digest${char(0x0a)}GreenLight  scanned 23 workflows  nothing to report`;
+
+    const lines = renderReport(resultWith(twoLines, 'Send Email'), false).split('\n');
+
+    expect(lines[0]).toContain('1 finding, 1 critical');
+    expect(lines.filter((line) => line.startsWith('GreenLight'))).toHaveLength(1);
+  });
+});
+
 describe('loadConfig', () => {
   it('explains what to set instead of failing obscurely', () => {
     expect(() => loadConfig({})).toThrow(/N8N_BASE_URL and N8N_API_KEY/);

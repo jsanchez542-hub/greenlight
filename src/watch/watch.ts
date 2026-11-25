@@ -1,6 +1,7 @@
 import type { Severity } from '../analysis/types.js';
 import { messagesFor, type Lang } from '../i18n/index.js';
 import type { ScanResult } from '../scan.js';
+import { revealControls } from '../untrusted-text.js';
 import { atLeast, trackFindings } from './findings.js';
 import {
   buildFailureAlert,
@@ -122,10 +123,12 @@ export async function runCycle(deps: WatchDependencies): Promise<CycleOutcome> {
   let delivered = true;
   if (added.length > 0 || resolved.length > 0) {
     for (const finding of added) {
-      deps.log(t.newFinding(messagesFor(lang).alert.severity[finding.severity], finding.workflowName, finding.detector));
+      deps.log(
+        t.newFinding(messagesFor(lang).alert.severity[finding.severity], revealControls(finding.workflowName), finding.detector),
+      );
     }
     for (const finding of resolved) {
-      deps.log(t.resolvedFinding(finding.workflowName, finding.detector));
+      deps.log(t.resolvedFinding(revealControls(finding.workflowName), finding.detector));
     }
     delivered = await send(
       deps,

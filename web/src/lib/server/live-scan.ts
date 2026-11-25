@@ -104,7 +104,8 @@ function statusFailure(status: number): FailureCode {
   if (status === 403) {
     return 'scanForbidden';
   }
-  if (status === 404) {
+  // The scanner only raises a success as an error when what came with it was not an answer of the API.
+  if (status === 404 || (status >= 200 && status < 300)) {
     return 'scanNotFound';
   }
   return status >= 500 ? 'scanServerError' : 'scanFailed';

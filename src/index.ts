@@ -4,6 +4,7 @@ export { INSECURE_HTTP_MESSAGE, N8nApiError, N8nClient, type N8nClientOptions } 
 export { isPrivateHost } from './n8n/network.js';
 export { VERSION } from './version.js';
 export { renderReport } from './report.js';
+export { revealControls } from './untrusted-text.js';
 export {
   SCAN_RESULT_VERSION,
   scan,

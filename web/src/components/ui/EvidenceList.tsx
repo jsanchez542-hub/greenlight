@@ -16,7 +16,7 @@ export function EvidenceList({ evidence }: { evidence: Finding['evidence'] }) {
         return (
           <div key={key} className={styles.row}>
             <dt>{typeof label === 'string' ? label : key}</dt>
-            <dd>{typeof value === 'number' ? formatNumber(value, lang) : evidenceValue(key, value, lang)}</dd>
+            <dd>{typeof value === 'number' ? formatNumber(value, lang) : <bdi>{evidenceValue(key, value, lang)}</bdi>}</dd>
           </div>
         );
       })}

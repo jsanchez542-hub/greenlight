@@ -32,4 +32,22 @@ describe('runsOnAClock', () => {
       ]),
     ).toBe(true);
   });
+
+  describe('with nodes it cannot trust', () => {
+    it.each([
+      ['missing', undefined],
+      ['null', null],
+      ['text', 'n8n-nodes-base.scheduleTrigger'],
+      ['an object', { 0: { name: 'Nightly', type: 'n8n-nodes-base.scheduleTrigger' } }],
+    ])('does not take a workflow whose nodes are %s to run on a clock', (_shape, nodes) => {
+      expect(runsOnAClock(nodes)).toBe(false);
+    });
+
+    it('skips what is not shaped like a node and still reads the rest', () => {
+      const odd = [null, 'text', 5, { name: 'No type' }, { name: 'Type that is not text', type: 7 }];
+
+      expect(runsOnAClock(odd)).toBe(false);
+      expect(runsOnAClock([...odd, { name: 'Nightly', type: 'n8n-nodes-base.scheduleTrigger' }])).toBe(true);
+    });
+  });
 });

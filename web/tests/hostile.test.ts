@@ -6,11 +6,15 @@ import { FindingRow } from '@/components/findings/FindingRow';
 import { ConnectionCheck } from '@/components/setup/ConnectionCheck';
 import { EvidenceList } from '@/components/ui/EvidenceList';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { WorkflowMap } from '@/components/overview/WorkflowMap';
 import { WorkflowTable } from '@/components/workflows/WorkflowTable';
 import { sampleResult } from '@/lib/sample';
 import { decodeSegment, findingHref, workflowHref } from '@/lib/routes';
 import { parseScanResult } from '@/lib/scan-result';
 import { THEME_INIT_SCRIPT } from '@/lib/theme';
+
+// Characters that cannot be seen are built from their numbers, so that this file holds none.
+const char = (code: number): string => String.fromCharCode(code);
 
 const payloads = [
   '<img src=x onerror=alert(1)>',
@@ -18,7 +22,7 @@ const payloads = [
   '</script><script>alert(1)</script>',
   "'; alert(1); //",
   'javascript:alert(1)',
-  '‮evil‬​',
+  `${char(0x202e)}evil${char(0x202c)}${char(0x200b)}`,
   '<iframe srcdoc="<script>alert(1)</script>">',
   '{{constructor.constructor("alert(1)")()}}',
 ];
@@ -125,8 +129,46 @@ describe('text from an instance is never rendered as markup', () => {
   });
 });
 
+describe('a name from the instance cannot change the order in which the page is read', () => {
+  const rightToLeftOverride = char(0x202e);
+  const name = `Orders${rightToLeftOverride}`;
+  const setApart = new RegExp(`<bdi[^>]*>${name}</bdi>`);
+
+  it('is set apart from the text around it wherever it is shown on its own', () => {
+    const shown = {
+      'the finding list': html(createElement(FindingRow, { entry: { key: 'k', finding: { ...finding('x'), workflowName: name } } })),
+      'the workflow table': html(
+        createElement(WorkflowTable, {
+          workflows: [{ ...workflow('x'), name }],
+          scannedAt: sampleResult.scannedAt,
+          findingCounts: new Map(),
+          sort: 'status',
+          direction: 'asc',
+          onSort: () => undefined,
+        }),
+      ),
+      'the workflow map': html(createElement(WorkflowMap, { workflows: [{ ...workflow('x'), name }] })),
+      'a page title': html(createElement(PageHeader, { title: name })),
+      'the evidence': html(createElement(EvidenceList, { evidence: { node: name } })),
+    };
+
+    for (const [where, markup] of Object.entries(shown)) {
+      expect(markup, where).toMatch(setApart);
+    }
+  });
+
+  it('is written out where it sits inside a sentence, so the rest of the sentence keeps its order', () => {
+    const quoting = { ...finding('x'), summary: `"${name}" emitted an error.` };
+
+    const markup = html(createElement(FindingRow, { entry: { key: 'k', finding: quoting } }));
+
+    expect(markup).toContain('Orders\\u{202E}&quot; emitted an error.');
+    expect(markup).not.toContain(`${name}&quot;`);
+  });
+});
+
 describe('identifiers placed in addresses', () => {
-  const ids = ['../../etc/passwd', 'a b/c%00', '"><svg onload=alert(1)>', 'x?y=1&z=2#frag', 'back\\slash', '‮​', 'a'.repeat(5000)];
+  const ids = ['../../etc/passwd', 'a b/c%00', '"><svg onload=alert(1)>', 'x?y=1&z=2#frag', 'back\\slash', `${char(0x202e)}${char(0x200b)}`, 'a'.repeat(5000)];
   const unsafe = /[/?#\s"'<>\\]/;
 
   it('are encoded so they cannot add a segment, a query or a fragment', () => {

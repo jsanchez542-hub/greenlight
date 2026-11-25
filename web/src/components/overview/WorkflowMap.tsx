@@ -38,7 +38,7 @@ export function WorkflowMap({ workflows }: { workflows: readonly WorkflowSummary
                     <span className={styles.glyph}>
                       <StatusIcon state={state} />
                     </span>
-                    <span className={styles.name}>{workflow.name}</span>
+                    <bdi className={styles.name}>{workflow.name}</bdi>
                     <span className="visually-hidden">, {t.status.health[state].label}</span>
                   </Link>
                 </li>

@@ -94,6 +94,8 @@ describe('the package that gets published', () => {
     expect(problems({}, pack(shipped, 60_000, 900_000)).join('\n')).toContain('unpacked');
   });
 
+  // Starting npm and letting it read the whole package takes several seconds, more on a busy
+  // machine. That is slow and not stuck, so this test gets a minute where others get five seconds.
   it.skipIf(!existsSync('dist/cli.js'))('passes for the package npm would really make right now', () => {
     const [report] = JSON.parse(
       execFileSync('npm', ['pack', '--dry-run', '--json', '--ignore-scripts'], {
@@ -115,5 +117,5 @@ describe('the package that gets published', () => {
         readFileSync('dist/cli.js', 'utf8').slice(0, 64),
       ),
     ).toEqual([]);
-  });
+  }, 60_000);
 });

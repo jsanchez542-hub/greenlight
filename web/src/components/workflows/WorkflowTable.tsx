@@ -86,7 +86,7 @@ export function WorkflowTable({
             <tr key={workflow.id}>
               <th scope="row" data-label={names.name}>
                 <Link href={workflowHref(workflow.id)} className={styles.rowLink}>
-                  {workflow.name}
+                  <bdi>{workflow.name}</bdi>
                 </Link>
               </th>
               <td data-label={names.status} title={t.status.health[workflow.health].meaning}>

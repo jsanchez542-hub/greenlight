@@ -37,6 +37,30 @@ describe('buildFindingsAlert', () => {
     expect(alert.newFindings[0]?.workflowId).toBe('wf-1');
   });
 
+  it('writes the control characters of a name out in the text, and keeps the name as it is in the data', () => {
+    const char = (code: number): string => String.fromCharCode(code);
+    const name = `Orders${char(0x1b)}[2K${char(0x0d)}CRITICAL nothing${char(0x0a)}${char(0x202e)}`;
+    const summary = `"Send${char(0x07)}" emitted an error.`;
+
+    const alert = buildFindingsAlert({
+      instance: 'n8n.example.com',
+      scannedAt: '2026-01-10T12:00:00.000Z',
+      added: [tracked({ workflowName: name, summary })],
+      resolved: [tracked({ workflowName: name, key: 'wf-2:silence' })],
+    });
+
+    expect(alert.text.split('\n')).toEqual([
+      'CRITICAL Orders\\x1B[2K\\x0DCRITICAL nothing\\x0A\\u{202E} (silent-error)',
+      '"Send\\x07" emitted an error.',
+      '',
+      'Resolved:',
+      '- Orders\\x1B[2K\\x0DCRITICAL nothing\\x0A\\u{202E} (silent-error)',
+    ]);
+    expect(alert.newFindings[0]?.workflowName).toBe(name);
+    expect(alert.newFindings[0]?.summary).toBe(summary);
+    expect(alert.resolvedFindings[0]?.workflowName).toBe(name);
+  });
+
   it('does not call a mix critical', () => {
     const alert = buildFindingsAlert({
       instance: 'n8n.example.com',

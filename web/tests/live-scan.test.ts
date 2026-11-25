@@ -29,6 +29,8 @@ describe('describeScanFailure', () => {
       [401, 'scanRejectedKey'],
       [403, 'scanForbidden'],
       [404, 'scanNotFound'],
+      [200, 'scanNotFound'],
+      [204, 'scanNotFound'],
       [500, 'scanServerError'],
       [503, 'scanServerError'],
       [418, 'scanFailed'],

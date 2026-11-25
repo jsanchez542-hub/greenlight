@@ -1,6 +1,7 @@
 import type { Finding, Severity } from './analysis/types.js';
 import { describeFinding, evidenceLabel, evidenceValue, messagesFor, type Lang } from './i18n/index.js';
 import type { ScanResult } from './scan.js';
+import { revealControls } from './untrusted-text.js';
 
 const palette = {
   reset: '\u001B[0m',
@@ -42,12 +43,15 @@ function renderFinding(finding: Finding, paint: Paint, lang: Lang): string[] {
   const names = messagesFor(lang).report.severity;
   const labelWidth = Math.max(names.critical.length, names.warning.length) + 1;
   const label = paint(names[finding.severity].padEnd(labelWidth - 1), severityColour[finding.severity]);
-  const lines = [`${label} ${finding.workflowName}`, ...wrap(describeFinding(finding, lang), 72, ' '.repeat(labelWidth))];
+  const lines = [
+    `${label} ${revealControls(finding.workflowName)}`,
+    ...wrap(revealControls(describeFinding(finding, lang)), 72, ' '.repeat(labelWidth)),
+  ];
 
   // English keeps the keys as the scan result names them; Spanish reads as words.
   const shown = Object.entries(finding.evidence).map(([key, value]) => ({
-    name: lang === 'en' ? key : evidenceLabel(key, lang),
-    value: evidenceValue(key, value, lang),
+    name: revealControls(lang === 'en' ? key : evidenceLabel(key, lang)),
+    value: revealControls(evidenceValue(key, value, lang)),
   }));
   const width = Math.max(...shown.map(({ name }) => name.length));
   for (const { name, value } of shown) {

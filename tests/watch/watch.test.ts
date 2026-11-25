@@ -150,6 +150,24 @@ describe('runCycle', () => {
     expect(h.alerts[1]?.resolvedFindings).toHaveLength(1);
   });
 
+  it('writes the control characters of a name out in its log', async () => {
+    const char = (code: number): string => String.fromCharCode(code);
+    const forged = { ...critical, workflowName: `Orders${char(0x1b)}[2K${char(0x0d)}RESOLVED everything${char(0x0a)}` };
+    const lines: string[] = [];
+    const h = harness({ clearAfterScans: 1 });
+    h.deps.log = (line) => void lines.push(line);
+
+    h.next(scanOf(forged));
+    h.next(scanOf());
+    await runCycle(h.deps);
+    await runCycle(h.deps);
+
+    expect(lines.filter((line) => line.includes('Orders'))).toEqual([
+      'NEW CRITICAL Orders\\x1B[2K\\x0DRESOLVED everything\\x0A (silent-error)',
+      'RESOLVED Orders\\x1B[2K\\x0DRESOLVED everything\\x0A (silent-error)',
+    ]);
+  });
+
   it('records changes without a webhook and does not fail', async () => {
     const h = harness({}, false);
     h.next(scanOf(critical));

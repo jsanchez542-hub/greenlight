@@ -89,7 +89,8 @@ function explainStatus(status: number, t: Messages): { stage: 'authenticate' | '
   if (status === 403) {
     return { stage: 'authenticate', ...d.status403 };
   }
-  if (status === 404) {
+  // A success only gets here when what came with it was not an answer of the API.
+  if (status === 404 || (status >= 200 && status < 300)) {
     return { stage: 'reach', ...d.status404 };
   }
   if (status >= 300 && status < 400) {

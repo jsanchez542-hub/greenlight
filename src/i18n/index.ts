@@ -4,6 +4,7 @@ import type { Lang } from './lang.js';
 
 export { DEFAULT_LANG, languages, parseLang, resolveLang, type Lang } from './lang.js';
 export { describeFinding, evidenceLabel, evidenceValue } from './findings.js';
+export { revealControls } from '../untrusted-text.js';
 export type { Messages } from './en.js';
 
 const catalogues: Record<Lang, Messages> = { en, es };

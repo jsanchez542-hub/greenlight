@@ -1,4 +1,5 @@
 import { describeFinding, messagesFor, type Lang } from '../i18n/index.js';
+import { revealControls } from '../untrusted-text.js';
 import type { TrackedFinding } from './findings.js';
 
 export type AlertType = 'findings' | 'scan-failing' | 'scan-recovered';
@@ -66,12 +67,15 @@ export function buildFindingsAlert(input: FindingsAlertInput): AlertPayload {
 
   const newFindings = added.map((finding) => toAlertFinding(finding, lang));
   const lines = added.flatMap((finding, index) => [
-    `${t.severity[finding.severity]} ${finding.workflowName} (${finding.detector})`,
-    newFindings[index]?.summary ?? finding.summary,
+    `${t.severity[finding.severity]} ${revealControls(finding.workflowName)} (${finding.detector})`,
+    revealControls(newFindings[index]?.summary ?? finding.summary),
     '',
   ]);
   if (resolved.length > 0) {
-    lines.push(t.resolvedHeading, ...resolved.map((finding) => `- ${finding.workflowName} (${finding.detector})`));
+    lines.push(
+      t.resolvedHeading,
+      ...resolved.map((finding) => `- ${revealControls(finding.workflowName)} (${finding.detector})`),
+    );
   }
 
   return {
