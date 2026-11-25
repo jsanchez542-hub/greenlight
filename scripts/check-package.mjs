@@ -16,8 +16,9 @@ const outIndex = process.argv.indexOf('--out');
 const outDirectory = resolve(outIndex === -1 ? '.' : (process.argv[outIndex + 1] ?? '.'));
 mkdirSync(outDirectory, { recursive: true });
 
-// The build has already run: the tarball must hold what was built and tested, so no script is
-// allowed to rebuild it here.
+// --ignore-scripts stops prepack and postpack, but npm still runs prepare, so packing compiles
+// dist/ again from the same sources. The release installs this very tarball in the smoke test and
+// publishes the same file once that passes.
 const packed = spawnCommandSync('npm', ['pack', '--json', '--ignore-scripts', '--pack-destination', outDirectory], {
   encoding: 'utf8',
 });
