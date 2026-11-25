@@ -235,7 +235,7 @@ With watch --once it is the same, so it can run from cron or a scheduler.
     newFinding: (severity: string, name: string, detector: string) => `NEW ${severity} ${name} (${detector})`,
     resolvedFinding: (name: string, detector: string) => `RESOLVED ${name} (${detector})`,
     cycle: (workflows: number, open: number, added: number, resolved: number) =>
-      `Scanned ${workflows} workflows: ${open} open, ${added} new, ${resolved} resolved.`,
+      `Scanned ${plural(workflows, 'workflow', 'workflows')}: ${open} open, ${added} new, ${resolved} resolved.`,
     notDelivered: (reason: string) => `Alert not delivered, will retry on the next scan: ${reason}`,
     scanFailed: (failures: number, reason: string) => `Scan failed (${failures} in a row): ${reason}`,
     stateUnreadable: (path: string) => `Could not read ${path}; starting without history.`,

@@ -126,7 +126,7 @@ export async function runInit(deps: InitDependencies): Promise<number> {
   for (const line of t.updatesIntro) {
     prompter.say(line);
   }
-  values['GREENLIGHT_CHECK_UPDATES'] = (await prompter.confirm(t.askUpdates, true)) ? '1' : '0';
+  values['GREENLIGHT_CHECK_UPDATES'] = (await prompter.confirm(t.askUpdates, false)) ? '1' : '0';
 
   prompter.say('');
   if (!(await prompter.confirm(t.confirmSave(envPath), true))) {

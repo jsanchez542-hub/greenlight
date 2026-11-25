@@ -16,6 +16,7 @@ function session(script: Script, existing: string | null = null, accepts: (key: 
   const written: { path: string; text: string }[] = [];
   const answers = [...script.answers];
   const confirms = [...(script.confirms ?? [])];
+  const confirmed: { question: string; defaultYes: boolean }[] = [];
 
   const prompter: Prompter = {
     async ask(question, options = {}) {
@@ -26,7 +27,8 @@ function session(script: Script, existing: string | null = null, accepts: (key: 
       }
       return answer === '' && options.defaultValue !== undefined ? options.defaultValue : answer;
     },
-    async confirm() {
+    async confirm(question, defaultYes) {
+      confirmed.push({ question, defaultYes });
       return confirms.shift() ?? true;
     },
     say: (line) => void said.push(line),
@@ -61,7 +63,7 @@ function session(script: Script, existing: string | null = null, accepts: (key: 
     readFile: () => existing,
     writeFile: (path: string, text: string) => void written.push({ path, text }),
   };
-  return { deps, said, asked, written };
+  return { deps, said, asked, written, confirmed };
 }
 
 describe('runInit', () => {
@@ -227,6 +229,13 @@ describe('renderDiagnosis', () => {
 
     expect(await runInit(deps)).toBe(0);
     expect(written[0]?.text).toContain('GREENLIGHT_CHECK_UPDATES=0');
+  });
+
+  it('offers version notices with no as the answer to a bare Enter', async () => {
+    const { deps, confirmed } = session({ answers: ['https://n8n.example.com', KEY, ''] });
+
+    expect(await runInit(deps)).toBe(0);
+    expect(confirmed.find((call) => call.question === 'Tell me about new versions?')?.defaultYes).toBe(false);
   });
 
   it('speaks Spanish when asked to, and says the same things', async () => {
