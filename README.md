@@ -243,6 +243,7 @@ Where n8n lets you choose the scopes of an API key, `workflow:list`, `workflow:r
 | `npm run watch` | scans on a schedule and alerts on changes |
 | `npm run panel` | prepares and starts the dashboard, and opens it in the browser |
 | `npm run example` | prints the report for a synthetic instance |
+| `npm run benchmark` | times a scan of an invented instance, to measure what reading several workflows at once gains |
 
 `scan` and `watch --once` exit with 0 when nothing is found, 1 when something is, and 2 when the
 scan could not run, so they can gate a deployment pipeline. Outside a clone of this repository the
@@ -348,7 +349,7 @@ workflow at a time as version 1.0 did, with an identical result. A real instance
 pace and may slow down if it is asked for more at once, so lower the setting if it does, or if a
 proxy in front of it limits requests. `npm run benchmark` repeats the measurement.
 
-The CI scans a real n8n of versions 2.45.7 and 3.0.1 on every change to the code, with workflows
+The CI scans a real n8n of versions 2.45.7 and 3.0.1 on every change to the scanner, with workflows
 that fail in known ways, and checks that the scan reports exactly what was planted
 ([e2e/README.md](e2e/README.md)). The checks that depend on time (drift, silence and frequency drop)
 are covered by tests with invented histories, because a new instance has no history to judge. Other
@@ -400,6 +401,9 @@ This README, [CHANGELOG.md](CHANGELOG.md), [CONTRIBUTING.md](CONTRIBUTING.md) an
 | `tests/` | its tests |
 | `web/` | the dashboard, a separate Next.js project |
 | `examples/` | the synthetic instance, its output, and the n8n workflow for email alerts |
+| `e2e/` | the test against a real n8n that the CI runs on every change to the scanner |
+| `scripts/` | the launcher of the dashboard, the benchmark and the checks that run before a release |
+| `docs/` | the screenshots and [how a release is made](docs/releasing.md) |
 | `assets/logo/` | the logo in the sizes a page needs |
 
 The scanner has no production dependencies and runs on Node alone.
