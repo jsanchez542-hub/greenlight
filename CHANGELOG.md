@@ -5,6 +5,10 @@ and the project follows [semantic versioning](https://semver.org); the README sa
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-11-25
+
+Keeps a promise the README makes about privacy, and fixes two English plurals.
+
 ### Fixed
 
 - The notice about new versions is off until you turn it on, as the README says: `init` asks with
