@@ -148,7 +148,8 @@ export const en = {
       },
     },
     severity: { critical: 'Critical', warning: 'Warning' },
-    severityCount: (severity: 'critical' | 'warning', count: number) => `${n(count)} ${severity}`,
+    severityCount: (severity: 'critical' | 'warning', count: number) =>
+      severity === 'critical' ? `${n(count)} critical` : plural(count, 'warning', 'warnings'),
     trigger: {
       schedule: { label: 'Schedule', meaning: 'Started by a clock' },
       event: {

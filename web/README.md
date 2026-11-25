@@ -227,8 +227,8 @@ GreenLight only contacts your n8n, with one exception that is **off until you tu
 notice that a new version is out. It exists so that the dashboard does not need to be remembered
 to be updated, and it never installs anything.
 
-- **Turning it on:** the **Connect** form has a box, ticked by default, and the connected page
-  has the same switch, off until someone chooses. Choosing writes `GREENLIGHT_CHECK_UPDATES=1`
+- **Turning it on:** the **Connect** form has a box and the connected page a switch, both off
+  until someone turns them on. Choosing writes `GREENLIGHT_CHECK_UPDATES=1`
   (or `0`) to the settings. A person who chose no is not asked again: the form respects it when the
   key is changed.
 - **What is asked:** while it is on, the server makes one plain `GET` to

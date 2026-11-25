@@ -5,6 +5,14 @@ and the project follows [semantic versioning](https://semver.org); the README sa
 
 ## [Unreleased]
 
+### Fixed
+
+- The notice about new versions is off until you turn it on, as the README says: `init` asks with
+  no as the default answer, and the dashboard's Connect form leaves its box unticked unless the
+  notice is already on.
+- English plurals: "2 warnings" in the dashboard and "Scanned 1 workflow" in the watch log.
+- The screenshots show the current version.
+
 ## [1.1.0] - 2026-11-07
 
 One command to try it, faster scans and a test against a real n8n.

@@ -139,7 +139,7 @@ export function SetupView() {
           ) : (
             <ConnectForm
               busy={busy}
-              notifyByDefault={!(updates.state?.enabled === false && updates.state.chosen)}
+              notifyByDefault={updates.state?.enabled === true}
               onConnect={connect}
             />
           )}
