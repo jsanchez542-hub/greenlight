@@ -25,13 +25,17 @@ cannot be replaced: if something is wrong with it, publish a patch version and r
 
 ## Making a release
 
-1. Set the new version with `npm version <version> --no-git-tag-version`, and move the Unreleased
+1. Check that the `npm` environment exists in Settings, then Environments, with a required reviewer
+   and deployments limited to the tags `v*`. If it was deleted, create it again as described under
+   "Setting it up once", without any secret. A release run that names an environment which does not
+   exist creates it without protection.
+2. Set the new version with `npm version <version> --no-git-tag-version`, and move the Unreleased
    part of `CHANGELOG.md` under that version with its date.
-2. Merge it into `main` with the checks green.
-3. On GitHub, create a release with the tag `v<version>` on `main` and publish it. A version with a
+3. Merge it into `main` with the checks green.
+4. On GitHub, create a release with the tag `v<version>` on `main` and publish it. A version with a
    suffix, such as `1.2.0-rc.1`, is published under the `next` tag and not under `latest`.
-4. Approve the deployment to the `npm` environment in the run of the Release workflow.
-5. Wait for the two **Check it on npm** jobs to finish.
+5. Approve the deployment to the `npm` environment in the run of the Release workflow.
+6. Wait for the two **Check it on npm** jobs to finish.
 
 ## Trying the pipeline without publishing
 
@@ -69,7 +73,8 @@ npm does, that page is the one to check.
 **After the first release**
 
 1. Delete the `NPM_TOKEN` secret and revoke the token on npm. The workflow publishes without a
-   token when the secret is absent.
+   token when the secret is absent. Keep the `npm` environment itself: its name is what the trusted
+   publisher below is tied to, and the reviewer and the tag rule are what protect a release.
 2. On the day of the second release, before publishing it, open the settings of the package on
    npmjs.com, find Trusted Publisher, choose GitHub Actions and fill in the owner
    `jsanchez542-hub`, the repository `greenlight`, the workflow file `release.yml` and the
