@@ -5,6 +5,41 @@ and the project follows [semantic versioning](https://semver.org); the README sa
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-11-25
+
+A scan now copes with an instance that answers in ways n8n does not, and a name on the instance can
+no longer act on a terminal.
+
+### Fixed
+
+- A scan no longer stops because one execution holds data in a shape n8n does not produce. The
+  silent error check read the output of every step as if it always had that shape, so a single odd
+  execution among the ones it inspects ended the scan of the whole instance with an error. It now
+  skips what it cannot read and reports the rest.
+- An address that answers, but not as the n8n API does, is reported as that. When the answer was a
+  web page, or a document without the list that was asked for, the scan ended with an error that
+  explained nothing, and the connection check said that no answer had come back. Both now say that
+  what answered is not the n8n API and that the address is the thing to check.
+- A workflow whose nodes cannot be read no longer stops the scan. It is treated as one that does
+  not run on a schedule.
+- A list that the instance never ends no longer keeps a scan going for ever. When the instance
+  points again to a page it already gave, gives an empty page that says there is more, or the list
+  passes 100000 entries, the scan stops and says which list it was.
+- A workflow whose id the instance sends as a number is handled like any other. The number went
+  on as it was into the `--json` output, where an id is text, and the dashboard refused a result
+  that held one.
+
+### Security
+
+- A name that the instance holds can no longer act on a terminal. The report, the log of `watch`
+  and the text of an alert wrote the names of workflows and nodes as they were, so a name with
+  control characters in it could move the cursor, wipe a line or turn round the reading order of
+  what followed, and make a report say something it did not. Those characters are now written out
+  as the escapes they stand for, such as `\x1B`. The `--json` output and the lists of an alert
+  still carry every name unchanged, as data.
+- In the dashboard a name that the instance holds is set apart from the text around it, so one that
+  carries characters for the direction of text cannot change the order in which the page is read.
+
 ## [1.1.1] - 2026-11-25
 
 Keeps a promise the README makes about privacy, and fixes two English plurals.
